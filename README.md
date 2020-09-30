@@ -10,7 +10,7 @@ As well as PE and ELF still have to be extended.
 
 POSIX compliant.  
 Compilable under Linux and Windows (x86/x64).  
-MacOs may work too.
+OsX may work too.
 
 
 ## Version ##
