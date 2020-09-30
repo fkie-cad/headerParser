@@ -76,13 +76,13 @@ int PEfillCertificateTable(PeAttributeCertificateTable* table, uint8_t max_size,
 	uint8_t i = 0;
 
     if ( IMAGE_DIRECTORY_ENTRY_CERTIFICATE >= oh->NumberOfRvaAndSizes )
-        return -1;
+        return 0;
 
     address = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_CERTIFICATE].VirtualAddress;
     size = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_CERTIFICATE].Size;
 
 	if ( address == 0 || size <= sizeof(PeAttributeCertificateTable) )
-		return -2;
+		return 0;
 
 	end = (uint64_t)address + size;
 
