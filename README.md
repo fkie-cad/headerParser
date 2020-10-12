@@ -36,7 +36,8 @@ $ gcc -o build/headerParser -Ofast headerParser.c
 ```bash
 $ ./winBuild.bat [/t headerParser] [/b 32|64] [/m Release|Debug] [/h]
 ```
-The correct path to your build tools may be passed as a parameter or changed in the script [winBuild.bat](winBuild.bat) itself.
+The correct path to your build tools may be passed as a parameter or changed in the script [winBuild.bat](winBuild.bat) itself.  
+Thats the place to correct the path to your cmake installation as well.
 
  
 

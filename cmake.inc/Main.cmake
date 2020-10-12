@@ -5,6 +5,7 @@ add_executable(
 	)
 target_sources(${HEADER_PARSER} PRIVATE
 	${HEADER_PARSER_SRC}
+	res/headerParser.rc
 	)
 
 set(LIB_NAME headerparser)
