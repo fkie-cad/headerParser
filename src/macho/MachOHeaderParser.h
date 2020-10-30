@@ -17,88 +17,199 @@
 
 
 
-void parseMachOHeader();
-void MachOfillHeaderDataWithMagic();
-int MachoOfillMachHeader(MachHeader64* h);
-void MachoOreadCommands(uint32_t ncmds);
-void MachOfillLoadCommand(LoadCommand* lc, uint64_t offset);
-uint64_t MachoOfillSegmentCommand(uint64_t sc_offset, SegmentCommand64* sc, Segment_Command_Offsets offsets);
-uint64_t MachoOreadSections(SegmentCommand64* c, uint64_t offset);
-void MachoOreadSection(MachOSection64* sec, uint64_t offset, MachO_Section_Offsets offsets);
-void MachOfillDylibCommand(DylibCommand* c, uint64_t offset);
-void MachOfillPreboundDylibCommand(PreboundDylibCommand* c, uint64_t offset);
-uint8_t MachOisExecutableSection(const MachOSection64* sec);
-CodeRegionData MachoOfillCodeRegion(const MachOSection64* sec);
-void MachOfillUuidCommand(UuidCommand* c, uint64_t offset);
-void MachOfillSubCommand(SubCommand* c, uint64_t offset);
-void MachOfillSymtabCommand(SymtabCommand* c, uint64_t offset);
-void MachOfillDySymtabCommand(DySymtabCommand* c, uint64_t offset);
-void MachOfillRoutinesCommand(RoutinesCommand64* c, uint64_t offset);
-void MachOfillVersionMinCommand(VersionMinCommand* c, uint64_t offset);
-void MachOfillThreadCommand(ThreadCommand* c, uint64_t offset);
-void MachOfillLinkedItDataCommand(LinkedItDataCommand* c, uint64_t offset);
-void MachOfillDyldInfoCommand(DyldInfoCommand* c, uint64_t offset);
-void MachOfillSourceVersionCommand(SourceVersionCommand* c, uint64_t offset);
-void MachOfillMainDylibCommand(MainDylibCommand* c, uint64_t offset);
-void MachOfillBuildVersionCommand(BuildVersionCommand* c, uint64_t offset);
+void parseMachOHeader(PHeaderData hd, PGlobalParams gp);
+
+void MachO_fillHeaderDataWithMagic(PHeaderData hd,
+                                   unsigned char* block_l);
+int MachO_fillMachHeader(MachHeader64* h,
+						 uint64_t start_file_offset,
+						 size_t file_size,
+						 uint8_t bitness,
+						 uint8_t endian,
+						 unsigned char* block_l);
+void MachO_readCommands(uint32_t ncmds,
+						uint64_t* abs_file_offset,
+						size_t file_size,
+						uint8_t info_level,
+						PHeaderData hd,
+						const char* file_name,
+						unsigned char* block_l);
+void MachO_fillLoadCommand(LoadCommand* lc,
+						   uint64_t offset,
+						   PHeaderData hd,
+						   unsigned char* block_l);
+uint64_t MachO_fillSegmentCommand(uint64_t sc_offset,
+								  SegmentCommand64* sc,
+								  Segment_Command_Offsets offsets,
+								  uint64_t* abs_file_offset,
+								  size_t file_size,
+								  uint8_t info_level,
+								  PHeaderData hd,
+								  const char* file_name,
+								  unsigned char* block_l);
+uint64_t MachO_readSections(SegmentCommand64* c,
+							uint64_t offset,
+							uint64_t* abs_file_offset,
+							size_t file_size,
+							uint8_t info_level,
+							PHeaderData hd,
+							const char* file_name,
+							unsigned char* block_l);
+void MachO_readSection(MachOSection64* sec,
+					   uint64_t offset,
+					   MachO_Section_Offsets offsets,
+					   uint8_t bitness,
+					   uint8_t endian,
+					   unsigned char* block_l);
+uint8_t MachO_isExecutableSection(const MachOSection64* sec);
+CodeRegionData MachO_fillCodeRegion(const MachOSection64* sec);
+void MachO_fillUuidCommand(UuidCommand* c,
+						   uint64_t offset,
+						   uint64_t abs_file_offset,
+						   uint8_t info_level,
+						   unsigned char* block_l);
+void MachO_fillDylibCommand(DylibCommand* c,
+							uint64_t offset,
+							uint64_t abs_file_offset,
+							uint8_t info_level,
+							PHeaderData hd,
+							unsigned char* block_l);
+void MachO_fillPreboundDylibCommand(PreboundDylibCommand* c,
+									uint64_t offset,
+									uint64_t abs_file_offset,
+									uint8_t info_level,
+									PHeaderData hd,
+									unsigned char* block_l);
+void MachO_fillSubCommand(SubCommand* c,
+						  uint64_t offset,
+						  uint64_t abs_file_offset,
+						  uint8_t info_level,
+						  PHeaderData hd,
+						  unsigned char* block_l);
+void MachO_fillSymtabCommand(SymtabCommand* c,
+							 uint64_t offset,
+							 uint64_t abs_file_offset,
+							 uint8_t info_level,
+							 PHeaderData hd,
+							 unsigned char* block_l);
+void MachO_fillDySymtabCommand(DySymtabCommand* c,
+							   uint64_t offset,
+							   uint64_t abs_file_offset,
+							   uint8_t info_level,
+							   PHeaderData hd,
+							   unsigned char* block_l);
+void MachO_fillRoutinesCommand(RoutinesCommand64* c,
+							   uint64_t offset,
+							   uint64_t abs_file_offset,
+							   uint8_t info_level,
+							   PHeaderData hd,
+							   unsigned char* block_l);
+void MachO_fillVersionMinCommand(VersionMinCommand* c,
+								 uint64_t offset,
+								 uint64_t abs_file_offset,
+								 uint8_t info_level,
+								 PHeaderData hd,
+								 unsigned char* block_l);
+void MachO_fillThreadCommand(ThreadCommand* c,
+							 uint64_t offset,
+							 uint64_t abs_file_offset,
+							 uint8_t info_level,
+							 PHeaderData hd,
+							 unsigned char* block_l);
+void MachO_fillLinkedItDataCommand(LinkedItDataCommand* c,
+								   uint64_t offset,
+								   uint64_t abs_file_offset,
+								   uint8_t info_level,
+								   PHeaderData hd,
+								   unsigned char* block_l);
+void MachO_fillDyldInfoCommand(DyldInfoCommand* c,
+							   uint64_t offset,
+							   uint64_t abs_file_offset,
+							   uint8_t info_level,
+							   PHeaderData hd,
+							   unsigned char* block_l);
+void MachO_fillSourceVersionCommand(SourceVersionCommand* c,
+									uint64_t offset,
+									uint64_t abs_file_offset,
+									uint8_t info_level,
+									PHeaderData hd,
+									unsigned char* block_l);
+void MachO_fillMainDylibCommand(MainDylibCommand* c,
+								uint64_t offset,
+								uint64_t abs_file_offset,
+								uint8_t info_level,
+								PHeaderData hd,
+								unsigned char* block_l);
+void MachO_fillBuildVersionCommand(BuildVersionCommand* c,
+								   uint64_t offset,
+								   uint64_t abs_file_offset,
+								   uint8_t info_level,
+								   PHeaderData hd,
+								   unsigned char* block_l);
 
 
 
-void parseMachOHeader()
+void parseMachOHeader(PHeaderData hd, PGlobalParams gp)
 {
 	int s = 0;
 	MachHeader64 mach_header;
 	ArchitectureMapEntry* arch;
 
-	MachOfillHeaderDataWithMagic();
+	MachO_fillHeaderDataWithMagic(hd, gp->block_large);
 
-	s = MachoOfillMachHeader(&mach_header);
+	s = MachO_fillMachHeader(&mach_header,gp->start_file_offset, gp->file_size, hd->bitness, hd->endian, gp->block_large);
 	if ( s != 0 ) return;
 
-	if ( info_level >= INFO_LEVEL_FULL )
-		MachOprintFileHeader(&mach_header);
+	if ( gp->info_level >= INFO_LEVEL_FULL )
+		MachO_printFileHeader(&mach_header, hd->bitness, hd->endian, gp->start_file_offset);
 
 	arch = getArchitecture(mach_header.cputype, mach_o_arch_id_mapper, mach_o_arch_id_mapper_size);
-	HD->Machine = arch->arch.name;
-	HD->CPU_arch = arch->arch_id;
+	hd->Machine = arch->arch.name;
+	hd->CPU_arch = arch->arch_id;
 
-	MachoOreadCommands(mach_header.ncmds);
+	MachO_readCommands(mach_header.ncmds, &gp->abs_file_offset, gp->file_size, gp->info_level, hd, gp->file_name, gp->block_large);
 }
 
-void MachOfillHeaderDataWithMagic()
+void MachO_fillHeaderDataWithMagic(PHeaderData hd,
+								   unsigned char* block_l)
 {
-	HD->headertype = HEADER_TYPE_MACH_O;
-	HD->CPU_arch = ARCH_OS_X;
-	if ( checkBytes(MAGIC_MACH_O_BYTES_32, MAGIC_MACH_O_BYTES_LN, block_large))
+	hd->headertype = HEADER_TYPE_MACH_O;
+	hd->CPU_arch = ARCH_OS_X;
+	if ( checkBytes(MAGIC_MACH_O_BYTES_32, MAGIC_MACH_O_BYTES_LN, block_l))
 	{
-		HD->bitness = 32;
-		HD->endian = ENDIAN_BIG;
+		hd->bitness = 32;
+		hd->endian = ENDIAN_BIG;
 	}
-	else if ( checkBytes(MAGIC_MACH_O_BYTES_64, MAGIC_MACH_O_BYTES_LN, block_large))
+	else if ( checkBytes(MAGIC_MACH_O_BYTES_64, MAGIC_MACH_O_BYTES_LN, block_l))
 	{
-		HD->bitness = 64;
-		HD->endian = ENDIAN_BIG;
+		hd->bitness = 64;
+		hd->endian = ENDIAN_BIG;
 	}
-	else if ( checkBytes(MAGIC_MACH_O_BYTES_32_RV, MAGIC_MACH_O_BYTES_LN, block_large))
+	else if ( checkBytes(MAGIC_MACH_O_BYTES_32_RV, MAGIC_MACH_O_BYTES_LN, block_l))
 	{
-		HD->bitness = 32;
-		HD->endian = ENDIAN_LITTLE;
+		hd->bitness = 32;
+		hd->endian = ENDIAN_LITTLE;
 	}
-	else if ( checkBytes(MAGIC_MACH_O_BYTES_64_RV, MAGIC_MACH_O_BYTES_LN, block_large))
+	else if ( checkBytes(MAGIC_MACH_O_BYTES_64_RV, MAGIC_MACH_O_BYTES_LN, block_l))
 	{
-		HD->bitness = 64;
-		HD->endian = ENDIAN_LITTLE;
+		hd->bitness = 64;
+		hd->endian = ENDIAN_LITTLE;
 	}
 }
 
-int MachoOfillMachHeader(MachHeader64* h)
+int MachO_fillMachHeader(MachHeader64* h,
+						 uint64_t start_file_offset,
+						 size_t file_size,
+						 uint8_t bitness,
+						 uint8_t endian,
+						 unsigned char* block_l)
 {
 	unsigned char *ptr;
 
-	if ( !checkFileSpace(0, start_file_offset, SIZE_OF_MACHO_O_HEADER_64, "SIZE_OF_MACHO_O_HEADER_64") )
+	if ( !checkFileSpace(0, start_file_offset, SIZE_OF_MACHO_O_HEADER_64, file_size) )
 		return 1;
 
-	ptr = &block_large[0];
+	ptr = &block_l[0];
 
 	h->magic = *((uint32_t*) &ptr[MachHeaderOffsets.magic]);
 	h->cputype = *((cpu_type_t*) &ptr[MachHeaderOffsets.cputype]);
@@ -107,9 +218,9 @@ int MachoOfillMachHeader(MachHeader64* h)
 	h->ncmds = *((uint32_t*) &ptr[MachHeaderOffsets.ncmds]);
 	h->sizeofcmds = *((uint32_t*) &ptr[MachHeaderOffsets.sizeofcmds]);
 	h->flags = *((uint32_t*) &ptr[MachHeaderOffsets.flags]);
-	if ( HD->bitness == 64 ) h->reserved = *((uint32_t*) &ptr[MachHeaderOffsets.reserved]);
+	if ( bitness == 64 ) h->reserved = *((uint32_t*) &ptr[MachHeaderOffsets.reserved]);
 
-	if ( HD->endian == ENDIAN_BIG )
+	if ( endian == ENDIAN_BIG )
 	{
 		h->cputype = swapUint16(h->cputype);
 		h->cpusubtype = swapUint16(h->cpusubtype);
@@ -117,20 +228,26 @@ int MachoOfillMachHeader(MachHeader64* h)
 		h->ncmds = swapUint16(h->ncmds);
 		h->sizeofcmds = swapUint16(h->sizeofcmds);
 		h->flags = swapUint16(h->flags);
-		if ( HD->bitness == 64 ) h->reserved = swapUint16(h->reserved);
+		if ( bitness == 64 ) h->reserved = swapUint16(h->reserved);
 	}
 
 	return 0;
 }
 
-void MachoOreadCommands(uint32_t ncmds)
+void MachO_readCommands(uint32_t ncmds,
+						uint64_t* abs_file_offset,
+						size_t file_size,
+						uint8_t info_level,
+						PHeaderData hd,
+						const char* file_name,
+						unsigned char* block_l)
 {
 	uint32_t i;
 	Segment_Command_Offsets seg_offsets;
 	LoadCommand lc;
 	uint64_t sc_offset;
 
-	if ( HD->bitness == 64 )
+	if ( hd->bitness == 64 )
 	{
 		sc_offset = SIZE_OF_MACHO_O_HEADER_64;
 		seg_offsets = SegmentCommandOffsets64;
@@ -152,23 +269,23 @@ void MachoOreadCommands(uint32_t ncmds)
 		if ( info_level >= INFO_LEVEL_FULL )
 			printf("(%u/%u):\n", i+1, ncmds);
 
-		if ( !checkFileSpace(sc_offset, abs_file_offset, SIZE_OF_MACHO_O_LOAD_COMMAND, "SIZE_OF_MACHO_O_LOAD_COMMAND") )
+		if ( !checkFileSpace(sc_offset, *abs_file_offset, SIZE_OF_MACHO_O_LOAD_COMMAND, file_size) )
 			return;
 
-		if ( !checkLargeBlockSpace(&sc_offset, &abs_file_offset, SIZE_OF_MACHO_O_LOAD_COMMAND, "SIZE_OF_MACHO_O_LOAD_COMMAND") )
+		if ( !checkLargeBlockSpace(&sc_offset, abs_file_offset, SIZE_OF_MACHO_O_LOAD_COMMAND, block_l, file_name) )
 			return;
 
-		MachOfillLoadCommand(&lc, sc_offset);
+		MachO_fillLoadCommand(&lc, sc_offset, hd, block_l);
 
 		debug_info(" - lc.cmd: %u\n", lc.cmd);
 		debug_info(" - lc.cmdsize: %u\n", lc.cmdsize);
 		debug_info(" - sc_offset + lc.cmdsize: %lu\n", sc_offset + lc.cmdsize);
-		debug_info(" - file_size: %u\n", file_size);
+		debug_info(" - file_size: %zu\n", file_size);
 
-		if ( !checkFileSpace(sc_offset, abs_file_offset, lc.cmdsize, "cmd size") )
+		if ( !checkFileSpace(sc_offset, *abs_file_offset, lc.cmdsize, file_size) )
 			return;
 
-		if ( !checkLargeBlockSpace(&sc_offset, &abs_file_offset, lc.cmdsize, "cmd size") )
+		if ( !checkLargeBlockSpace(&sc_offset, abs_file_offset, lc.cmdsize, block_l, file_name) )
 			return;
 
 		if ( lc.cmd == LC_SEGMENT || lc.cmd == LC_SEGMENT_64 )
@@ -177,7 +294,7 @@ void MachoOreadCommands(uint32_t ncmds)
 			SegmentCommand64 c;
 			c.cmd = lc.cmd;
 			c.cmdsize = lc.cmdsize;
-			sc_offset = MachoOfillSegmentCommand(sc_offset, &c, seg_offsets);
+			sc_offset = MachO_fillSegmentCommand(sc_offset, &c, seg_offsets, abs_file_offset, file_size, info_level, hd, file_name, block_l);
 		}
 		else if ( lc.cmd == LC_UUID )
 		{
@@ -185,7 +302,7 @@ void MachoOreadCommands(uint32_t ncmds)
 			UuidCommand c;
 			c.cmd = lc.cmd;
 			c.cmdsize = lc.cmdsize;
-			MachOfillUuidCommand(&c, sc_offset);
+			MachO_fillUuidCommand(&c, sc_offset, *abs_file_offset, info_level, block_l);
 
 			sc_offset += lc.cmdsize;
 		}
@@ -196,7 +313,7 @@ void MachoOreadCommands(uint32_t ncmds)
 			c.cmd = lc.cmd;
 			c.cmdsize = lc.cmdsize;
 
-			MachOfillDylibCommand(&c, sc_offset);
+			MachO_fillDylibCommand(&c, sc_offset, *abs_file_offset, info_level, hd, block_l);
 
 			sc_offset += lc.cmdsize;
 		}
@@ -207,7 +324,7 @@ void MachoOreadCommands(uint32_t ncmds)
 			c.cmd = lc.cmd;
 			c.cmdsize = lc.cmdsize;
 
-			MachOfillPreboundDylibCommand(&c, sc_offset);
+			MachO_fillPreboundDylibCommand(&c, sc_offset, *abs_file_offset, info_level, hd, block_l);
 
 			sc_offset += lc.cmdsize;
 		}
@@ -221,7 +338,7 @@ void MachoOreadCommands(uint32_t ncmds)
 			c.cmd = lc.cmd;
 			c.cmdsize = lc.cmdsize;
 
-			MachOfillSubCommand(&c, sc_offset);
+			MachO_fillSubCommand(&c, sc_offset, *abs_file_offset, info_level, hd, block_l);
 
 			sc_offset += lc.cmdsize;
 		}
@@ -232,7 +349,7 @@ void MachoOreadCommands(uint32_t ncmds)
 			c.cmd = lc.cmd;
 			c.cmdsize = lc.cmdsize;
 
-			MachOfillSymtabCommand(&c, sc_offset);
+			MachO_fillSymtabCommand(&c, sc_offset, *abs_file_offset, info_level, hd, block_l);
 
 			sc_offset += lc.cmdsize;
 		}
@@ -243,7 +360,7 @@ void MachoOreadCommands(uint32_t ncmds)
 			c.cmd = lc.cmd;
 			c.cmdsize = lc.cmdsize;
 
-			MachOfillDySymtabCommand(&c, sc_offset);
+			MachO_fillDySymtabCommand(&c, sc_offset, *abs_file_offset, info_level, hd, block_l);
 
 			sc_offset += lc.cmdsize;
 		}
@@ -255,7 +372,7 @@ void MachoOreadCommands(uint32_t ncmds)
 			c.cmd = lc.cmd;
 			c.cmdsize = lc.cmdsize;
 
-			MachOfillSubCommand(&c, sc_offset);
+			MachO_fillSubCommand(&c, sc_offset, *abs_file_offset, info_level, hd, block_l);
 
 			sc_offset += lc.cmdsize;
 		}
@@ -267,7 +384,7 @@ void MachoOreadCommands(uint32_t ncmds)
 			c.cmd = lc.cmd;
 			c.cmdsize = lc.cmdsize;
 
-			MachOfillRoutinesCommand(&c, sc_offset);
+			MachO_fillRoutinesCommand(&c, sc_offset, *abs_file_offset, info_level, hd, block_l);
 
 			sc_offset += lc.cmdsize;
 		}
@@ -279,7 +396,7 @@ void MachoOreadCommands(uint32_t ncmds)
 			c.cmd = lc.cmd;
 			c.cmdsize = lc.cmdsize;
 
-			MachOfillThreadCommand(&c, sc_offset);
+			MachO_fillThreadCommand(&c, sc_offset, *abs_file_offset, info_level, hd, block_l);
 
 			sc_offset += lc.cmdsize;
 		}
@@ -293,7 +410,7 @@ void MachoOreadCommands(uint32_t ncmds)
 			c.cmd = lc.cmd;
 			c.cmdsize = lc.cmdsize;
 
-			MachOfillVersionMinCommand(&c, sc_offset);
+			MachO_fillVersionMinCommand(&c, sc_offset, *abs_file_offset, info_level, hd, block_l);
 
 			sc_offset += lc.cmdsize;
 		}
@@ -305,7 +422,7 @@ void MachoOreadCommands(uint32_t ncmds)
 			c.cmd = lc.cmd;
 			c.cmdsize = lc.cmdsize;
 
-			MachOfillDyldInfoCommand(&c, sc_offset);
+			MachO_fillDyldInfoCommand(&c, sc_offset, *abs_file_offset, info_level, hd, block_l);
 
 			sc_offset += lc.cmdsize;
 		}
@@ -321,7 +438,7 @@ void MachoOreadCommands(uint32_t ncmds)
 			c.cmd = lc.cmd;
 			c.cmdsize = lc.cmdsize;
 
-			MachOfillLinkedItDataCommand(&c, sc_offset);
+			MachO_fillLinkedItDataCommand(&c, sc_offset, *abs_file_offset, info_level, hd, block_l);
 
 			sc_offset += lc.cmdsize;
 		}
@@ -332,7 +449,7 @@ void MachoOreadCommands(uint32_t ncmds)
 			c.cmd = lc.cmd;
 			c.cmdsize = lc.cmdsize;
 
-			MachOfillSourceVersionCommand(&c, sc_offset);
+			MachO_fillSourceVersionCommand(&c, sc_offset, *abs_file_offset, info_level, hd, block_l);
 
 			sc_offset += lc.cmdsize;
 		}
@@ -343,7 +460,7 @@ void MachoOreadCommands(uint32_t ncmds)
 			c.cmd = lc.cmd;
 			c.cmdsize = lc.cmdsize;
 
-			MachOfillBuildVersionCommand(&c, sc_offset);
+			MachO_fillBuildVersionCommand(&c, sc_offset, *abs_file_offset, info_level, hd, block_l);
 
 			sc_offset += lc.cmdsize;
 		}
@@ -354,7 +471,7 @@ void MachoOreadCommands(uint32_t ncmds)
 			c.cmd = lc.cmd;
 			c.cmdsize = lc.cmdsize;
 
-			MachOfillMainDylibCommand(&c, sc_offset);
+			MachO_fillMainDylibCommand(&c, sc_offset, *abs_file_offset, info_level, hd, block_l);
 
 			sc_offset += lc.cmdsize;
 		}
@@ -362,7 +479,7 @@ void MachoOreadCommands(uint32_t ncmds)
 		{
 			debug_info("else load segment\n");
 			if ( info_level >= INFO_LEVEL_FULL )
-				MachOprintLoadCommand(&lc, abs_file_offset+sc_offset);
+				MachO_printLoadCommand(&lc, *abs_file_offset+sc_offset);
 			sc_offset += lc.cmdsize;
 		}
 
@@ -374,33 +491,44 @@ void MachoOreadCommands(uint32_t ncmds)
 	}
 }
 
-void MachOfillLoadCommand(LoadCommand* lc, uint64_t offset)
+void MachO_fillLoadCommand(LoadCommand* lc,
+						   uint64_t offset,
+						   PHeaderData hd,
+						   unsigned char* block_l)
 {
 	unsigned char *ptr;
-	ptr = &block_large[offset];
+	ptr = &block_l[offset];
 
 	lc->cmd = *((uint32_t*) &ptr[LoadCommandOffsets.cmd]);
 	lc->cmdsize = *((uint32_t*) &ptr[LoadCommandOffsets.cmdsize]);
-	if ( HD->endian == ENDIAN_BIG )
+	if ( hd->endian == ENDIAN_BIG )
 	{
 		lc->cmd = swapUint32(lc->cmd);
 		lc->cmdsize = swapUint32(lc->cmdsize);
 	}
 }
 
-uint64_t MachoOfillSegmentCommand(uint64_t sc_offset, SegmentCommand64* sc, Segment_Command_Offsets offsets)
+uint64_t MachO_fillSegmentCommand(uint64_t sc_offset,
+								  SegmentCommand64* sc,
+								  Segment_Command_Offsets offsets,
+								  uint64_t* abs_file_offset,
+								  size_t file_size,
+								  uint8_t info_level,
+								  PHeaderData hd,
+								  const char* file_name,
+								  unsigned char* block_l)
 {
 	unsigned char *ptr;
 	int i;
 	uint32_t sec_offset;
-	ptr = &block_large[sc_offset];
+	ptr = &block_l[sc_offset];
 
 	for ( i = 0; i < MACH_O_SEG_NAME_LN; i++ )
 	{
-		sc->segname[i] = ptr[offsets.segname + i];
+		sc->segname[i] = (char)ptr[offsets.segname + i];
 	}
 
-	if ( HD->bitness == 64 )
+	if ( hd->bitness == 64 )
 	{
 		sc->vmaddr = *((uint64_t*) &ptr[offsets.vmaddr]);
 		sc->vmsize = *((uint64_t*) &ptr[offsets.vmsize]);
@@ -419,7 +547,7 @@ uint64_t MachoOfillSegmentCommand(uint64_t sc_offset, SegmentCommand64* sc, Segm
 	sc->nsects = *((uint32_t*) &ptr[offsets.nsects]);
 	sc->flags = *((uint32_t*) &ptr[offsets.flags]);
 
-	if ( HD->endian == ENDIAN_BIG )
+	if ( hd->endian == ENDIAN_BIG )
 	{
 		sc->vmaddr = swapUint64(sc->vmaddr);
 		sc->vmsize = swapUint64(sc->vmsize);
@@ -431,33 +559,40 @@ uint64_t MachoOfillSegmentCommand(uint64_t sc_offset, SegmentCommand64* sc, Segm
 		sc->flags = swapUint32(sc->flags);
 	}
 
-	sec_offset = ( HD->bitness == 64 ) ? sc_offset + SIZE_OF_MACHO_O_SEGMENT_HEADER_64 : sc_offset + SIZE_OF_MACHO_O_SEGMENT_HEADER_32;
+	sec_offset = ( hd->bitness == 64 ) ? sc_offset + SIZE_OF_MACHO_O_SEGMENT_HEADER_64 : sc_offset + SIZE_OF_MACHO_O_SEGMENT_HEADER_32;
 	debug_info("MachoOfillSegmentCommand\n");
 	debug_info(" -  sec_offset: %u\n", sec_offset);
 	debug_info(" -  sc->nsects: %u\n", sc->nsects);
 
 	if ( info_level >= INFO_LEVEL_FULL )
-		MachOprintSegmentCommand(sc, abs_file_offset+sc_offset);
+		MachO_printSegmentCommand(sc, *abs_file_offset+sc_offset, hd->bitness);
 
-	sc_offset = MachoOreadSections(sc, sec_offset);
+	sc_offset = MachO_readSections(sc, sec_offset, abs_file_offset, file_size, info_level, hd, file_name, block_l);
 
 	return sc_offset;
 //	return sc_offset + sc->cmdsize;
 }
 
-uint64_t MachoOreadSections(SegmentCommand64* c, uint64_t offset)
+uint64_t MachO_readSections(SegmentCommand64* c,
+							uint64_t offset,
+							uint64_t* abs_file_offset,
+							size_t file_size,
+							uint8_t info_level,
+							PHeaderData hd,
+							const char* file_name,
+							unsigned char* block_l)
 {
 	uint32_t i;
 //	uint32_t r_size;
 	MachOSection64 sec;
 	MachO_Section_Offsets offsets;
 	CodeRegionData code_region_data;
-	uint32_t sect_size = (HD->bitness == 64 ) ? SIZE_OF_MACHO_O_SECTEION_HEADER_64 : SIZE_OF_MACHO_O_SECTEION_HEADER_32;
+	uint32_t sect_size = (hd->bitness == 64 ) ? SIZE_OF_MACHO_O_SECTEION_HEADER_64 : SIZE_OF_MACHO_O_SECTEION_HEADER_32;
 
 	debug_info(" - MachoOreadSections\n");
 	debug_info(" - - offset: %lu\n", offset);
 
-	if ( HD->bitness == 64 )
+	if ( hd->bitness == 64 )
 		offsets = MachOsectionOffsets64;
 	else
 		offsets = MachOsectionOffsets32;
@@ -466,23 +601,23 @@ uint64_t MachoOreadSections(SegmentCommand64* c, uint64_t offset)
 	{
 		debug_info(" - offset: %lu\n", offset);
 
-		if ( !checkFileSpace(offset, abs_file_offset, sect_size, "Section size") )
+		if ( !checkFileSpace(offset, *abs_file_offset, sect_size, file_size) )
 			return UINT32_MAX;
 
-		if ( !checkLargeBlockSpace(&offset, &abs_file_offset, sect_size, "Section size") )
+		if ( !checkLargeBlockSpace(&offset, abs_file_offset, sect_size, block_l, file_name) )
 			return UINT32_MAX;
 
-		MachoOreadSection(&sec, offset, offsets);
+		MachO_readSection(&sec, offset, offsets, hd->bitness, hd->endian, block_l);
 
-		if ( MachOisExecutableSection(&sec) )
+		if ( MachO_isExecutableSection(&sec) )
 		{
 			debug_info(" - - is executable\n");
-			code_region_data = MachoOfillCodeRegion(&sec);
-			addCodeRegionDataToHeaderData(&code_region_data, HD);
+			code_region_data = MachO_fillCodeRegion(&sec);
+			addCodeRegionDataToHeaderData(&code_region_data, hd);
 		}
 
 		if ( info_level >= INFO_LEVEL_FULL )
-			MachOprintSection(&sec, i + 1, c->nsects, abs_file_offset+offset);
+			MachO_printSection(&sec, i + 1, c->nsects, *abs_file_offset+offset, hd->bitness);
 
 		offset += sect_size;
 	}
@@ -490,23 +625,28 @@ uint64_t MachoOreadSections(SegmentCommand64* c, uint64_t offset)
 	return offset;
 }
 
-void MachoOreadSection(MachOSection64* sec, uint64_t offset, MachO_Section_Offsets offsets)
+void MachO_readSection(MachOSection64* sec,
+					   uint64_t offset,
+					   MachO_Section_Offsets offsets,
+					   uint8_t bitness,
+					   uint8_t endian,
+					   unsigned char* block_l)
 {
 	unsigned char *ptr;
-	ptr = &block_large[offset];
+	ptr = &block_l[offset];
 	uint32_t i;
-	debug_info(" - - MachoOreadSection\n");
+	debug_info(" - - MachO_readSection\n");
 	debug_info(" - - - offset: %lu\n", offset);
 
 	for ( i = 0; i < MACH_O_SEG_NAME_LN; i++ )
 	{
-		sec->segname[i] = ptr[offsets.segname + i];
+		sec->segname[i] = (char)ptr[offsets.segname + i];
 	}
 	for ( i = 0; i < MACH_O_SEG_NAME_LN; i++ )
 	{
-		sec->sectname[i] = ptr[offsets.sectname + i];
+		sec->sectname[i] = (char)ptr[offsets.sectname + i];
 	}
-	if ( HD->bitness == 64 )
+	if ( bitness == 64 )
 	{
 		sec->addr = *((uint64_t*) &ptr[offsets.addr]);
 		sec->size = *((uint64_t*) &ptr[offsets.size]);
@@ -523,9 +663,9 @@ void MachoOreadSection(MachOSection64* sec, uint64_t offset, MachO_Section_Offse
 	sec->flags = *((uint32_t*) &ptr[offsets.flags]);
 	sec->reserved1 = *((uint32_t*) &ptr[offsets.reserved1]);
 	sec->reserved2 = *((uint32_t*) &ptr[offsets.reserved2]);
-	if ( HD->bitness == 64 ) sec->reserved3 = *((uint32_t*) &ptr[offsets.reserved3]);
+	if ( bitness == 64 ) sec->reserved3 = *((uint32_t*) &ptr[offsets.reserved3]);
 
-	if ( HD->endian == ENDIAN_BIG )
+	if ( endian == ENDIAN_BIG )
 	{
 		sec->addr = swapUint64(sec->addr);
 		sec->size = swapUint64(sec->size);
@@ -536,11 +676,11 @@ void MachoOreadSection(MachOSection64* sec, uint64_t offset, MachO_Section_Offse
 		sec->flags = swapUint32(sec->flags);
 		sec->reserved1 = swapUint32(sec->reserved1);
 		sec->reserved2 = swapUint32(sec->reserved2);
-		if ( HD->bitness == 64 ) sec->reserved3 = swapUint32(sec->reserved3);
+		if ( bitness == 64 ) sec->reserved3 = swapUint32(sec->reserved3);
 	}
 }
 
-uint8_t MachOisExecutableSection(const MachOSection64* sec)
+uint8_t MachO_isExecutableSection(const MachOSection64* sec)
 {
 	return hasFlag32(sec->flags, S_ATTR_SOME_INSTRUCTIONS) || hasFlag32(sec->flags, S_ATTR_PURE_INSTRUCTIONS);
 //	return hasFlag32(sec->flags, S_ATTR_SOME_INSTRUCTIONS | S_ATTR_PURE_INSTRUCTIONS);
@@ -551,7 +691,7 @@ uint8_t MachOisExecutableSection(const MachOSection64* sec)
  *
  * @param sh
  */
-CodeRegionData MachoOfillCodeRegion(const MachOSection64* sec)
+CodeRegionData MachO_fillCodeRegion(const MachOSection64* sec)
 {
 	uint64_t sh_end = 0;
 	size_t s_name_size = 0;
@@ -577,10 +717,14 @@ CodeRegionData MachoOfillCodeRegion(const MachOSection64* sec)
 	return code_region_data;
 }
 
-void MachOfillUuidCommand(UuidCommand* c, uint64_t offset)
+void MachO_fillUuidCommand(UuidCommand* c,
+						   uint64_t offset,
+						   uint64_t abs_file_offset,
+						   uint8_t info_level,
+						   unsigned char* block_l)
 {
 	unsigned char *ptr;
-	ptr = &block_large[offset];
+	ptr = &block_l[offset];
 	uint8_t i;
 	for ( i = 0; i < MACH_O_UUID_LN; i++ )
 	{
@@ -588,13 +732,18 @@ void MachOfillUuidCommand(UuidCommand* c, uint64_t offset)
 	}
 
 	if ( info_level >= INFO_LEVEL_FULL )
-		MachOprintUuidCommand(c, abs_file_offset+offset);
+		MachO_printUuidCommand(c, abs_file_offset+offset);
 }
 
-void MachOfillDylibCommand(DylibCommand* c, uint64_t offset)
+void MachO_fillDylibCommand(DylibCommand* c,
+							uint64_t offset,
+							uint64_t abs_file_offset,
+							uint8_t info_level,
+							PHeaderData hd,
+							unsigned char* block_l)
 {
 	unsigned char *ptr;
-	ptr = &block_large[offset];
+	ptr = &block_l[offset];
 	uint32_t name_ln;
 
 	c->dylib.name = *( (union lc_str*) &ptr[DylibCommandOffsets.dylib + DylibOffsets.name]);
@@ -602,7 +751,7 @@ void MachOfillDylibCommand(DylibCommand* c, uint64_t offset)
 	c->dylib.current_version = *( (uint32_t*) &ptr[DylibCommandOffsets.dylib + DylibOffsets.current_version]);
 	c->dylib.compatibility_version = *( (uint32_t*) &ptr[DylibCommandOffsets.dylib + DylibOffsets.compatibility_version]);
 
-	if ( HD->endian == ENDIAN_BIG )
+	if ( hd->endian == ENDIAN_BIG )
 	{
 		c->dylib.name.offset = swapUint32(c->dylib.name.offset);
 		c->dylib.timestamp = swapUint32(c->dylib.timestamp);
@@ -613,21 +762,26 @@ void MachOfillDylibCommand(DylibCommand* c, uint64_t offset)
 	name_ln = c->cmdsize - c->dylib.name.offset;
 
 	if ( info_level >= INFO_LEVEL_FULL )
-		MachOprintDylibCommand(c, name_ln, ptr, abs_file_offset+offset);
+		MachO_printDylibCommand(c, name_ln, ptr, abs_file_offset+offset, info_level);
 }
 
-void MachOfillPreboundDylibCommand(PreboundDylibCommand* c, uint64_t offset)
+void MachO_fillPreboundDylibCommand(PreboundDylibCommand* c,
+									uint64_t offset,
+									uint64_t abs_file_offset,
+									uint8_t info_level,
+									PHeaderData hd,
+									unsigned char* block_l)
 {
 	unsigned char *ptr;
-	ptr = &block_large[offset];
+	ptr = &block_l[offset];
 	uint32_t name_ln;
-	int i;
+//	int i;
 
 	c->name = *( (union lc_str*) &ptr[PreboundDylibCommandOffsets.name]);
 	c->nmodules = *( (uint32_t*) &ptr[PreboundDylibCommandOffsets.nmodules]);
 	c->linked_modules = *( (union lc_str*) &ptr[PreboundDylibCommandOffsets.linked_modules]);
 
-	if ( HD->endian == ENDIAN_BIG )
+	if ( hd->endian == ENDIAN_BIG )
 	{
 		c->name.offset = swapUint32(c->name.offset);
 		c->nmodules = swapUint32(c->nmodules);
@@ -637,18 +791,23 @@ void MachOfillPreboundDylibCommand(PreboundDylibCommand* c, uint64_t offset)
 	name_ln = c->cmdsize - c->name.offset;
 
 	if ( info_level >= INFO_LEVEL_FULL )
-		MachOprintPreboundDylibCommand(c, name_ln, ptr, abs_file_offset+offset);
+		MachO_printPreboundDylibCommand(c, name_ln, ptr, abs_file_offset+offset);
 }
 
-void MachOfillSubCommand(SubCommand* c, uint64_t offset)
+void MachO_fillSubCommand(SubCommand* c,
+						  uint64_t offset,
+						  uint64_t abs_file_offset,
+						  uint8_t info_level,
+						  PHeaderData hd,
+						  unsigned char* block_l)
 {
 	unsigned char *ptr;
-	ptr = &block_large[offset];
+	ptr = &block_l[offset];
 	uint32_t name_ln;
 
 	c->name = *( (union lc_str*) &ptr[SubCommandOffsets.name]);
 
-	if ( HD->endian == ENDIAN_BIG )
+	if ( hd->endian == ENDIAN_BIG )
 	{
 		c->name.offset = swapUint32(c->name.offset);
 	}
@@ -656,20 +815,25 @@ void MachOfillSubCommand(SubCommand* c, uint64_t offset)
 	name_ln = c->cmdsize - c->name.offset;
 
 	if ( info_level >= INFO_LEVEL_FULL )
-		MachOprintSubCommand(c, name_ln, ptr, abs_file_offset+offset);
+		MachO_printSubCommand(c, name_ln, ptr, abs_file_offset+offset);
 }
 
-void MachOfillSymtabCommand(SymtabCommand* c, uint64_t offset)
+void MachO_fillSymtabCommand(SymtabCommand* c,
+							 uint64_t offset,
+							 uint64_t abs_file_offset,
+							 uint8_t info_level,
+							 PHeaderData hd,
+							 unsigned char* block_l)
 {
 	unsigned char *ptr;
-	ptr = &block_large[offset];
+	ptr = &block_l[offset];
 
 	c->symoff = *( (uint32_t*) &ptr[SymtabCommandOffsets.symoff]);
 	c->nsyms = *( (uint32_t*) &ptr[SymtabCommandOffsets.nsyms]);
 	c->stroff = *( (uint32_t*) &ptr[SymtabCommandOffsets.stroff]);
 	c->strsize = *( (uint32_t*) &ptr[SymtabCommandOffsets.strsize]);
 
-	if ( HD->endian == ENDIAN_BIG )
+	if ( hd->endian == ENDIAN_BIG )
 	{
 		c->symoff = swapUint32(c->symoff);
 		c->nsyms = swapUint32(c->nsyms);
@@ -678,13 +842,18 @@ void MachOfillSymtabCommand(SymtabCommand* c, uint64_t offset)
 	}
 
 	if ( info_level >= INFO_LEVEL_FULL )
-		MachOprintSymtabCommand(c, abs_file_offset+offset);
+		MachO_printSymtabCommand(c, abs_file_offset+offset);
 }
 
-void MachOfillDySymtabCommand(DySymtabCommand* c, uint64_t offset)
+void MachO_fillDySymtabCommand(DySymtabCommand* c,
+							   uint64_t offset,
+							   uint64_t abs_file_offset,
+							   uint8_t info_level,
+							   PHeaderData hd,
+							   unsigned char* block_l)
 {
 	unsigned char *ptr;
-	ptr = &block_large[offset];
+	ptr = &block_l[offset];
 
 	c->ilocalsym = *( (uint32_t*) &ptr[DySymtabCommandOffsets.ilocalsym]);
 	c->nlocalsym = *( (uint32_t*) &ptr[DySymtabCommandOffsets.nlocalsym]);
@@ -705,7 +874,7 @@ void MachOfillDySymtabCommand(DySymtabCommand* c, uint64_t offset)
 	c->locreloff = *( (uint32_t*) &ptr[DySymtabCommandOffsets.locreloff]);
 	c->nlocrel = *( (uint32_t*) &ptr[DySymtabCommandOffsets.nlocrel]);
 
-	if ( HD->endian == ENDIAN_BIG )
+	if ( hd->endian == ENDIAN_BIG )
 	{
 		c->ilocalsym = swapUint32(c->ilocalsym);
 		c->nlocalsym = swapUint32(c->nlocalsym);
@@ -728,16 +897,21 @@ void MachOfillDySymtabCommand(DySymtabCommand* c, uint64_t offset)
 	}
 
 	if ( info_level >= INFO_LEVEL_FULL )
-		MachOprintDySymtabCommand(c, abs_file_offset+offset);
+		MachO_printDySymtabCommand(c, abs_file_offset+offset);
 }
 
-void MachOfillRoutinesCommand(RoutinesCommand64* c, uint64_t offset)
+void MachO_fillRoutinesCommand(RoutinesCommand64* c,
+							   uint64_t offset,
+							   uint64_t abs_file_offset,
+							   uint8_t info_level,
+							   PHeaderData hd,
+							   unsigned char* block_l)
 {
 	unsigned char *ptr;
-	ptr = &block_large[offset];
-	struct routines_command_offsets offsets = ( HD->bitness == 32 ) ? RoutinesCommandOffsets : RoutinesCommand64Offsets;
+	ptr = &block_l[offset];
+	struct routines_command_offsets offsets = ( hd->bitness == 32 ) ? RoutinesCommandOffsets : RoutinesCommand64Offsets;
 
-	if ( HD->bitness == 32 )
+	if ( hd->bitness == 32 )
 	{
 		c->init_address = *( (uint32_t*) &ptr[offsets.init_address]);
 		c->init_module = *( (uint32_t*) &ptr[offsets.init_module]);
@@ -760,7 +934,7 @@ void MachOfillRoutinesCommand(RoutinesCommand64* c, uint64_t offset)
 		c->reserved6 = *( (uint64_t*) &ptr[offsets.reserved6]);
 	}
 
-	if ( HD->endian == ENDIAN_BIG )
+	if ( hd->endian == ENDIAN_BIG )
 	{
 		c->init_address = swapUint64(c->init_address);
 		c->init_module = swapUint64(c->init_module);
@@ -773,68 +947,88 @@ void MachOfillRoutinesCommand(RoutinesCommand64* c, uint64_t offset)
 	}
 
 	if ( info_level >= INFO_LEVEL_FULL )
-		MachOprintRoutinesCommand(c, abs_file_offset+offset);
+		MachO_printRoutinesCommand(c, abs_file_offset+offset, hd->bitness);
 }
 
-void MachOfillVersionMinCommand(VersionMinCommand* c, uint64_t offset)
+void MachO_fillVersionMinCommand(VersionMinCommand* c,
+								 uint64_t offset,
+								 uint64_t abs_file_offset,
+								 uint8_t info_level,
+								 PHeaderData hd,
+								 unsigned char* block_l)
 {
 	unsigned char *ptr;
-	ptr = &block_large[offset];
+	ptr = &block_l[offset];
 
 	c->version = *( (uint32_t*) &ptr[VersionMinCommandOffsets.version]);
 	c->reserved = *( (uint32_t*) &ptr[VersionMinCommandOffsets.reserved]);
 
-	if ( HD->endian == ENDIAN_BIG )
+	if ( hd->endian == ENDIAN_BIG )
 	{
 		c->version = swapUint32(c->version);
 		c->reserved = swapUint32(c->reserved);
 	}
 
 	if ( info_level >= INFO_LEVEL_FULL )
-		MachOprintVersionMinCommand(c, abs_file_offset+offset);
+		MachO_printVersionMinCommand(c, abs_file_offset+offset);
 }
 
-void MachOfillThreadCommand(ThreadCommand* c, uint64_t offset)
+void MachO_fillThreadCommand(ThreadCommand* c,
+							 uint64_t offset,
+							 uint64_t abs_file_offset,
+							 uint8_t info_level,
+							 PHeaderData hd,
+							 unsigned char* block_l)
 {
 	unsigned char *ptr;
-	ptr = &block_large[offset];
+	ptr = &block_l[offset];
 
 	c->flavor = *( (uint32_t*) &ptr[ThreadCommandOffsets.flavor]);
 	c->count = *( (uint32_t*) &ptr[ThreadCommandOffsets.count]);
 
-	if ( HD->endian == ENDIAN_BIG )
+	if ( hd->endian == ENDIAN_BIG )
 	{
 		c->flavor = swapUint32(c->flavor);
 		c->count = swapUint32(c->count);
 	}
 
 	if ( info_level >= INFO_LEVEL_FULL )
-		MachOprintThreadCommand(c, abs_file_offset+offset);
+		MachO_printThreadCommand(c, abs_file_offset+offset);
 }
 
-void MachOfillLinkedItDataCommand(LinkedItDataCommand* c, uint64_t offset)
+void MachO_fillLinkedItDataCommand(LinkedItDataCommand* c,
+								   uint64_t offset,
+								   uint64_t abs_file_offset,
+								   uint8_t info_level,
+								   PHeaderData hd,
+								   unsigned char* block_l)
 {
 	unsigned char *ptr;
-	ptr = &block_large[offset];
+	ptr = &block_l[offset];
 	Linked_It_Data_Command_Offsets offsets = LinkedItDataCommandOffsets;
 
 	c->offset = *( (uint32_t*) &ptr[offsets.offset]);
 	c->size = *( (uint32_t*) &ptr[offsets.size]);
 
-	if ( HD->endian == ENDIAN_BIG )
+	if ( hd->endian == ENDIAN_BIG )
 	{
 		c->offset = swapUint32(c->offset);
 		c->size = swapUint32(c->size);
 	}
 
 	if ( info_level >= INFO_LEVEL_FULL )
-		MachOprintLinkedItDataCommand(c, abs_file_offset + offset);
+		MachO_printLinkedItDataCommand(c, abs_file_offset + offset);
 }
 
-void MachOfillDyldInfoCommand(DyldInfoCommand* c, uint64_t offset)
+void MachO_fillDyldInfoCommand(DyldInfoCommand* c,
+							   uint64_t offset,
+							   uint64_t abs_file_offset,
+							   uint8_t info_level,
+							   PHeaderData hd,
+							   unsigned char* block_l)
 {
 	unsigned char *ptr;
-	ptr = &block_large[offset];
+	ptr = &block_l[offset];
 	Dyld_Info_Command_Offsets offsets = DyldInfoCommandOffsets;
 
 	c->rebase_off = *( (uint32_t*) &ptr[offsets.rebase_off]);
@@ -848,7 +1042,7 @@ void MachOfillDyldInfoCommand(DyldInfoCommand* c, uint64_t offset)
 	c->export_off = *( (uint32_t*) &ptr[offsets.export_off]);
 	c->export_size = *( (uint32_t*) &ptr[offsets.export_size]);
 
-	if ( HD->endian == ENDIAN_BIG )
+	if ( hd->endian == ENDIAN_BIG )
 	{
 		c->rebase_off = swapUint32(c->rebase_off);
 		c->rebase_size = swapUint32(c->rebase_size);
@@ -863,49 +1057,63 @@ void MachOfillDyldInfoCommand(DyldInfoCommand* c, uint64_t offset)
 	}
 
 	if ( info_level >= INFO_LEVEL_FULL )
-		MachOprintDyldInfoCommand(c, abs_file_offset+offset);
+		MachO_printDyldInfoCommand(c, abs_file_offset+offset);
 }
 
-void MachOfillSourceVersionCommand(SourceVersionCommand* c, uint64_t offset)
+void MachO_fillSourceVersionCommand(SourceVersionCommand* c, uint64_t offset,
+									uint64_t abs_file_offset,
+									uint8_t info_level,
+									PHeaderData hd,
+									unsigned char* block_l)
 {
 	unsigned char *ptr;
-	ptr = &block_large[offset];
+	ptr = &block_l[offset];
 	Source_Version_Command_Offsets offsets = SourceVersionCommandOffsets;
 
 	c->version = *( (uint64_t*) &ptr[offsets.version]);
 
-	if ( HD->endian == ENDIAN_BIG )
+	if ( hd->endian == ENDIAN_BIG )
 	{
 		c->version = swapUint64(c->version);
 	}
 
 	if ( info_level >= INFO_LEVEL_FULL )
-		MachOprintSourceVersionCommand(c, abs_file_offset+offset);
+		MachO_printSourceVersionCommand(c, abs_file_offset+offset);
 }
 
-void MachOfillMainDylibCommand(MainDylibCommand* c, uint64_t offset)
+void MachO_fillMainDylibCommand(MainDylibCommand* c,
+								uint64_t offset,
+								uint64_t abs_file_offset,
+								uint8_t info_level,
+								PHeaderData hd,
+								unsigned char* block_l)
 {
 	unsigned char *ptr;
-	ptr = &block_large[offset];
+	ptr = &block_l[offset];
 	Main_Dylib_Command_Offsets offsets = MainDylibCommandOffsets;
 
 	c->entry_off = *( (uint64_t*) &ptr[offsets.entry_off]);
 	c->stack_size = *( (uint64_t*) &ptr[offsets.stack_size]);
 
-	if ( HD->endian == ENDIAN_BIG )
+	if ( hd->endian == ENDIAN_BIG )
 	{
 		c->entry_off = swapUint64(c->entry_off);
 		c->stack_size = swapUint64(c->stack_size);
 	}
 
 	if ( info_level >= INFO_LEVEL_FULL )
-		MachOprintMainDylibCommand(c, abs_file_offset+offset);
+		MachO_printMainDylibCommand(c, abs_file_offset+offset);
 }
 
-void MachOfillBuildVersionCommand(BuildVersionCommand* c, uint64_t offset)
+void MachO_fillBuildVersionCommand(BuildVersionCommand* c,
+								   uint64_t offset,
+								   uint64_t abs_file_offset,
+								   uint8_t info_level,
+								   PHeaderData hd,
+								   unsigned char* block_l)
 {
 	unsigned char *ptr;
-	ptr = &block_large[offset];
+	ptr = &block_l[offset];
 	Build_Version_Command_Offsets offsets = BuildVersionCommandOffsets;
 
 	c->platform = *( (uint32_t*) &ptr[offsets.platform]);
@@ -914,7 +1122,7 @@ void MachOfillBuildVersionCommand(BuildVersionCommand* c, uint64_t offset)
 	c->ntools = *( (uint32_t*) &ptr[offsets.ntools]);
 //	c->tools = *( (uint32_t*) &ptr[offsets.tools]);
 
-	if ( HD->endian == ENDIAN_BIG )
+	if ( hd->endian == ENDIAN_BIG )
 	{
 		c->platform = swapUint64(c->platform);
 		c->minos = swapUint64(c->minos);
@@ -924,7 +1132,7 @@ void MachOfillBuildVersionCommand(BuildVersionCommand* c, uint64_t offset)
 	}
 
 	if ( info_level >= INFO_LEVEL_FULL )
-		MachOprintBuildVersionCommand(c, abs_file_offset+offset);
+		MachO_printBuildVersionCommand(c, abs_file_offset+offset);
 }
 
 #endif

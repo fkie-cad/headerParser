@@ -31,10 +31,10 @@ if ( ${GTEST_FOUND} )
 		CXX_STANDARD_REQUIRED YES
 		CXX_EXTENSIONS NO
 		LANGUAGES CXX
-		COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror=return-type"
+#		COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror=return-type -Werror=overflow -Werror=format"
 #		COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer"
-		COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer"
-		LINK_FLAGS "${CMAKE_LINKER_FLAGS_DEBUG} -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer"
+#		COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=leak -fno-omit-frame-pointer"
+		LINK_FLAGS "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address -fsanitize=leak"
 		)
 
 	target_link_libraries(${UNIT_TEST_SUITE} PRIVATE
@@ -82,7 +82,8 @@ set_target_properties(headerParserDirectoryRunner PROPERTIES
 	CXX_STANDARD_REQUIRED YES
 	CXX_EXTENSIONS NO
 	LANGUAGES CXX
-	COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer"
+	COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Werror=return-type -Werror=overflow -Werror=format -D_FILE_OFFSET_BITS=64"
+#	COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer"
 	LINK_FLAGS "${CMAKE_LINKER_FLAGS_DEBUG} -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer"
 	)
 target_link_libraries(headerParserDirectoryRunner PRIVATE

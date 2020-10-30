@@ -6,9 +6,9 @@
 #include "../Globals.h"
 #include "MsiHeader.h"
 
-void MSIprintStructuredStorageHeader(const MSIStructuredStorageHeader* ssh);
+void MSI_printStructuredStorageHeader(const MSIStructuredStorageHeader* ssh);
 
-void MSIprintStructuredStorageHeader(const MSIStructuredStorageHeader* ssh)
+void MSI_printStructuredStorageHeader(const MSIStructuredStorageHeader* ssh)
 {
 	uint16_t i;
 	uint8_t endian = (ssh->_uByteOrder==MSI_INTEL_BYTE_ORDERING)?ENDIAN_LITTLE:ENDIAN_BIG;

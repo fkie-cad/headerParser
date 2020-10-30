@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -13,8 +14,8 @@
 // Contains : lowlevel fileio support.
 
 static size_t getSize(const char* finame);
-static size_t readBlock(const char* finame, size_t begin);
-static size_t readLargeBlock(const char* finame, size_t begin);
+//static size_t readBlock(const char* finame, size_t begin);
+//static size_t readLargeBlock(const char* finame, size_t begin);
 static size_t readCharArrayFile(const char* finame, unsigned char ** pData, size_t begin, size_t stopAt);
 static size_t readFile(FILE* fi, size_t begin, size_t size, unsigned char* data);
 static size_t readCustomBlock(const char* finame, size_t offset, size_t size, unsigned char* data);
@@ -27,11 +28,13 @@ size_t getSize(const char* finame)
     // Read in file
     FILE * fi;
     size_t pos=0,Filesize=0;
+	int errsv;
+    errno = 0;
     fi = fopen (finame, "rb" );
-
-    if (!fi)
+	errsv = errno;
+	if (!fi)
 	{
-//		prog_error("File %s does not exist.\n",finame);
+		printf("ERROR (0x%x): Could not open file: \"%s\"\n", errsv, finame);
 		return 0;
 	}
 
@@ -46,56 +49,6 @@ size_t getSize(const char* finame)
     return Filesize;
 }
 
-//// Read data into canonical 'standard block' type.
-size_t readBlock(const char* finame, size_t begin)
-{
-    FILE * fi;
-    size_t n=0;
-
-    // Read I/O
-    fi = fopen (finame, "rb" );
-    if (!fi)
-	{
-		printf("File %s does not exist.\n",finame);
-		return 0;
-	}
-
-    if (begin)
-    {
-        fseek(fi,begin,SEEK_SET);
-    }
-
-    n = fread(block_standard,1,BLOCKSIZE,fi);
-    fclose(fi);
-
-    return n;
-}
-
-// Read data into canonical 'large block' type.
-size_t readLargeBlock(const char* finame, size_t begin)
-{
-    FILE * fi;
-    size_t n=0;
-
-    // Read I/O
-    fi = fopen (finame, "rb" );
-    if (!fi)
-	{
-//		prog_error("File \"%s\" does not exist.\n",finame);
-		return 0;
-	}
-    
-    if (begin)
-    {
-        fseek(fi,begin,SEEK_SET);
-    }
-
-    n = fread(block_large,1,BLOCKSIZE_LARGE,fi);
-    fclose(fi);
-
-    return n;
-}
-
 // Uses MALLOC.
 // Caller is responsible for freeing this!
 size_t readCharArrayFile(const char* finame, unsigned char ** pData, size_t begin, size_t stopAt)
@@ -103,6 +56,7 @@ size_t readCharArrayFile(const char* finame, unsigned char ** pData, size_t begi
     FILE * fi;
     unsigned char * data = NULL;
     size_t Filesize=0, n=0;
+    int errsv;
     
     Filesize = getSize(finame);
 
@@ -163,13 +117,15 @@ size_t readCharArrayFile(const char* finame, unsigned char ** pData, size_t begi
     memset(data,0,Filesize);
 
     // Read I/O
+    errno = 0;
     fi = fopen(finame, "rb" );
-    if (!fi)
+	errsv = errno;
+	if (!fi)
 	{
-//		prog_error("File %s does not exist.\n",finame);
+		printf("ERROR (0x%x): Could not open file: \"%s\"\n", errsv, finame);
 		return 0;
 	}
-        
+
     if (begin)
     {
         fseek(fi,begin,SEEK_SET);
@@ -184,6 +140,15 @@ size_t readCharArrayFile(const char* finame, unsigned char ** pData, size_t begi
     // returns read data points (char's in this case)
 }
 
+/**
+ * Read from fi at begin size bytes into data[size]
+ *
+ * @param fi
+ * @param begin
+ * @param size
+ * @param data
+ * @return
+ */
 size_t readFile(FILE* fi, size_t begin, size_t size, unsigned char* data)
 {
 	size_t n = 0;
@@ -199,7 +164,7 @@ size_t readFile(FILE* fi, size_t begin, size_t size, unsigned char* data)
 }
 
 /**
- * Read data from file into data allocated block[size].
+ * Read from finame at offset size bytes into data[size]
  *
  * @param finame
  * @param offset
@@ -211,10 +176,15 @@ size_t readCustomBlock(const char* finame, size_t offset, size_t size, unsigned 
 {
 	FILE * fi;
 	size_t n = 0;
-	
+	int errsv;
+	errno = 0;
 	fi = fopen (finame, "rb");
+	errsv = errno;
 	if (!fi)
+	{
+		printf("ERROR (0x%x): Could not open file: \"%s\"\n", errsv, finame);
 		return 0;
+	}
 	
 	if ( offset )
 		fseek(fi, offset, SEEK_SET);

@@ -14,7 +14,7 @@
 #include "utils/blockio.h"
 #include "parser.h"
 
-static int sanitizeArgs();
+static int sanitizeArgs(uint64_t abs_file_offset, size_t file_size);
 static int getBasicInfoA(const char* file, uint64_t start, uint8_t force, HeaderData* hd);
 static int getPEHeaderDataA(const char* file, uint64_t start, PEHeaderData* pehd);
 static PEHeaderData* getInitializedPEHeaderData();
@@ -40,36 +40,40 @@ HeaderData* getBasicHeaderParserInfo(const char* file, uint64_t start, uint8_t f
 int getBasicInfoA(const char* file, uint64_t start, uint8_t force, HeaderData* hd)
 {
 	uint32_t n = 0;
-	info_level = INFO_LEVEL_BASIC;
-	abs_file_offset = start;
-	start_file_offset = start;
-	file_size = 0;
+	GlobalParams gp;
+	memset(&gp, 0, sizeof(GlobalParams));
+	PEParams pep;
+	memset(&pep, 0, sizeof(PEParams));
 
-	memset(block_large, 0, BLOCKSIZE_LARGE);
-	memset(block_standard, 0, BLOCKSIZE);
-	memset(file_name, 0, PATH_MAX);
+	gp.info_level = INFO_LEVEL_BASIC;
+    gp.abs_file_offset = start;
+    gp.start_file_offset = start;
+    gp.file_size = 0;
 
-	HD = hd;
+	memset(gp.block_large, 0, BLOCKSIZE_LARGE);
+	memset(gp.block_standard, 0, BLOCKSIZE);
+	memset(gp.file_name, 0, PATH_MAX);
 
-	initHeaderData(HD, DEFAULT_CODE_REGION_CAPACITY);
-	expandFilePath(file, file_name);
+	initHeaderData(hd, DEFAULT_CODE_REGION_CAPACITY);
+	expandFilePath(file, gp.file_name);
 
-	debug_info("abs_file_offset: %lu\n", abs_file_offset);
-	debug_info("start_file_offset: %lu\n", start_file_offset);
-	debug_info("file_name: %s\n", file_name);
+	debug_info("abs_file_offset: %lu\n", gp.abs_file_offset);
+	debug_info("start_file_offset: %lu\n", gp.start_file_offset);
+	debug_info("file_name: %s\n", gp.file_name);
 
-	file_size = getSize(file_name);
-	if ( file_size == 0 )
+    gp.file_size = getSize(gp.file_name);
+	if ( gp.file_size == 0 )
 		return -1;
 
-	if ( sanitizeArgs() != 0 )
+	if ( sanitizeArgs(gp.abs_file_offset, gp.file_size) != 0 )
 		return 0;
 
-	n = readLargeBlock(file_name, abs_file_offset);
+//	n = readLargeBlock(file_name, abs_file_offset);
+	n = readCustomBlock(gp.file_name, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
 	if ( !n )
 		return -3;
 
-	parseHeader(force);
+	parseHeader(force, hd, &gp, &pep);
 
 	return 0;
 }
@@ -114,49 +118,53 @@ int getPEHeaderDataA(const char* file, uint64_t start, PEHeaderData* pehd)
 	HeaderData* hd = NULL;
 	uint32_t n = 0;
 	int s = 0;
+    GlobalParams gp;
+    memset(&gp, 0, sizeof(GlobalParams));
+    PEParams pep;
+    memset(&pep, 0, sizeof(PEParams));
 
-	info_level = INFO_LEVEL_FULL;
-	abs_file_offset = start;
-	start_file_offset = start;
-	file_size = 0;
+	gp.info_level = INFO_LEVEL_FULL;
+    gp.abs_file_offset = start;
+    gp.start_file_offset = start;
+    gp.file_size = 0;
 
-	memset(block_large, 0, BLOCKSIZE_LARGE);
-	memset(block_standard, 0, BLOCKSIZE);
-	memset(file_name, 0, PATH_MAX);
+	memset(gp.block_large, 0, BLOCKSIZE_LARGE);
+	memset(gp.block_standard, 0, BLOCKSIZE);
+	memset(gp.file_name, 0, PATH_MAX);
 
 	// is used in parsing
 	hd = (HeaderData*) malloc(sizeof(HeaderData));
 	if ( hd == NULL )
 		return -1;
 	initHeaderData(hd, DEFAULT_CODE_REGION_CAPACITY);
-	HD = hd;
 	pehd->hd = hd;
 
 //	initExtendedPEHeaderData(HD, DEFAULT_CODE_REGION_CAPACITY);
-	expandFilePath(file, file_name);
+	expandFilePath(file, gp.file_name);
 
-	debug_info("abs_file_offset: %lu\n", abs_file_offset);
-	debug_info("start_file_offset: %lu\n", start_file_offset);
-	debug_info("file_name: %s\n", file_name);
+	debug_info("abs_file_offset: %lu\n", gp.abs_file_offset);
+	debug_info("start_file_offset: %lu\n", gp.start_file_offset);
+	debug_info("file_name: %s\n", gp.file_name);
 
-	file_size = getSize(file_name);
-	if ( file_size == 0 )
+    gp.file_size = getSize(gp.file_name);
+	if ( gp.file_size == 0 )
 		return -2;
 
-	if ( sanitizeArgs() != 0 )
+	if ( sanitizeArgs(gp.abs_file_offset, gp.file_size) != 0 )
 		return 0;
 
-	n = readLargeBlock(file_name, abs_file_offset);
+	n = readCustomBlock(gp.file_name, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
+//	n = readLargeBlock(file_name, abs_file_offset);
 	if ( !n )
 		return -3;
 
-	if ( abs_file_offset + MIN_FILE_SIZE > file_size )
+	if ( gp.abs_file_offset + MIN_FILE_SIZE > gp.file_size )
 	{
-		header_error("ERROR: file (%u) is too small for a start offset of %lu!\n", file_size, abs_file_offset);
+		header_error("ERROR: file (%zu) is too small for a start offset of %lu!\n", gp.file_size, gp.abs_file_offset);
 		return -4;
 	}
 
-	s = parsePEHeader(FORCE_PE, pehd);
+	s = parsePEHeader(FORCE_PE, pehd, hd, &gp, &pep);
 
 	// if error or not pe sig found
 	if ( s < 0 || ( s > 0 && s < 4 ) )
@@ -165,22 +173,22 @@ int getPEHeaderDataA(const char* file, uint64_t start, PEHeaderData* pehd)
 	return 0;
 }
 
-void freePEHeaderData(PEHeaderData* hd)
+void freePEHeaderData(PEHeaderData* pehd)
 {
-	if ( hd == NULL )
+	if ( pehd == NULL )
 		return;
 
-	PEcleanUp(hd);
-	freeHeaderData(hd->hd);
+	PE_cleanUp(pehd);
+	freeHeaderData(pehd->hd);
 
-	free(hd->image_dos_header);
-	free(hd->coff_header);
-	free(hd->opt_header);
+	free(pehd->image_dos_header);
+	free(pehd->coff_header);
+	free(pehd->opt_header);
 
-	free(hd);
+	free(pehd);
 }
 
-int sanitizeArgs()
+int sanitizeArgs(uint64_t abs_file_offset, size_t file_size)
 {
 	if ( abs_file_offset + MIN_FILE_SIZE > file_size )
 	{
@@ -204,12 +212,12 @@ HeaderData* getInitializedHeaderParserHeaderData()
 	return data;
 }
 
-void headerParser_freeLibHeaderData(HeaderData* data)
-{
-    free(data);
-	freeHeaderData(HD);
-	HD = NULL;
-}
+//void headerParser_freeLibHeaderData(HeaderData* data)
+//{
+//    free(data);
+//	freeHeaderData(hd);
+//	hd = NULL;
+//}
 
 const char* getHeaderDataArchitecture(uint8_t id)
 {

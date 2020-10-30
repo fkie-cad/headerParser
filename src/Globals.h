@@ -16,9 +16,8 @@
 	#define PATH_MAX 4096
 #endif
 
-#define BLOCKSIZE (0x200)   // standard block size. Defaults to 0x200, but 256, 512, 1024 (0x400) are possible as well.
-#define BLOCKSIZE_LARGE (0x400) // large block size.
-#define BLOCKSIZE_NORMFACTOR  (BLOCKSIZE / 0x100)  // Normierung
+#define BLOCKSIZE (0x400)
+#define BLOCKSIZE_LARGE (0x1000)
 
 #define getVarName(var)  #var
 #define ERRORS_BUFFER_SIZE (512)
@@ -35,9 +34,6 @@
 #define header_error(...) if (VERBOSE_MODE) fprintf(stdout, __VA_ARGS__)
 #define prog_error(...) if (VERBOSE_MODE) fprintf(stderr, __VA_ARGS__)
 
-unsigned char block_standard[BLOCKSIZE];
-unsigned char block_large[BLOCKSIZE_LARGE];
-
 #ifndef __cplusplus
 	typedef uint8_t bool;
 	#define true 1
@@ -45,12 +41,6 @@ unsigned char block_large[BLOCKSIZE_LARGE];
 #endif
 
 const uint16_t MAX_SIZE_OF_SECTION_NAME = 128;
-uint8_t info_level;
-uint32_t file_size = 0;
-uint64_t start_file_offset = 0;
-uint64_t abs_file_offset = 0;
-char file_name[PATH_MAX];
-HeaderData* HD = NULL;
 
 const char* FORCE_PE_STR = "pe";
 #ifndef FORCE_NONE
@@ -68,13 +58,37 @@ const uint8_t MAGIC_JAVA_CLASS_BYTES_LN = 4;
 
 enum InfoLevel { INFO_LEVEL_NONE=0, INFO_LEVEL_BASIC=1, INFO_LEVEL_FULL=2, INFO_LEVEL_FULL_WITH_OFFSETS=3, INFO_LEVEL_EXTENDED=4 };
 
-// PE options
-bool info_level_iimp = false;
-bool info_level_iexp = false;
-bool info_level_ires = false;
-bool info_level_icrt = false;
 
-const char* certificate_directory = NULL;
+uint8_t info_level; // may be global.
+
+typedef struct GlobalParams
+{
+	// dynamic
+	unsigned char block_standard[BLOCKSIZE];
+	unsigned char block_large[BLOCKSIZE_LARGE];
+
+	// static after init
+//	struct file
+//    {
+    char file_name[PATH_MAX];
+    FILE* fp;
+    size_t file_size;
+    uint64_t start_file_offset;
+    uint64_t abs_file_offset;
+//    } file;
+
+	uint8_t info_level; // may be global.
+} GlobalParams, *PGlobalParams;
+
+typedef struct PEParams
+{
+	bool info_level_iimp;
+	bool info_level_iexp;
+	bool info_level_ires;
+	bool info_level_icrt;
+
+	const char* certificate_directory;
+} PEParams, *PPEParams;
 
 //const unsigned char CRAMFS[] = { 0x28,, 0x0xCD, 0x3D, 0x45 };
 //const unsigned char SquashFS[] = { 0x73, 0x71, 0x73, 0x68 };

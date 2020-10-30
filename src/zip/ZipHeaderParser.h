@@ -11,24 +11,67 @@
 
 
 
-static void parseZip();
-static uint64_t ZIPhandleFileRecord(uint64_t offset, uint16_t* found_needles, uint32_t record_count);
-static uint8_t ZIPcheckNeedles(ZipFileRecord* r, uint64_t offset, uint16_t* found_needles, uint32_t record_count);
-static uint64_t ZIPhandleDirEntry(uint64_t offset, uint16_t* found_needles, uint32_t record_count);
-static uint64_t ZIPhandleEndLocator(uint64_t offset);
-static uint8_t ZIPcheckNameOfRecord(const unsigned char* ptr, uint16_t frFileNameLength, const char* expected);
-static size_t ZIPfillRecored(ZipFileRecord* fr, const unsigned char* ptr, uint64_t offset);
-static void ZIPfillDirEntry(ZipDirEntry* de, const unsigned char* ptr);
-static void ZIPfillEndLocator(ZipEndLocator* r, const unsigned char* ptr);
-static uint64_t ZIPfindDataDescriptionOffset(uint64_t start_i, ZipFileRecord* fr);
-static uint8_t ZIPusesDataDescritpor(const ZipFileRecord* fr);
-static uint8_t ZIPnameHasFileType(const unsigned char* ptr, uint16_t frFileNameLength, const char* needle);
-static uint8_t ZIPnameStartsWith(const unsigned char* ptr, uint16_t frFileNameLength, const char* needle);
+static void parseZip(PHeaderData hd, PGlobalParams gp);
+
+static uint64_t ZIP_handleFileRecord(uint64_t offset,
+                                     uint16_t* found_needles,
+                                     uint32_t record_count,
+                                     uint64_t* abs_file_offset,
+                                     size_t file_size,
+                                     uint8_t info_level,
+                                     const char* file_name,
+                                     unsigned char* block_s,
+                                     unsigned char* block_l);
+static size_t ZIP_fillRecored(ZipFileRecord* fr,
+                              const unsigned char* ptr,
+                              uint64_t offset,
+                              uint64_t abs_file_offset,
+                              size_t file_size,
+                              const char* file_name,
+                              unsigned char* block_s);
+static uint8_t ZIP_usesDataDescritpor(const ZipFileRecord* fr);
+static uint64_t ZIP_findDataDescriptionOffset(uint64_t offset,
+                                              ZipFileRecord* fr,
+                                              uint64_t abs_file_offset,
+                                              size_t file_size,
+                                              const char* file_name,
+                                              unsigned char* block_s);
+static uint64_t ZIP_handleDirEntry(uint64_t offset,
+                                   uint16_t* found_needles,
+                                   uint32_t record_count,
+                                   uint64_t* abs_file_offset,
+                                   size_t file_size,
+                                   uint8_t info_level,
+                                   const char* file_name,
+                                   unsigned char* block_s,
+                                   unsigned char* block_l);
+static void ZIP_fillDirEntry(ZipDirEntry* de,
+                             const unsigned char* ptr);
+static uint64_t ZIP_handleEndLocator(uint64_t offset,
+                                     uint64_t* abs_file_offset,
+                                     size_t file_size,
+                                     uint8_t info_level,
+                                     const char* file_name,
+                                     unsigned char* block_s,
+                                     unsigned char* block_l);
+static void ZIP_fillEndLocator(ZipEndLocator* r, const unsigned char* ptr);
+static uint8_t ZIP_checkNameOfRecord(const unsigned char* ptr, uint16_t frFileNameLength, const char* expected);
+static uint8_t ZIP_nameHasFileType(const unsigned char* ptr, uint16_t frFileNameLength, const char* needle);
+static uint8_t ZIP_nameStartsWith(const unsigned char* ptr, uint16_t frFileNameLength, const char* needle);
+static uint8_t ZIP_checkNeedles(ZipFileRecord* r,
+                                uint64_t offset,
+                                uint16_t* found_needles,
+                                uint32_t record_count,
+                                uint64_t abs_file_offset,
+                                size_t file_size,
+                                const char* file_name,
+                                unsigned char* block_s,
+                                unsigned char* block_l);
 static uint8_t isJar(const uint16_t found_needles[4]);
 
 
 
-void parseZip()
+void parseZip(PHeaderData hd, PGlobalParams gp)
 {
 	uint64_t offset = 0;
 	uint32_t record_count = 0;
@@ -39,41 +82,44 @@ void parseZip()
 
 	while ( 1 )
 	{
-		if ( !checkFileSpace(offset, abs_file_offset, MAGIC_ZIP_BYTES_LN, "MAGIC_ZIP_BYTES_LN") )
+		if ( !checkFileSpace(offset, gp->abs_file_offset, MAGIC_ZIP_BYTES_LN, gp->file_size) )
 			break;
-		if ( !checkLargeBlockSpace(&offset, &abs_file_offset, MAGIC_ZIP_BYTES_LN, "MAGIC_ZIP_BYTES_LN"))
+		if ( !checkLargeBlockSpace(&offset, &gp->abs_file_offset, MAGIC_ZIP_BYTES_LN, gp->block_large, gp->file_name))
 			break;
 
-		debug_info("magic: %02x%02x%02x%02x\n", block_large[offset], block_large[offset+1], block_large[offset+2], block_large[offset+3]);
+		debug_info("magic: %02x%02x%02x%02x\n", gp->block_large[offset], gp->block_large[offset+1], gp->block_large[offset+2], gp->block_large[offset+3]);
 		debug_info("offset: 0x%lx\n", offset);
-		debug_info("abs_file_offset: 0x%lx\n", abs_file_offset);
+		debug_info("abs_file_offset: 0x%lx\n", gp->abs_file_offset);
 
-		if ( checkBytes(MAGIC_ZIP_FILE_ENTRY_BYTES, MAGIC_ZIP_BYTES_LN, &block_large[offset]) )
+		if ( checkBytes(MAGIC_ZIP_FILE_ENTRY_BYTES, MAGIC_ZIP_BYTES_LN, &gp->block_large[offset]) )
 		{
 			debug_info("record: %u\n", record_count);
-			offset = ZIPhandleFileRecord(offset, found_needles, record_count);
+			offset = ZIP_handleFileRecord(offset, found_needles, record_count, &gp->abs_file_offset, gp->file_size,
+                                 gp->info_level, gp->file_name, gp->block_standard, gp->block_large);
 			if ( offset == UINT64_MAX )
 				break;
 
 			record_count++;
 		}
-		else if ( info_level == INFO_LEVEL_BASIC )
+		else if ( gp->info_level == INFO_LEVEL_BASIC )
 		{
 			break;
 		}
-		else if ( checkBytes(MAGIC_ZIP_DIR_ENTRY_BYTES, MAGIC_ZIP_BYTES_LN, &block_large[offset]) )
+		else if ( checkBytes(MAGIC_ZIP_DIR_ENTRY_BYTES, MAGIC_ZIP_BYTES_LN, &gp->block_large[offset]) )
 		{
 			debug_info("dir: %u\n", dir_count);
-			offset = ZIPhandleDirEntry(offset, found_needles, dir_count);
+			offset = ZIP_handleDirEntry(offset, found_needles, dir_count, &gp->abs_file_offset, gp->file_size, gp->info_level,
+                               gp->file_name, gp->block_standard, gp->block_large);
 			if ( offset == UINT64_MAX )
 				break;
 
 			dir_count++;
 		}
-		else if ( checkBytes(MAGIC_ZIP_END_LOCATOR_BYTES, MAGIC_ZIP_BYTES_LN, &block_large[offset]) )
+		else if ( checkBytes(MAGIC_ZIP_END_LOCATOR_BYTES, MAGIC_ZIP_BYTES_LN, &gp->block_large[offset]) )
 		{
 			debug_info("The end!\n");
-			offset = ZIPhandleEndLocator(offset);
+			offset = ZIP_handleEndLocator(offset, &gp->abs_file_offset, gp->file_size, gp->info_level, gp->file_name,
+                                 gp->block_standard, gp->block_large);
 			break;
 		}
 		else
@@ -81,7 +127,7 @@ void parseZip()
 			break;
 		}
 
-		if ( abs_file_offset + offset > file_size )
+		if ( gp->abs_file_offset + offset > gp->file_size )
 		{
 			header_info("INFO: Reached end of file.\n");
 			break;
@@ -90,78 +136,92 @@ void parseZip()
 
 	if ( isJar(found_needles) )
 	{
-		HD->headertype = HEADER_TYPE_JAR;
-		HD->CPU_arch = ARCH_JAVA;
-		HD->Machine = "Jar Archive";
+		hd->headertype = HEADER_TYPE_JAR;
+		hd->CPU_arch = ARCH_JAVA;
+		hd->Machine = "Jar Archive";
 	}
 	else if ( found_needles[3] > 0 )
 	{
-		HD->headertype = HEADER_TYPE_WORD_DOC_X;
-		HD->CPU_arch = ARCH_UNSUPPORTED;
-		HD->Machine = architecture_names[ARCH_UNSUPPORTED];
+		hd->headertype = HEADER_TYPE_WORD_DOC_X;
+		hd->CPU_arch = ARCH_UNSUPPORTED;
+		hd->Machine = architecture_names[ARCH_UNSUPPORTED];
 	}
 	else if ( found_needles[4] > 0 )
 	{
-		HD->headertype = HEADER_TYPE_APK;
-		HD->CPU_arch = ARCH_ANDROID;
+		hd->headertype = HEADER_TYPE_APK;
+		hd->CPU_arch = ARCH_ANDROID;
 		// TODO: find classes.dex and parse
-		HD->Machine = architecture_names[ARCH_UNSUPPORTED];
+		hd->Machine = architecture_names[ARCH_UNSUPPORTED];
 	}
 	else
 	{
-		HD->headertype = HEADER_TYPE_ZIP;
-		HD->CPU_arch = ARCH_UNSUPPORTED;
-		HD->Machine = architecture_names[ARCH_UNSUPPORTED];
+		hd->headertype = HEADER_TYPE_ZIP;
+		hd->CPU_arch = ARCH_UNSUPPORTED;
+		hd->Machine = architecture_names[ARCH_UNSUPPORTED];
 	}
 }
 
-uint64_t ZIPhandleFileRecord(uint64_t offset, uint16_t* found_needles, uint32_t record_count)
+uint64_t ZIP_handleFileRecord(uint64_t offset,
+                              uint16_t* found_needles,
+                              uint32_t record_count,
+                              uint64_t* abs_file_offset,
+                              size_t file_size,
+                              uint8_t info_level,
+                              const char* file_name,
+                              unsigned char* block_s,
+                              unsigned char* block_l)
 {
 	ZipFileRecord fr = {0};
 	unsigned char* ptr;
 	uint8_t size_of_entry = MIN_SIZE_OF_ZIP_RECORD;
 	size_t dd_offset;
 
-	if ( !checkFileSpace(offset, abs_file_offset, size_of_entry, "size_of_entry") )
+	if ( !checkFileSpace(offset, *abs_file_offset, size_of_entry, file_size) )
 		return UINT64_MAX;
 	debug_info("offset: 0x%lx\n", offset);
-	if ( !checkLargeBlockSpace(&offset, &abs_file_offset, size_of_entry, "size_of_entry") )
+	if ( !checkLargeBlockSpace(&offset, abs_file_offset, size_of_entry, block_l, file_name) )
 		return UINT64_MAX;
 
-	ptr = &block_large[offset];
+	ptr = &block_l[offset];
 
-	dd_offset = ZIPfillRecored(&fr, ptr, offset);
+	dd_offset = ZIP_fillRecored(&fr, ptr, offset, *abs_file_offset, file_size, file_name, block_s);
 
 	if ( info_level >= INFO_LEVEL_FULL )
-		ZIPprintFileEntry(&fr, ptr, record_count, abs_file_offset + offset, dd_offset);
+		ZIP_printFileEntry(&fr, ptr, record_count, *abs_file_offset + offset, dd_offset, file_size, file_name, block_s);
 
-	ZIPcheckNeedles(&fr, offset, found_needles, record_count);
+	ZIP_checkNeedles(&fr, offset, found_needles, record_count, *abs_file_offset, file_size, file_name, block_s, block_l);
 
 	debug_info(" - - - frDataDescr.ddCompressedSize: 0x%x (%u)\n", fr.dataDescr.ddCompressedSize, fr.dataDescr.ddCompressedSize);
 	offset += size_of_entry + fr.compressedSize + fr.fileNameLength + fr.extraFieldLength;
 //	offset += size_of_entry + ((fr.compressedSize > 0) ? fr.compressedSize : fr.uncompressedSize) + fr.fileNameLength + fr.extraFieldLength;
-	debug_info(" - abs_file_offset+offset: 0x%lx + 0x%lx =  0x%lx\n", abs_file_offset, offset, (abs_file_offset+offset));
-	if ( ZIPusesDataDescritpor(&fr) )
-		offset = dd_offset + SIZE_OF_ZIP_DATA_DESCRIPTION - abs_file_offset;
+	debug_info(" - abs_file_offset+offset: 0x%lx + 0x%lx =  0x%lx\n", *abs_file_offset, offset, (*abs_file_offset+offset));
+	if ( ZIP_usesDataDescritpor(&fr) )
+		offset = dd_offset + SIZE_OF_ZIP_DATA_DESCRIPTION - *abs_file_offset;
 //		offset += SIZE_OF_ZIP_DATA_DESCRIPTION;
 //		if ( fr.compressedSize == 0 )
 //			offset += fr.dataDescr.ddCompressedSize;
 
-	debug_info(" - abs_file_offset+offset: 0x%lx + 0x%lx =  0x%lx\n", abs_file_offset, offset, (abs_file_offset+offset));
+	debug_info(" - abs_file_offset+offset: 0x%lx + 0x%lx =  0x%lx\n", *abs_file_offset, offset, (*abs_file_offset+offset));
 	debug_info(" - offset += dd_offset + SIZE_OF_ZIP_DATA_DESCRIPTION - abs_file_offset: 0x%lx + 0x%x - 0x%lx =  0x%lx\n",
-			dd_offset, SIZE_OF_ZIP_DATA_DESCRIPTION, abs_file_offset, (dd_offset+ SIZE_OF_ZIP_DATA_DESCRIPTION- abs_file_offset));
+			dd_offset, SIZE_OF_ZIP_DATA_DESCRIPTION, *abs_file_offset, (dd_offset+ SIZE_OF_ZIP_DATA_DESCRIPTION- *abs_file_offset));
 
 
 	return offset;
 }
 
-size_t ZIPfillRecored(ZipFileRecord* fr, const unsigned char* ptr, uint64_t offset)
+size_t ZIP_fillRecored(ZipFileRecord* fr,
+                       const unsigned char* ptr,
+                       uint64_t offset,
+                       uint64_t abs_file_offset,
+                       size_t file_size,
+                       const char* file_name,
+                       unsigned char* block_s)
 {
 	size_t dd_offset = 0;
 	int i;
 
 	for ( i = 0; i < MAGIC_ZIP_BYTES_LN; i++ )
-		fr->signature[i] = ptr[ZipFileRecoredOffsets.signature + i];
+		fr->signature[i] = (char)ptr[ZipFileRecoredOffsets.signature + i];
 	fr->version.version = *((uint8_t*) &ptr[ZipFileRecoredOffsets.version + ZipVersionOffsets.version]);
 	fr->version.hostOs = *((uint8_t*) &ptr[ZipFileRecoredOffsets.version + ZipVersionOffsets.hostOs]);
 	fr->flags = *((uint16_t*) &ptr[ZipFileRecoredOffsets.flags]);
@@ -178,18 +238,19 @@ size_t ZIPfillRecored(ZipFileRecord* fr, const unsigned char* ptr, uint64_t offs
 //	debug_info(" - - frFileNameLength: %u\n", r->frFileNameLength);
 //	debug_info(" - - frExtraFieldLength: %u\n", r->frExtraFieldLength);
 
-	if ( ZIPusesDataDescritpor(fr) )
+	if ( ZIP_usesDataDescritpor(fr) )
 	{
-		dd_offset = ZIPfindDataDescriptionOffset(offset, fr);
-//		dd_offset = ZIPfindDataDescriptionOffset(offset + fr->fileNameLength + ZipFileRecoredOffsets.fileName);
-		uint32_t r_size = readBlock(file_name, dd_offset);
+		dd_offset = ZIP_findDataDescriptionOffset(offset, fr, abs_file_offset, file_size, file_name, block_s);
+//		dd_offset = ZIP_findDataDescriptionOffset(offset + fr->fileNameLength + ZipFileRecoredOffsets.fileName);
+//		uint32_t r_size = readBlock(file_name, dd_offset);
+		uint32_t r_size = readCustomBlock(file_name, dd_offset, BLOCKSIZE, block_s);
 		if ( r_size == 0 )
 			return 0;
 		debug_info(" - - dd_offset: 0x%lx\n", dd_offset);
 		debug_info(" - - abs_file_offset +  dd_offset: 0x%lx\n", abs_file_offset + dd_offset);
 		if ( dd_offset < UINT64_MAX )
 		{
-			ptr = &block_standard[0];
+			ptr = &block_s[0];
 
 			if ( checkBytes(MAGIC_ZIP_DATA_DESCRIPTOR_BYTES, MAGIC_ZIP_BYTES_LN, &ptr[0]) )
 			{
@@ -230,7 +291,7 @@ size_t ZIPfillRecored(ZipFileRecord* fr, const unsigned char* ptr, uint64_t offs
  * @param fr ZipFileRecord*
  * @return uint8 bool value
  */
-uint8_t ZIPusesDataDescritpor(const ZipFileRecord* fr)
+uint8_t ZIP_usesDataDescritpor(const ZipFileRecord* fr)
 {
 	return hasFlag16(fr->flags, ZipFlagTypes.FLAG_DescriptorUsedMask);
 //	return r->frVersion.version >= ZIP_VS_2_0 && hasFlag16(r->frFlags, ZipFlagTypes.FLAG_DescriptorUsedMask);
@@ -245,7 +306,12 @@ uint8_t ZIPusesDataDescritpor(const ZipFileRecord* fr)
  * @param start_i
  * @return
  */
-uint64_t ZIPfindDataDescriptionOffset(uint64_t offset, ZipFileRecord* fr)
+uint64_t ZIP_findDataDescriptionOffset(uint64_t offset,
+                                       ZipFileRecord* fr,
+                                       uint64_t abs_file_offset,
+                                       size_t file_size,
+                                       const char* file_name,
+                                       unsigned char* block_s)
 {
 	uint64_t dd_offset;
 	uint64_t f_offset;
@@ -258,10 +324,11 @@ uint64_t ZIPfindDataDescriptionOffset(uint64_t offset, ZipFileRecord* fr)
 		// if compressed size, dd should immediately follow ?
 		dd_offset =  abs_file_offset + offset + MIN_SIZE_OF_ZIP_RECORD + fr->compressedSize + fr->fileNameLength + fr->extraFieldLength;
 
-		r_size = readBlock(file_name, dd_offset);
+//		r_size = readBlock(file_name, dd_offset);
+		r_size = readCustomBlock(file_name, dd_offset, BLOCKSIZE, block_s);
 		if ( r_size == 0 )
 			return UINT64_MAX;
-		ptr = &block_standard[0];
+		ptr = &block_s[0];
 
 		// if magic dd bytes fit, return
 		if ( checkBytes(MAGIC_ZIP_DATA_DESCRIPTOR_BYTES, MAGIC_ZIP_BYTES_LN, &ptr[0])
@@ -283,20 +350,21 @@ uint64_t ZIPfindDataDescriptionOffset(uint64_t offset, ZipFileRecord* fr)
 	dd_offset = offset + MIN_SIZE_OF_ZIP_RECORD + fr->compressedSize + fr->fileNameLength + fr->extraFieldLength;
 	f_offset = abs_file_offset + dd_offset;
 
-	r_size = readBlock(file_name, f_offset);
+//	r_size = readBlock(file_name, f_offset);
+	r_size = readCustomBlock(file_name, f_offset, BLOCKSIZE, block_s);
 	if ( r_size == 0 )
 		return UINT64_MAX;
 	offset = 0;
-	debug_info(" - - ZIPfindDataDescriptionOffset\n");
+	debug_info(" - - ZIP_findDataDescriptionOffset\n");
 	debug_info(" - - - offset: 0x%lx\n", offset);
 	debug_info(" - - - f_offset: 0x%lx\n", f_offset);
 
 	while ( 1 )
 	{
-		if ( !checkStandardBlockSpace(&offset, &f_offset, SIZE_OF_ZIP_DATA_DESCRIPTION+4, "SIZE_OF_ZIP_DATA_DESCRIPTION") )
+		if ( !checkStandardBlockSpace(&offset, &f_offset, SIZE_OF_ZIP_DATA_DESCRIPTION+4, block_s, file_name) )
 			return UINT64_MAX;
 
-		ptr = &block_standard[offset];
+		ptr = &block_s[offset];
 //		debug_info(" - - - offset : 0x%lx, f_offset : 0x%lx, ptr[%lx:%lx]: %02x|%02x|%02x|%02x\n", offset, f_offset, offset, offset+3
 //		, ptr[offset], ptr[offset+1], ptr[offset+2], ptr[offset+3]);
 
@@ -317,43 +385,51 @@ uint64_t ZIPfindDataDescriptionOffset(uint64_t offset, ZipFileRecord* fr)
 		bytes_searched++;
 		if ( f_offset + SIZE_OF_ZIP_DATA_DESCRIPTION > file_size )
 		{
-			debug_info(" - - - - f_offset (%lu) + %u = (%lu) > file_size (%u)\n", f_offset, SIZE_OF_ZIP_DATA_DESCRIPTION, f_offset+3, file_size);
+			debug_info(" - - - - f_offset (%lu) + %u = (%lu) > file_size (%zu)\n", f_offset, SIZE_OF_ZIP_DATA_DESCRIPTION, f_offset+3, file_size);
 			break;
 		}
 	}
 	return UINT64_MAX;
 }
 
-uint64_t ZIPhandleDirEntry(uint64_t offset, uint16_t* found_needles, uint32_t record_count)
+uint64_t ZIP_handleDirEntry(uint64_t offset,
+                            uint16_t* found_needles,
+                            uint32_t record_count,
+                            uint64_t* abs_file_offset,
+                            size_t file_size,
+                            uint8_t info_level,
+                            const char* file_name,
+                            unsigned char* block_s,
+                            unsigned char* block_l)
 {
 	ZipDirEntry de;
 	unsigned char* ptr;
 	uint8_t size_of_entry = MIN_SIZE_OF_ZIP_DIR_ENTRY;
 
-	if ( !checkFileSpace(offset, abs_file_offset, size_of_entry, "size_of_entry") )
+	if ( !checkFileSpace(offset, *abs_file_offset, size_of_entry, file_size) )
 		return UINT64_MAX;
-	if ( !checkLargeBlockSpace(&offset, &abs_file_offset, size_of_entry, "size_of_entry") )
+	if ( !checkLargeBlockSpace(&offset, abs_file_offset, size_of_entry, block_l, file_name) )
 		return UINT64_MAX;
 
-	ptr = &block_large[offset];
+	ptr = &block_l[offset];
 
-	ZIPfillDirEntry(&de, ptr);
+	ZIP_fillDirEntry(&de, ptr);
 
 	if ( info_level >= INFO_LEVEL_FULL )
-		ZIPprintDirEntry(&de, ptr, record_count, abs_file_offset + offset);
+		ZIP_printDirEntry(&de, ptr, record_count, *abs_file_offset + offset, file_size, file_name, block_s);
 
 	offset += size_of_entry + de.fileNameLength + de.fileCommentLength + de.extraFieldLength;
-	debug_info(" - abs_file_offset+offset: 0x%lx (%lu)\n", abs_file_offset+offset, abs_file_offset+offset);
+	debug_info(" - abs_file_offset+offset: 0x%lx (%lu)\n", *abs_file_offset+offset, *abs_file_offset+offset);
 
 	return offset;
 }
 
-void ZIPfillDirEntry(ZipDirEntry* de, const unsigned char* ptr)
+void ZIP_fillDirEntry(ZipDirEntry* de, const unsigned char* ptr)
 {
 	int i;
 
 	for ( i = 0; i < MAGIC_ZIP_BYTES_LN; i++ )
-		de->signature[i] = ptr[ZipDirEntryOffsets.signature + i];
+		de->signature[i] = (char)ptr[ZipDirEntryOffsets.signature + i];
 	de->versionMadeBy.version = *((uint8_t*) &ptr[ZipDirEntryOffsets.versionMadeBy + ZipVersionOffsets.version]);
 	de->versionMadeBy.hostOs = *((uint8_t*) &ptr[ZipDirEntryOffsets.versionMadeBy + ZipVersionOffsets.hostOs]);
 	de->versionToExtract.version = *((uint8_t*) &ptr[ZipDirEntryOffsets.versionToExtract + ZipVersionOffsets.version]);
@@ -374,38 +450,45 @@ void ZIPfillDirEntry(ZipDirEntry* de, const unsigned char* ptr)
 	de->headerOffset = *((uint32_t*) &ptr[ZipDirEntryOffsets.headerOffset]);
 }
 
-uint64_t ZIPhandleEndLocator(uint64_t offset)
+uint64_t ZIP_handleEndLocator(uint64_t offset,
+                              uint64_t* abs_file_offset,
+                              size_t file_size,
+                              uint8_t info_level,
+                              const char* file_name,
+                              unsigned char* block_s,
+                              unsigned char* block_l)
 {
 	ZipEndLocator el;
 	unsigned char* ptr;
 	uint8_t size_of_entry = MIN_SIZE_OF_ZIP_END_LOCATOR;
 
-	debug_info("ZIPhandleEndLocator\n");
+	debug_info("ZIP_handleEndLocator\n");
 	debug_info("offset: %lu\n", offset);
 
-	if ( !checkFileSpace(offset, abs_file_offset, size_of_entry, "size_of_entry") )
+	if ( !checkFileSpace(offset, *abs_file_offset, size_of_entry, file_size) )
 		return UINT64_MAX;
-	if ( !checkLargeBlockSpace(&offset, &abs_file_offset, size_of_entry, "size_of_entry"))
+	if ( !checkLargeBlockSpace(&offset, abs_file_offset, size_of_entry, block_l, file_name))
 		return UINT64_MAX;
 
-	ptr = &block_large[offset];
+	ptr = &block_l[offset];
 
-	ZIPfillEndLocator(&el, ptr);
+	ZIP_fillEndLocator(&el, ptr);
 
-	debug_info(" - abs_file_offset+offset: 0x%lx (%lu)\n", abs_file_offset+offset, abs_file_offset+offset);
+	debug_info(" - abs_file_offset+offset: 0x%lx (%lu)\n", *abs_file_offset+offset, *abs_file_offset+offset);
 
 	if ( info_level >= INFO_LEVEL_FULL )
-		ZIPprintEndLocator(&el, ptr, abs_file_offset + offset);
+		ZIP_printEndLocator(&el, ptr, *abs_file_offset + offset, file_size, file_name, block_s);
 
 	return offset;
 }
 
-void ZIPfillEndLocator(ZipEndLocator* r, const unsigned char* ptr)
+void ZIP_fillEndLocator(ZipEndLocator* r,
+                        const unsigned char* ptr)
 {
 	int i;
 
 	for ( i = 0; i < MAGIC_ZIP_BYTES_LN; i++ )
-		r->signature[i] = ptr[ZipEndLocatorOffsets.signature + i];
+		r->signature[i] = (char)ptr[ZipEndLocatorOffsets.signature + i];
 	r->diskNumber = *((uint16_t*) &ptr[ZipEndLocatorOffsets.diskNumber]);
 	r->startDiskNumber = *((uint16_t*) &ptr[ZipEndLocatorOffsets.startDiskNumber]);
 	r->entriesOnDisk = *((uint16_t*) &ptr[ZipEndLocatorOffsets.entriesOnDisk]);
@@ -415,7 +498,9 @@ void ZIPfillEndLocator(ZipEndLocator* r, const unsigned char* ptr)
 	r->commentLength = *((uint16_t*) &ptr[ZipEndLocatorOffsets.commentLength]);
 }
 
-uint8_t ZIPcheckNameOfRecord(const unsigned char* ptr, uint16_t frFileNameLength, const char* expected)
+uint8_t ZIP_checkNameOfRecord(const unsigned char* ptr,
+                              uint16_t frFileNameLength,
+                              const char* expected)
 {
 	uint16_t i;
 	for ( i = 0; i < frFileNameLength; i++ )
@@ -427,7 +512,9 @@ uint8_t ZIPcheckNameOfRecord(const unsigned char* ptr, uint16_t frFileNameLength
 	return 1;
 }
 
-uint8_t ZIPnameHasFileType(const unsigned char* ptr, uint16_t frFileNameLength, const char* needle)
+uint8_t ZIP_nameHasFileType(const unsigned char* ptr,
+                            uint16_t frFileNameLength,
+                            const char* needle)
 {
 	uint16_t i, j;
 	int32_t end_i = frFileNameLength - (int32_t)strlen(needle);
@@ -445,7 +532,9 @@ uint8_t ZIPnameHasFileType(const unsigned char* ptr, uint16_t frFileNameLength, 
 	return 1;
 }
 
-uint8_t ZIPnameStartsWith(const unsigned char* ptr, uint16_t frFileNameLength, const char* needle)
+uint8_t ZIP_nameStartsWith(const unsigned char* ptr,
+                           uint16_t frFileNameLength,
+                           const char* needle)
 {
 	int32_t i;
 	int32_t end_i = (int32_t)strlen(needle);
@@ -471,7 +560,15 @@ uint8_t ZIPnameStartsWith(const unsigned char* ptr, uint16_t frFileNameLength, c
  * @param record_count uint32_t
  * @return uint64_t
  */
-uint8_t ZIPcheckNeedles(ZipFileRecord* r, uint64_t offset, uint16_t* found_needles, uint32_t record_count)
+uint8_t ZIP_checkNeedles(ZipFileRecord* r,
+                         uint64_t offset,
+                         uint16_t* found_needles,
+                         uint32_t record_count,
+                         uint64_t abs_file_offset,
+                         size_t file_size,
+                         const char* file_name,
+                         unsigned char* block_s,
+                         unsigned char* block_l)
 {
 	int i;
 	uint8_t size_of_entry = MIN_SIZE_OF_ZIP_RECORD;
@@ -482,15 +579,15 @@ uint8_t ZIPcheckNeedles(ZipFileRecord* r, uint64_t offset, uint16_t* found_needl
 			"word",
 			"AndroidManifest.xml", // apk
 	};
-	unsigned char* ptr = &block_large[offset];
+	unsigned char* ptr = &block_l[offset];
 
 	if ( r->fileNameLength != 0 )
 	{
-		if ( !checkFileSpace(offset, abs_file_offset, size_of_entry + r->fileNameLength, "sizeof RecordEntry + frFileNameLength") )
+		if ( !checkFileSpace(offset, abs_file_offset, size_of_entry + r->fileNameLength, file_size) )
 			return 0;
-		i = readStandardBlockIfLargeBlockIsExceeded(offset, abs_file_offset, size_of_entry+r->fileNameLength, "sizeof RecordEntry + frFileNameLength");
+		i = readStandardBlockIfLargeBlockIsExceeded(offset, abs_file_offset, size_of_entry+r->fileNameLength, block_s, file_name);
 		if ( i == 2 )
-			ptr = &block_standard[0];
+			ptr = &block_s[0];
 		else if ( i == 0 )
 			return 0;
 
@@ -503,14 +600,14 @@ uint8_t ZIPcheckNeedles(ZipFileRecord* r, uint64_t offset, uint16_t* found_needl
 
 		if ( record_count < 2 )
 		{
-			if ( !ZIPcheckNameOfRecord(ptr, r->fileNameLength, needles[record_count]) )
+			if ( !ZIP_checkNameOfRecord(ptr, r->fileNameLength, needles[record_count]) )
 				found_needles[record_count]++;
 		}
 		else
 		{
-			if ( ZIPnameHasFileType(ptr, r->fileNameLength, needles[2]) )
+			if ( ZIP_nameHasFileType(ptr, r->fileNameLength, needles[2]) )
 				found_needles[2]++;
-			if ( ZIPnameStartsWith(ptr, r->fileNameLength, needles[3]) )
+			if ( ZIP_nameStartsWith(ptr, r->fileNameLength, needles[3]) )
 				found_needles[3]++;
 		}
 	}

@@ -16,18 +16,18 @@
 
 
 
-static void printElfFileHeader(Elf64FileHeader* fh);
-static char* getElfEiOsAbiString(OSABIIdentification type);
-static char* getElfETypeString(ElfFileType type);
-//static char* getElfEMachineString(ElfInstructionSetArchitecture type);
-static void printElfProgramHeaderTableEntry(Elf64ProgramHeader* ph, uint16_t idx, uint16_t e_phnum, uint64_t offset);
-static char* getElfPHTypeString(uint32_t type);
-static void printElfSectionHeaderTableEntry(Elf64SectionHeader* sh, uint16_t idx, uint16_t e_shnum, char* name, uint64_t offset);
-static char* getElfSHTypeString(uint32_t type);
+static void Elf_printFileHeader(Elf64FileHeader* fh, uint64_t start_file_offset);
+static char* Elf_getEiOsAbiString(OSABIIdentification type);
+static char* Elf_getETypeString(ElfFileType type);
+//static char* Elf_getEMachineString(ElfInstructionSetArchitecture type);
+static void Elf_printProgramHeaderTableEntry(Elf64ProgramHeader* ph, uint16_t idx, uint16_t e_phnum, uint64_t offset, uint8_t bitness);
+static char* Elf_getPHTypeString(uint32_t type);
+static void Elf_printSectionHeaderTableEntry(Elf64SectionHeader* sh, uint16_t idx, uint16_t e_shnum, char* name, uint64_t offset, uint8_t bitness);
+static char* Elf_getSHTypeString(uint32_t type);
 
 
 
-void printElfFileHeader(Elf64FileHeader* fh)
+void Elf_printFileHeader(Elf64FileHeader* fh, uint64_t start_file_offset)
 {
 	const char* EiClassStrings[] = { "None", "32-Bit", "64-Bit" };
 	uint8_t ei_class = ( fh->EI_CLASS < 3 ) ? fh->EI_CLASS : 0;
@@ -40,9 +40,9 @@ void printElfFileHeader(Elf64FileHeader* fh)
 	printf(" - EI_CLASS%s: %s (%u)\n", fillOffset(offsets.EI_CLASS, 0, start_file_offset), EiClassStrings[ei_class], fh->EI_CLASS);
 	printf(" - EI_DATA%s: %s endian (%u)\n", fillOffset(offsets.EI_DATA, 0, start_file_offset), endian_type_names[ei_data], fh->EI_DATA);
 	printf(" - EI_VERSION%s: %u\n", fillOffset(offsets.EI_VERSION, 0, start_file_offset), fh->EI_VERSION);
-	printf(" - EI_OSABI%s: %s (0x%02X)\n", fillOffset(offsets.EI_OSABI, 0, start_file_offset), getElfEiOsAbiString(fh->EI_OSABI), fh->EI_OSABI);
+	printf(" - EI_OSABI%s: %s (0x%02X)\n", fillOffset(offsets.EI_OSABI, 0, start_file_offset), Elf_getEiOsAbiString(fh->EI_OSABI), fh->EI_OSABI);
 	printf(" - EI_ABIVERSION%s: %u\n", fillOffset(offsets.EI_ABIVERSION, 0, start_file_offset), fh->EI_ABIVERSION);
-	printf(" - e_type%s: %s (0x%02X)\n", fillOffset(offsets.e_type, 0, start_file_offset), getElfETypeString(fh->e_type), fh->e_type);
+	printf(" - e_type%s: %s (0x%02X)\n", fillOffset(offsets.e_type, 0, start_file_offset), Elf_getETypeString(fh->e_type), fh->e_type);
 	printf(" - e_machine%s: %s (0x%02X)\n", fillOffset(offsets.e_machine, 0, start_file_offset), arch->arch.name, fh->e_machine);
 	printf(" - e_version%s: %u\n", fillOffset(offsets.e_version, 0, start_file_offset), fh->e_version);
 	printf(" - e_entry%s: 0x%lx\n", fillOffset(offsets.e_entry, 0, start_file_offset), fh->e_entry);
@@ -58,7 +58,7 @@ void printElfFileHeader(Elf64FileHeader* fh)
 	printf("\n");
 }
 
-char* getElfEiOsAbiString(OSABIIdentification type)
+char* Elf_getEiOsAbiString(OSABIIdentification type)
 {
 	switch (type)
 	{
@@ -90,7 +90,7 @@ char* getElfEiOsAbiString(OSABIIdentification type)
 	}
 }
 
-char* getElfETypeString(ElfFileType type)
+char* Elf_getETypeString(ElfFileType type)
 {
 	switch (type)
 	{
@@ -107,7 +107,123 @@ char* getElfETypeString(ElfFileType type)
 	}
 }
 
-/*char* getElfEMachineString(ElfInstructionSetArchitecture type)
+void Elf_printProgramHeaderTableEntry(Elf64ProgramHeader* ph, uint16_t idx, uint16_t e_phnum, uint64_t offset, uint8_t bitness)
+{
+	ElfProgramHeaderOffsets offsets = ( bitness == 32 ) ? Elf32ProgramHeaderOffsets : Elf64ProgramHeaderOffsets;
+
+	printf("%u / %u\n", (idx+1), e_phnum);
+	printf(" - p_type%s: %s (0x%x)\n", fillOffset(offsets.p_type, offset, 0), Elf_getPHTypeString(ph->p_type), ph->p_type);
+	if (bitness == 64 ) printf(" - p_flags%s: 0x%x (%u)\n", fillOffset(offsets.p_flags, offset, 0), ph->p_flags, ph->p_flags);
+	printf(" - p_offset%s: 0x%lx (%lu)\n", fillOffset(offsets.p_offset, offset, 0), ph->p_offset, ph->p_offset);
+	printf(" - p_vaddr%s: 0x%lx (%lu)\n", fillOffset(offsets.p_vaddr, offset, 0), ph->p_vaddr, ph->p_vaddr);
+	printf(" - p_paddr%s: 0x%lx (%lu)\n", fillOffset(offsets.p_paddr, offset, 0), ph->p_paddr, ph->p_paddr);
+	printf(" - p_filesz%s: 0x%lx (%lu)\n", fillOffset(offsets.p_filesz, offset, 0), ph->p_filesz, ph->p_filesz);
+	printf(" - p_memsz%s: 0x%lx (%lu)\n", fillOffset(offsets.p_memsz, offset, 0), ph->p_memsz, ph->p_memsz);
+	if (bitness == 32 ) printf(" - p_flags%s: 0x%x (%u)\n", fillOffset(offsets.p_flags, offset, 0), ph->p_flags, ph->p_flags);
+	printf(" - p_align%s: 0x%lx (%lu)\n", fillOffset(offsets.p_align, offset, 0), ph->p_align, ph->p_align);
+
+	printf(" - flags:");
+	printFlag32(ph->p_flags, ProgramHeaderFlags.PF_X, "EXECUTE");
+	printFlag32(ph->p_flags, ProgramHeaderFlags.PF_W, "WRITE");
+	printFlag32(ph->p_flags, ProgramHeaderFlags.PF_R, "READ");
+	printFlag32(ph->p_flags, ProgramHeaderFlags.PF_MASKOS, "PF_MASKOS: Unspecified");
+	printFlag32(ph->p_flags, ProgramHeaderFlags.PF_MASKPROC, "PF_MASKPROC: Unspecified");
+	printf("\n");
+}
+
+char* Elf_getPHTypeString(uint32_t type)
+{
+	if ( type == ProgramHeaderTypes.PT_NULL ) return "Program header table entry unused";
+	else if ( type == ProgramHeaderTypes.PT_LOAD ) return "Loadable segment";
+	else if ( type == ProgramHeaderTypes.PT_DYNAMIC ) return "Dynamic linking information";
+	else if ( type == ProgramHeaderTypes.PT_INTERP ) return "Interpreter information";
+	else if ( type == ProgramHeaderTypes.PT_NOTE ) return "Auxiliary information";
+	else if ( type == ProgramHeaderTypes.PT_SHLIB ) return "reserved";
+	else if ( type == ProgramHeaderTypes.PT_PHDR ) return "Location and size of the program header table itself, both in the file and in the memory image of the program.";
+	else if ( type == ProgramHeaderTypes.PT_TLS ) return "Thread-local storage template segment.";
+	else if ( type >= ProgramHeaderTypes.PT_LOOS
+			  && type <= ProgramHeaderTypes.PT_HIOS ) return "Values in this inclusive range are reserved for operating system-specific semantics.";
+	else if ( type >= ProgramHeaderTypes.PT_LOPROC
+			  && type <= ProgramHeaderTypes.PT_HIPROC ) return "Values in this inclusive range are reserved for processor-specific semantics. If meanings are specified, the processor supplement explains them.";
+	else return "unsupported";
+}
+
+void
+Elf_printSectionHeaderTableEntry(Elf64SectionHeader* sh, uint16_t idx, uint16_t e_shnum, char* name, uint64_t offset, uint8_t bitness)
+{
+	ElfSectionHeaderOffsets offsets = ( bitness == 32 ) ? Elf32SectionHeaderOffsets : Elf64SectionHeaderOffsets;
+
+	printf("%u / %u\n", (idx+1), e_shnum);
+	printf(" - sh_name%s: %s (%u)\n", fillOffset(offsets.sh_name, offset, 0), name, sh->sh_name);
+	printf(" - sh_type%s: %s (0x%x)\n", fillOffset(offsets.sh_type, offset, 0), Elf_getSHTypeString(sh->sh_type), sh->sh_type);
+	printf(" - sh_flags%s: 0x%lx (%lu)\n", fillOffset(offsets.sh_flags, offset, 0), sh->sh_flags, sh->sh_flags);
+	printf(" - sh_addr%s: 0x%lx (%lu)\n", fillOffset(offsets.sh_addr, offset, 0), sh->sh_addr, sh->sh_addr);
+	printf(" - sh_offset%s: 0x%lx (%lu)\n", fillOffset(offsets.sh_offset, offset, 0), sh->sh_offset, sh->sh_offset);
+	printf(" - sh_size%s: 0x%lx (%lu)\n", fillOffset(offsets.sh_size, offset, 0), sh->sh_size, sh->sh_size);
+	printf(" - sh_link%s: 0x%x (%u)\n", fillOffset(offsets.sh_link, offset, 0), sh->sh_link, sh->sh_link);
+	printf(" - sh_info%s: 0x%x (%u)\n", fillOffset(offsets.sh_info, offset, 0), sh->sh_info, sh->sh_info);
+	printf(" - sh_addralign%s: 0x%lx (%lu)\n", fillOffset(offsets.sh_addralign, offset, 0), sh->sh_addralign, sh->sh_addralign);
+	printf(" - sh_entsize%s: 0x%lx (%lu)\n", fillOffset(offsets.sh_entsize, offset, 0), sh->sh_entsize, sh->sh_entsize);
+
+	printf(" - flags:");
+	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_WRITE, "WRITE");
+	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_EXECINSTR, "EXEC");
+	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_ALLOC, "ALLOC");
+	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_MERGE, "MERGE");
+	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_STRINGS, "STRINGS");
+	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_INFO_LINK, "INFO_LINK");
+	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_LINK_ORDER, "LINK_ORDER");
+	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_OS_NONCONFORMING, "OS_NONCONFORMING");
+	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_GROUP, "GROUP");
+	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_TLS, "TLS");
+	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_COMPRESSED, "COMPRESSED");
+	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_MASKOS, "MASKOS");
+	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_MASKPROC, "MASKPROC");
+	printf("\n");
+}
+
+char* Elf_getSHTypeString(uint32_t type)
+{
+	if ( type == ElfSectionHeaderTypes.SHT_NULL ) return "Section header table entry unused";
+	else if ( type == ElfSectionHeaderTypes.SHT_PROGBITS ) return "Program data";
+	else if ( type == ElfSectionHeaderTypes.SHT_SYMTAB ) return "Symbol table";
+	else if ( type == ElfSectionHeaderTypes.SHT_STRTAB ) return "String table";
+	else if ( type == ElfSectionHeaderTypes.SHT_RELA ) return "Relocation entries with addends";
+	else if ( type == ElfSectionHeaderTypes.SHT_HASH ) return "Symbol hash table";
+	else if ( type == ElfSectionHeaderTypes.SHT_DYNAMIC ) return "Dynamic linking information";
+	else if ( type == ElfSectionHeaderTypes.SHT_NOTE ) return "Notes";
+	else if ( type == ElfSectionHeaderTypes.SHT_NOBITS ) return "Program space with no data (bss)";
+	else if ( type == ElfSectionHeaderTypes.SHT_REL ) return "Relocation entries, no addends";
+	else if ( type == ElfSectionHeaderTypes.SHT_SHLIB ) return "Reserved";
+	else if ( type == ElfSectionHeaderTypes.SHT_DYNSYM ) return "Dynamic linker symbol table";
+	else if ( type == ElfSectionHeaderTypes.SHT_INIT_ARRAY ) return "Array of constructors";
+	else if ( type == ElfSectionHeaderTypes.SHT_FINI_ARRAY ) return "Array of destructors";
+	else if ( type == ElfSectionHeaderTypes.SHT_PREINIT_ARRAY ) return "Array of pre-constructors";
+	else if ( type == ElfSectionHeaderTypes.SHT_GROUP ) return "Section group";
+	else if ( type == ElfSectionHeaderTypes.SHT_SYMTAB_SHNDX ) return "Extended section indeces";
+	else if ( type == ElfSectionHeaderTypes.SHT_NUM ) return "Number of defined types. ";
+	else if ( type == ElfSectionHeaderTypes.SHT_LOOS ) return "Start OS-specific. ";
+	else if ( type == ElfSectionHeaderTypes.SHT_GNU_ATTRIBUTES ) return "Object attributes. ";
+	else if ( type == ElfSectionHeaderTypes.SHT_GNU_HASH ) return "GNU-style hash table. ";
+	else if ( type == ElfSectionHeaderTypes.SHT_GNU_LIBLIST ) return "Prelink library list";
+	else if ( type == ElfSectionHeaderTypes.SHT_CHECKSUM ) return "Checksum for DSO content. ";
+	else if ( type == ElfSectionHeaderTypes.SHT_LOSUNW ) return "Sun-specific low bound. ";
+	else if ( type == ElfSectionHeaderTypes.SHT_SUNW_move ) return "SHT_SUNW_move";
+	else if ( type == ElfSectionHeaderTypes.SHT_SUNW_COMDAT ) return "SHT_SUNW_COMDAT";
+	else if ( type == ElfSectionHeaderTypes.SHT_SUNW_syminfo ) return "SHT_SUNW_syminfo";
+	else if ( type == ElfSectionHeaderTypes.SHT_GNU_verdef ) return "Version definition section. ";
+	else if ( type == ElfSectionHeaderTypes.SHT_GNU_verneed ) return "Version needs section. ";
+	else if ( type == ElfSectionHeaderTypes.SHT_GNU_versym ) return "Version symbol table. ";
+	else if ( type == ElfSectionHeaderTypes.SHT_HISUNW ) return "Sun-specific high bound. ";
+	else if ( type == ElfSectionHeaderTypes.SHT_HIOS ) return "End OS-specific type";
+	else if ( type == ElfSectionHeaderTypes.SHT_LOPROC ) return "Start of processor-specific";
+	else if ( type == ElfSectionHeaderTypes.SHT_HIPROC ) return "End of processor-specific";
+	else if ( type == ElfSectionHeaderTypes.SHT_LOUSER ) return "Start of application-specific";
+	else if ( type == ElfSectionHeaderTypes.SHT_HIUSER ) return "End of application-specific";
+	else return "unsupported";
+}
+
+/*char* ElfgetEMachineString(ElfInstructionSetArchitecture type)
 {
 	switch (type)
 	{
@@ -359,121 +475,5 @@ char* getElfETypeString(ElfFileType type)
 		default : return "No machine";
 	}
 }*/
-
-void printElfProgramHeaderTableEntry(Elf64ProgramHeader* ph, uint16_t idx, uint16_t e_phnum, uint64_t offset)
-{
-	ElfProgramHeaderOffsets offsets = ( HD->bitness == 32 ) ? Elf32ProgramHeaderOffsets : Elf64ProgramHeaderOffsets;
-
-	printf("%u / %u\n", (idx+1), e_phnum);
-	printf(" - p_type%s: %s (0x%x)\n", fillOffset(offsets.p_type, offset, 0), getElfPHTypeString(ph->p_type), ph->p_type);
-	if (HD->bitness == 64 ) printf(" - p_flags%s: 0x%x (%u)\n", fillOffset(offsets.p_flags, offset, 0), ph->p_flags, ph->p_flags);
-	printf(" - p_offset%s: 0x%lx (%lu)\n", fillOffset(offsets.p_offset, offset, 0), ph->p_offset, ph->p_offset);
-	printf(" - p_vaddr%s: 0x%lx (%lu)\n", fillOffset(offsets.p_vaddr, offset, 0), ph->p_vaddr, ph->p_vaddr);
-	printf(" - p_paddr%s: 0x%lx (%lu)\n", fillOffset(offsets.p_paddr, offset, 0), ph->p_paddr, ph->p_paddr);
-	printf(" - p_filesz%s: 0x%lx (%lu)\n", fillOffset(offsets.p_filesz, offset, 0), ph->p_filesz, ph->p_filesz);
-	printf(" - p_memsz%s: 0x%lx (%lu)\n", fillOffset(offsets.p_memsz, offset, 0), ph->p_memsz, ph->p_memsz);
-	if (HD->bitness == 32 ) printf(" - p_flags%s: 0x%x (%u)\n", fillOffset(offsets.p_flags, offset, 0), ph->p_flags, ph->p_flags);
-	printf(" - p_align%s: 0x%lx (%lu)\n", fillOffset(offsets.p_align, offset, 0), ph->p_align, ph->p_align);
-
-	printf(" - flags:");
-	printFlag32(ph->p_flags, ProgramHeaderFlags.PF_X, "EXECUTE");
-	printFlag32(ph->p_flags, ProgramHeaderFlags.PF_W, "WRITE");
-	printFlag32(ph->p_flags, ProgramHeaderFlags.PF_R, "READ");
-	printFlag32(ph->p_flags, ProgramHeaderFlags.PF_MASKOS, "PF_MASKOS: Unspecified");
-	printFlag32(ph->p_flags, ProgramHeaderFlags.PF_MASKPROC, "PF_MASKPROC: Unspecified");
-	printf("\n");
-}
-
-char* getElfPHTypeString(uint32_t type)
-{
-	if ( type == ProgramHeaderTypes.PT_NULL ) return "Program header table entry unused";
-	else if ( type == ProgramHeaderTypes.PT_LOAD ) return "Loadable segment";
-	else if ( type == ProgramHeaderTypes.PT_DYNAMIC ) return "Dynamic linking information";
-	else if ( type == ProgramHeaderTypes.PT_INTERP ) return "Interpreter information";
-	else if ( type == ProgramHeaderTypes.PT_NOTE ) return "Auxiliary information";
-	else if ( type == ProgramHeaderTypes.PT_SHLIB ) return "reserved";
-	else if ( type == ProgramHeaderTypes.PT_PHDR ) return "Location and size of the program header table itself, both in the file and in the memory image of the program.";
-	else if ( type == ProgramHeaderTypes.PT_TLS ) return "Thread-local storage template segment.";
-	else if ( type >= ProgramHeaderTypes.PT_LOOS
-			  && type <= ProgramHeaderTypes.PT_HIOS ) return "Values in this inclusive range are reserved for operating system-specific semantics.";
-	else if ( type >= ProgramHeaderTypes.PT_LOPROC
-			  && type <= ProgramHeaderTypes.PT_HIPROC ) return "Values in this inclusive range are reserved for processor-specific semantics. If meanings are specified, the processor supplement explains them.";
-	else return "unsupported";
-}
-
-void
-printElfSectionHeaderTableEntry(Elf64SectionHeader* sh, uint16_t idx, uint16_t e_shnum, char* name, uint64_t offset)
-{
-	ElfSectionHeaderOffsets offsets = ( HD->bitness == 32 ) ? Elf32SectionHeaderOffsets : Elf64SectionHeaderOffsets;
-
-	printf("%u / %u\n", (idx+1), e_shnum);
-	printf(" - sh_name%s: %s (%u)\n", fillOffset(offsets.sh_name, offset, 0), name, sh->sh_name);
-	printf(" - sh_type%s: %s (0x%x)\n", fillOffset(offsets.sh_type, offset, 0), getElfSHTypeString(sh->sh_type), sh->sh_type);
-	printf(" - sh_flags%s: 0x%lx (%lu)\n", fillOffset(offsets.sh_flags, offset, 0), sh->sh_flags, sh->sh_flags);
-	printf(" - sh_addr%s: 0x%lx (%lu)\n", fillOffset(offsets.sh_addr, offset, 0), sh->sh_addr, sh->sh_addr);
-	printf(" - sh_offset%s: 0x%lx (%lu)\n", fillOffset(offsets.sh_offset, offset, 0), sh->sh_offset, sh->sh_offset);
-	printf(" - sh_size%s: 0x%lx (%lu)\n", fillOffset(offsets.sh_size, offset, 0), sh->sh_size, sh->sh_size);
-	printf(" - sh_link%s: 0x%x (%u)\n", fillOffset(offsets.sh_link, offset, 0), sh->sh_link, sh->sh_link);
-	printf(" - sh_info%s: 0x%x (%u)\n", fillOffset(offsets.sh_info, offset, 0), sh->sh_info, sh->sh_info);
-	printf(" - sh_addralign%s: 0x%lx (%lu)\n", fillOffset(offsets.sh_addralign, offset, 0), sh->sh_addralign, sh->sh_addralign);
-	printf(" - sh_entsize%s: 0x%lx (%lu)\n", fillOffset(offsets.sh_entsize, offset, 0), sh->sh_entsize, sh->sh_entsize);
-
-	printf(" - flags:");
-	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_WRITE, "WRITE");
-	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_EXECINSTR, "EXEC");
-	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_ALLOC, "ALLOC");
-	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_MERGE, "MERGE");
-	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_STRINGS, "STRINGS");
-	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_INFO_LINK, "INFO_LINK");
-	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_LINK_ORDER, "LINK_ORDER");
-	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_OS_NONCONFORMING, "OS_NONCONFORMING");
-	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_GROUP, "GROUP");
-	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_TLS, "TLS");
-	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_COMPRESSED, "COMPRESSED");
-	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_MASKOS, "MASKOS");
-	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_MASKPROC, "MASKPROC");
-	printf("\n");
-}
-
-char* getElfSHTypeString(uint32_t type)
-{
-	if ( type == ElfSectionHeaderTypes.SHT_NULL ) return "Section header table entry unused";
-	else if ( type == ElfSectionHeaderTypes.SHT_PROGBITS ) return "Program data";
-	else if ( type == ElfSectionHeaderTypes.SHT_SYMTAB ) return "Symbol table";
-	else if ( type == ElfSectionHeaderTypes.SHT_STRTAB ) return "String table";
-	else if ( type == ElfSectionHeaderTypes.SHT_RELA ) return "Relocation entries with addends";
-	else if ( type == ElfSectionHeaderTypes.SHT_HASH ) return "Symbol hash table";
-	else if ( type == ElfSectionHeaderTypes.SHT_DYNAMIC ) return "Dynamic linking information";
-	else if ( type == ElfSectionHeaderTypes.SHT_NOTE ) return "Notes";
-	else if ( type == ElfSectionHeaderTypes.SHT_NOBITS ) return "Program space with no data (bss)";
-	else if ( type == ElfSectionHeaderTypes.SHT_REL ) return "Relocation entries, no addends";
-	else if ( type == ElfSectionHeaderTypes.SHT_SHLIB ) return "Reserved";
-	else if ( type == ElfSectionHeaderTypes.SHT_DYNSYM ) return "Dynamic linker symbol table";
-	else if ( type == ElfSectionHeaderTypes.SHT_INIT_ARRAY ) return "Array of constructors";
-	else if ( type == ElfSectionHeaderTypes.SHT_FINI_ARRAY ) return "Array of destructors";
-	else if ( type == ElfSectionHeaderTypes.SHT_PREINIT_ARRAY ) return "Array of pre-constructors";
-	else if ( type == ElfSectionHeaderTypes.SHT_GROUP ) return "Section group";
-	else if ( type == ElfSectionHeaderTypes.SHT_SYMTAB_SHNDX ) return "Extended section indeces";
-	else if ( type == ElfSectionHeaderTypes.SHT_NUM ) return "Number of defined types. ";
-	else if ( type == ElfSectionHeaderTypes.SHT_LOOS ) return "Start OS-specific. ";
-	else if ( type == ElfSectionHeaderTypes.SHT_GNU_ATTRIBUTES ) return "Object attributes. ";
-	else if ( type == ElfSectionHeaderTypes.SHT_GNU_HASH ) return "GNU-style hash table. ";
-	else if ( type == ElfSectionHeaderTypes.SHT_GNU_LIBLIST ) return "Prelink library list";
-	else if ( type == ElfSectionHeaderTypes.SHT_CHECKSUM ) return "Checksum for DSO content. ";
-	else if ( type == ElfSectionHeaderTypes.SHT_LOSUNW ) return "Sun-specific low bound. ";
-	else if ( type == ElfSectionHeaderTypes.SHT_SUNW_move ) return "SHT_SUNW_move";
-	else if ( type == ElfSectionHeaderTypes.SHT_SUNW_COMDAT ) return "SHT_SUNW_COMDAT";
-	else if ( type == ElfSectionHeaderTypes.SHT_SUNW_syminfo ) return "SHT_SUNW_syminfo";
-	else if ( type == ElfSectionHeaderTypes.SHT_GNU_verdef ) return "Version definition section. ";
-	else if ( type == ElfSectionHeaderTypes.SHT_GNU_verneed ) return "Version needs section. ";
-	else if ( type == ElfSectionHeaderTypes.SHT_GNU_versym ) return "Version symbol table. ";
-	else if ( type == ElfSectionHeaderTypes.SHT_HISUNW ) return "Sun-specific high bound. ";
-	else if ( type == ElfSectionHeaderTypes.SHT_HIOS ) return "End OS-specific type";
-	else if ( type == ElfSectionHeaderTypes.SHT_LOPROC ) return "Start of processor-specific";
-	else if ( type == ElfSectionHeaderTypes.SHT_HIPROC ) return "End of processor-specific";
-	else if ( type == ElfSectionHeaderTypes.SHT_LOUSER ) return "Start of application-specific";
-	else if ( type == ElfSectionHeaderTypes.SHT_HIUSER ) return "End of application-specific";
-	else return "unsupported";
-}
 
 #endif

@@ -29,7 +29,9 @@ extern "C"{
  * @param force
  * @return HeaderData* filled with info or NULL if file does not exist or reading its bytes failed.
  */
-HeaderData* getBasicHeaderParserInfo(const char* file, uint64_t start, uint8_t force);
+HeaderData* getBasicHeaderParserInfo(const char* file,
+                                     uint64_t start,
+                                     uint8_t force);
 
 /**
  * Get an initialized header data object.

@@ -15,21 +15,41 @@
 #include "PEWindowsSubsystem.h"
 #include "PECharacteristics.h"
 
-void PEprintImageDosHeader(PEImageDosHeader* image_dos_header);
-void PEprintCoffFileHeader(PECoffFileHeader* ch, uint64_t offset);
-//char* PEgetMachineName(PeMachineTypes type);
-void PEprintOptionalHeader(PE64OptHeader* oh, uint64_t offset);
-void PEprintDataDirectory(PE64OptHeader* oh, uint64_t offset);
-void PEprintImageSectionHeader(PEImageSectionHeader* sh, uint16_t idx, uint16_t size, PECoffFileHeader* ch, uint64_t offset);
-const char* PEgetSubsystemName(enum PEWinudowsSubsystem type);
-void PEprintImageImportDescriptor(PEImageImportDescriptor* impd, uint64_t offset, char* impd_name);
-void PEprintHintFunctionHeader(PEImageThunkData64* td);
-void PEprintImageThunkData(PEImageThunkData64* td, PEImageImportByName* ibn, uint64_t td_offset, uint64_t ibn_offset);
-void PEprintImageExportDirectoryInfo(PE_IMAGE_EXPORT_DIRECTORY* ied);
-void PEprintImageExportDirectoryHeader();
-void PEprintImageExportDirectoryEntry(size_t i, char* name, int name_max, uint16_t name_ordinal, unsigned char* bytes, size_t bytes_max, uint32_t rva, uint64_t fo);
-void PEprintAttributeCertificateTable(PeAttributeCertificateTable* t, uint8_t n, uint64_t offset);
-const char* PEgetCertificateTypeString(uint16_t type);
+void PE_printImageDosHeader(PEImageDosHeader* image_dos_header, uint64_t start_file_offset);
+void PE_printCoffFileHeader(PECoffFileHeader* ch, uint64_t offset, uint64_t start_file_offset);
+//char* PE_getMachineName(PeMachineTypes type);
+void PE_printOptionalHeader(PE64OptHeader* oh, uint64_t offset, uint64_t start_file_offset, uint8_t bitness);
+void PE_printDataDirectory(PE64OptHeader* oh, uint64_t offset, uint8_t bitness);
+void PE_printImageSectionHeader(PEImageSectionHeader* sh,
+                                uint16_t idx,
+                                uint16_t size,
+                                PECoffFileHeader* ch,
+                                uint64_t offset,
+                                uint64_t start_file_offset,
+                                size_t file_size,
+                                const char* file_name,
+                                unsigned char* block_s,
+                                PStringTable st);
+const char* PE_getSubsystemName(enum PEWinudowsSubsystem type);
+void PE_printImageImportDescriptor(PEImageImportDescriptor* impd, uint64_t offset, const char* impd_name);
+void PE_printHintFunctionHeader(PEImageThunkData64* td);
+void PE_printImageThunkData(PEImageThunkData64* td, PEImageImportByName* ibn, uint64_t td_offset, uint64_t ibn_offset);
+void PE_printImageExportDirectoryInfo(PE_IMAGE_EXPORT_DIRECTORY* ied);
+void PE_printImageExportDirectoryHeader();
+void PE_printImageExportDirectoryEntry(size_t i, const char* name, int name_max, uint16_t name_ordinal, unsigned char* bytes, size_t bytes_max, uint32_t rva, uint64_t fo);
+void PE_printAttributeCertificateTable(PeAttributeCertificateTable* t, uint8_t n, uint64_t offset);
+const char* PE_getCertificateTypeString(uint16_t type);
+void PE_printImageResourceDirectoryEntryHeader(int type, uint16_t n, uint16_t level);
+void PE_printImageResourceDirectoryEntry(const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
+                                         uint64_t table_fo,
+                                         uint64_t offset,
+                                         uint16_t level,
+                                         uint16_t id,
+                                         uint16_t n,
+                                         uint64_t start_file_offset,
+                                         size_t file_size,
+                                         const char* file_name,
+                                         unsigned char* block_s);
 
 const char* ImageDirectoryEntryNames[] = {
 	"EXPORT",
@@ -50,7 +70,7 @@ const char* ImageDirectoryEntryNames[] = {
 	"RESERVED",
 };
 
-void PEprintImageDosHeader(PEImageDosHeader* image_dos_header)
+void PE_printImageDosHeader(PEImageDosHeader* image_dos_header, uint64_t start_file_offset)
 {
 	printf("PE Image Dos Header:\n");
 	printf(" - signature%s: %c|%c\n", fillOffset(PEImageDosHeaderOffsets.signature, 0, start_file_offset), image_dos_header->signature[0], image_dos_header->signature[1]);
@@ -75,7 +95,7 @@ void PEprintImageDosHeader(PEImageDosHeader* image_dos_header)
 	printf("\n");
 }
 
-void PEprintCoffFileHeader(PECoffFileHeader* ch, uint64_t offset)
+void PE_printCoffFileHeader(PECoffFileHeader* ch, uint64_t offset, uint64_t start_file_offset)
 {
 	const char* dll_c_pre = " - - ";
 	const char dll_c_post = '\n';
@@ -86,7 +106,7 @@ void PEprintCoffFileHeader(PECoffFileHeader* ch, uint64_t offset)
 
 	printf("Coff File Header:\n");
 	printf(" - Machine%s: %s (0x%X)\n", fillOffset(PECoffFileHeaderOffsets.Machine, offset, start_file_offset), arch->arch.name, ch->Machine);
-//	printf(" - Machine%s: %s (0x%X)\n", fillOffset(PECoffFileHeaderOffsets.Machine, offset), PEgetMachineName(ch->Machine), ch->Machine);
+//	printf(" - Machine%s: %s (0x%X)\n", fillOffset(PECoffFileHeaderOffsets.Machine, offset), PE_getMachineName(ch->Machine), ch->Machine);
 	printf(" - NumberOfSections%s: %u\n", fillOffset(PECoffFileHeaderOffsets.NumberOfSections, offset, start_file_offset), ch->NumberOfSections);
 	printf(" - TimeDateStamp%s: %s (%u)\n", fillOffset(PECoffFileHeaderOffsets.TimeDateStamp, offset, start_file_offset), date, ch->TimeDateStamp);
 	printf(" - PointerToSymbolTable%s: 0x%X (%u)\n", fillOffset(PECoffFileHeaderOffsets.PointerToSymbolTable, offset,
@@ -128,9 +148,9 @@ void PEprintCoffFileHeader(PECoffFileHeader* ch, uint64_t offset)
 	printf("\n");
 }
 
-void PEprintOptionalHeader(PE64OptHeader* oh, uint64_t offset)
+void PE_printOptionalHeader(PE64OptHeader* oh, uint64_t offset, uint64_t start_file_offset, uint8_t bitness)
 {
-	PEOptionalHeaderOffsets offsets = (HD->bitness == 32) ? PEOptional32HeaderOffsets : PEOptional64HeaderOffsets;
+	PEOptionalHeaderOffsets offsets = (bitness == 32) ? PEOptional32HeaderOffsets : PEOptional64HeaderOffsets;
 	const char* magic_string;
 	const char* dll_c_pre = " - - ";
 	const char dll_c_post = '\n';
@@ -153,7 +173,7 @@ void PEprintOptionalHeader(PE64OptHeader* oh, uint64_t offset)
 	printf(" - SizeOfUninitializedData%s: 0x%X (%u)\n", fillOffset(offsets.SizeOfUninitializedData, offset, start_file_offset), oh->SizeOfUninitializedData, oh->SizeOfUninitializedData);
 	printf(" - AddressOfEntryPoint%s: 0x%X (%u)\n", fillOffset(offsets.AddressOfEntryPoint, offset, start_file_offset), oh->AddressOfEntryPoint, oh->AddressOfEntryPoint);
 	printf(" - BaseOfCode%s: 0x%X (%u)\n", fillOffset(offsets.BaseOfCode, offset, start_file_offset), oh->BaseOfCode, oh->BaseOfCode);
-	if (HD->bitness == 32) printf(" - BaseOfData%s: 0x%X (%u)\n", fillOffset(offsets.BaseOfData, offset, start_file_offset), oh->BaseOfData, oh->BaseOfData);
+	if (bitness == 32) printf(" - BaseOfData%s: 0x%X (%u)\n", fillOffset(offsets.BaseOfData, offset, start_file_offset), oh->BaseOfData, oh->BaseOfData);
 	printf(" - ImageBase%s: 0x%lX (%lu)\n", fillOffset(offsets.ImageBase, offset, start_file_offset), oh->ImageBase, oh->ImageBase);
 	printf(" - SectionAlignment%s: 0x%X (%u)\n", fillOffset(offsets.SectionAlignment, offset, start_file_offset), oh->SectionAlignment, oh->SectionAlignment);
 	printf(" - FileAlignment%s: 0x%X (%u)\n", fillOffset(offsets.FileAlignment, offset, start_file_offset), oh->FileAlignment, oh->FileAlignment);
@@ -167,7 +187,7 @@ void PEprintOptionalHeader(PE64OptHeader* oh, uint64_t offset)
 	printf(" - SizeOfImage%s: 0x%X (%u)\n", fillOffset(offsets.SizeOfImage, offset, start_file_offset), oh->SizeOfImage, oh->SizeOfImage);
 	printf(" - SizeOfHeaders%s: 0x%X (%u)\n", fillOffset(offsets.SizeOfHeaders, offset, start_file_offset), oh->SizeOfHeaders, oh->SizeOfHeaders);
 	printf(" - Checksum%s: 0x%X (%u)\n", fillOffset(offsets.CheckSum, offset, start_file_offset), oh->Checksum, oh->Checksum);
-	printf(" - Subsystem%s: %s (%u)\n", fillOffset(offsets.Subsystem, offset, start_file_offset), PEgetSubsystemName((enum PEWinudowsSubsystem)oh->Subsystem), oh->Subsystem);
+	printf(" - Subsystem%s: %s (%u)\n", fillOffset(offsets.Subsystem, offset, start_file_offset), PE_getSubsystemName((enum PEWinudowsSubsystem)oh->Subsystem), oh->Subsystem);
 	printf(" - DllCharacteristics%s: 0x%X (%u)\n", fillOffset(offsets.DllCharacteristics, offset, start_file_offset), oh->DLLCharacteristics, oh->DLLCharacteristics);
 	printFlag32F(oh->DLLCharacteristics, IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA,
 			"IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA: Image can handle a high entropy 64-bit virtual address space.", dll_c_pre, dll_c_post);
@@ -196,11 +216,11 @@ void PEprintOptionalHeader(PE64OptHeader* oh, uint64_t offset)
 	printf(" - SizeOfHeapReserve%s: 0x%lX (%lu)\n", fillOffset(offsets.SizeOfHeapReserve, offset, start_file_offset), oh->SizeOfHeapReserve, oh->SizeOfHeapReserve);
 	printf(" - SizeOfHeapCommit%s: 0x%lX (%lu)\n", fillOffset(offsets.SizeOfHeapCommit, offset, start_file_offset), oh->SizeOfHeapCommit, oh->SizeOfHeapCommit);
 	printf(" - NumberOfRvaAndSizes%s: 0x%X (%u)\n", fillOffset(offsets.NumberOfRvaAndSizes, offset, start_file_offset), oh->NumberOfRvaAndSizes, oh->NumberOfRvaAndSizes);
-	PEprintDataDirectory(oh, offset);
+	PE_printDataDirectory(oh, offset, bitness);
 	printf("\n");
 }
 
-const char* PEgetSubsystemName(enum PEWinudowsSubsystem type)
+const char* PE_getSubsystemName(enum PEWinudowsSubsystem type)
 {
 	switch (type)
 	{
@@ -222,14 +242,14 @@ const char* PEgetSubsystemName(enum PEWinudowsSubsystem type)
 	}
 }
 
-void PEprintDataDirectory(PE64OptHeader* oh, uint64_t offset)
+void PE_printDataDirectory(PE64OptHeader* oh, uint64_t offset, uint8_t bitness)
 {
-	PEOptionalHeaderOffsets offsets = (HD->bitness == 32 ) ? PEOptional32HeaderOffsets : PEOptional64HeaderOffsets;
+	PEOptionalHeaderOffsets offsets = (bitness == 32 ) ? PEOptional32HeaderOffsets : PEOptional64HeaderOffsets;
 	uint64_t dir_offset = offsets.DataDirectories;
 	uint8_t size_of_data_entry = sizeof(PEDataDirectory);
 
 	printf(" - DataDirectory | VirtualAddress | Size\n");
-	uint32_t i = 0;
+	uint32_t i;
 	uint8_t max_nr_of_rva_to_read = 128;
 	uint8_t nr_of_rva_to_read = ( oh->NumberOfRvaAndSizes > max_nr_of_rva_to_read ) ? max_nr_of_rva_to_read : oh->NumberOfRvaAndSizes;
 
@@ -245,11 +265,20 @@ void PEprintDataDirectory(PE64OptHeader* oh, uint64_t offset)
 }
 
 void
-PEprintImageSectionHeader(PEImageSectionHeader* sh, uint16_t idx, uint16_t size, PECoffFileHeader* ch, uint64_t offset)
+PE_printImageSectionHeader(PEImageSectionHeader* sh,
+                           uint16_t idx,
+                           uint16_t size,
+                           PECoffFileHeader* ch,
+                           uint64_t offset,
+                           uint64_t start_file_offset,
+                           size_t file_size,
+                           const char* file_name,
+                           unsigned char* block_s,
+                           PStringTable st)
 {
 	char characteristics_bin[33];
 	char* name;
-	PEgetRealName(sh->Name, &name, ch);
+	PE_getRealName(sh->Name, &name, ch, start_file_offset, file_size, file_name, block_s, st);
 
 	printf("%u / %u\n", (idx+1), size);
 //	printf(" - short name: %c%c%c%c%c%c%c%c\n", sh->Name[0], sh->Name[1], sh->Name[2], sh->Name[3], sh->Name[4], sh->Name[5], sh->Name[6], sh->Name[7]);
@@ -290,7 +319,7 @@ PEprintImageSectionHeader(PEImageSectionHeader* sh, uint16_t idx, uint16_t size,
 	free(name);
 }
 
-void PEprintImageImportDescriptor(PEImageImportDescriptor* impd, uint64_t offset, char* impd_name)
+void PE_printImageImportDescriptor(PEImageImportDescriptor* impd, uint64_t offset, const char* impd_name)
 {
 	printf(" -%s %s (0x%x)\n", fillOffset(PEImageImportDescriptorOffsets.Name, offset, 0), impd_name, impd->Name);
 	printf(" - - OriginalFirstThunk%s: 0x%x\n", fillOffset(PEImageImportDescriptorOffsets.Union, offset, 0), impd->OriginalFirstThunk);
@@ -299,7 +328,7 @@ void PEprintImageImportDescriptor(PEImageImportDescriptor* impd, uint64_t offset
 	printf(" - - FirstThunk%s: 0x%x\n", fillOffset(PEImageImportDescriptorOffsets.FirstThunk, offset, 0), impd->FirstThunk);
 }
 
-void PEprintHintFunctionHeader(PEImageThunkData64* td)
+void PE_printHintFunctionHeader(PEImageThunkData64* td)
 {
 	if ( td->Ordinal & IMAGE_ORDINAL_FLAG32 || td->Ordinal & IMAGE_ORDINAL_FLAG64 )
 		printf(" - - - %8s\n", "Hint");
@@ -308,21 +337,30 @@ void PEprintHintFunctionHeader(PEImageThunkData64* td)
 
 }
 
-void PEprintImageThunkData(PEImageThunkData64* td, PEImageImportByName* ibn, uint64_t td_offset, uint64_t ibn_offset)
+void PE_printImageThunkData(PEImageThunkData64* td, PEImageImportByName* ibn, uint64_t td_offset, uint64_t ibn_offset)
 {
 	if ( td->Ordinal & IMAGE_ORDINAL_FLAG32 )
+#if defined(_WIN32)
 		printf(" - - - %s0x%08llX\n", fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0), td->Ordinal - IMAGE_ORDINAL_FLAG32);
+#else
+		printf(" - - - %s0x%08lX\n", fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0), td->Ordinal - IMAGE_ORDINAL_FLAG32);
+#endif
 	else if ( td->Ordinal & IMAGE_ORDINAL_FLAG64 )
+#if defined(_WIN32)
 		printf(" - - - %s0x%08llX\n", fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0), td->Ordinal - IMAGE_ORDINAL_FLAG64);
+#else
+		printf(" - - - %s0x%08lX\n", fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0), td->Ordinal - IMAGE_ORDINAL_FLAG64);
+#endif
 	else
 		printf(" - - - 0x%08X%s | %s%s\n",
 				ibn->Hint, fillOffset(PEImageImportByNameOffsets.Hint, ibn_offset, 0), 
 				ibn->Name, fillOffset(PEImageImportByNameOffsets.Name, ibn_offset, 0));
 }
 
-void PEprintImageExportDirectoryInfo(PE_IMAGE_EXPORT_DIRECTORY* ied)
+void PE_printImageExportDirectoryInfo(PE_IMAGE_EXPORT_DIRECTORY* ied)
 {
 	printf("IMAGE_EXPORT_DIRECTORY:\n");
+#if defined(_WIN32)
 	printf(" - Characteristics: 0x%lx\n", ied->Characteristics);
 	printf(" - TimeDateStamp: 0x%lx\n", ied->TimeDateStamp);
 	printf(" - MajorVersion: 0x%lx\n", ied->MajorVersion);
@@ -334,15 +372,28 @@ void PEprintImageExportDirectoryInfo(PE_IMAGE_EXPORT_DIRECTORY* ied)
 	printf(" - AddressOfFunctions: 0x%lx\n", ied->AddressOfFunctions);
 	printf(" - AddressOfNames: 0x%lx\n", ied->AddressOfNames);
 	printf(" - AddressOfNameOrdinals: 0x%lx\n", ied->AddressOfNameOrdinals);
+#else
+    printf(" - Characteristics: 0x%x\n", ied->Characteristics);
+    printf(" - TimeDateStamp: 0x%x\n", ied->TimeDateStamp);
+    printf(" - MajorVersion: 0x%x\n", ied->MajorVersion);
+    printf(" - MinorVersion: 0x%x\n", ied->MinorVersion);
+    printf(" - Name: 0x%x\n", ied->Name);
+    printf(" - Base: 0x%x\n", ied->Base);
+    printf(" - NumberOfFunctions: 0x%x\n", ied->NumberOfFunctions);
+    printf(" - NumberOfNames: 0x%x\n", ied->NumberOfNames);
+    printf(" - AddressOfFunctions: 0x%x\n", ied->AddressOfFunctions);
+    printf(" - AddressOfNames: 0x%x\n", ied->AddressOfNames);
+    printf(" - AddressOfNameOrdinals: 0x%x\n", ied->AddressOfNameOrdinals);
+#endif
 	printf("\n");
 }
 
-void PEprintImageExportDirectoryHeader()
+void PE_printImageExportDirectoryHeader()
 {
 	printf(" - List of exported functions:\n");
 }
 
-void PEprintImageExportDirectoryEntry(size_t i, char* name, int name_max, uint16_t name_ordinal, unsigned char* bytes, size_t bytes_max, uint32_t rva, uint64_t fo)
+void PE_printImageExportDirectoryEntry(size_t i, const char* name, int name_max, uint16_t name_ordinal, unsigned char* bytes, size_t bytes_max, uint32_t rva, uint64_t fo)
 {
 	int j;
 	int nr_of_bytes = 0x10;
@@ -352,13 +403,17 @@ void PEprintImageExportDirectoryEntry(size_t i, char* name, int name_max, uint16
 	printf(" - [%zu] \n", i);
 	printf(" - - name: %.*s\n", name_max, name);
 	printf(" - - ordinal: 0x%x\n", name_ordinal);
+#if defined(_WIN32)
 	printf(" - - function (rva: 0x%lx, fo: 0x%llx):\n     ", rva, fo);
+#else
+	printf(" - - function (rva: 0x%x, fo: 0x%lx):\n     ", rva, fo);
+#endif
 	for ( j = 0; j < nr_of_bytes; j++ )
 		printf("%02x ", bytes[j]);
 	printf("...\n");
 }
 
-void PEprintAttributeCertificateTable(PeAttributeCertificateTable* t, uint8_t n, uint64_t offset)
+void PE_printAttributeCertificateTable(PeAttributeCertificateTable* t, uint8_t n, uint64_t offset)
 {
 	uint8_t i;
 	PeAttributeCertificateTable* entry;
@@ -371,14 +426,14 @@ void PEprintAttributeCertificateTable(PeAttributeCertificateTable* t, uint8_t n,
 		printf(" - %u/%u\n", i+1, n);
 		printf(" - - length%s: 0x%x\n", fillOffset(PeAttributeCertificateTableOffsets.dwLength, offset, 0), entry->dwLength);
 		printf(" - - revision%s: 0x%x\n", fillOffset(PeAttributeCertificateTableOffsets.wRevision, offset, 0), entry->wRevision);
-		printf(" - - certificateType%s: %s (0x%x)\n", fillOffset(PeAttributeCertificateTableOffsets.wCertificateType, offset, 0), PEgetCertificateTypeString(entry->wCertificateType), entry->wCertificateType);
+		printf(" - - certificateType%s: %s (0x%x)\n", fillOffset(PeAttributeCertificateTableOffsets.wCertificateType, offset, 0), PE_getCertificateTypeString(entry->wCertificateType), entry->wCertificateType);
 		printf(" - - certificate (offset)%s: %p\n", fillOffset(PeAttributeCertificateTableOffsets.bCertificate, offset, 0), (void*)entry->bCertificate);
 
 		offset += entry->dwLength;
 	}
 }
 
-const char* PEgetCertificateTypeString(uint16_t type)
+const char* PE_getCertificateTypeString(uint16_t type)
 {
 	switch ( type)
 	{
@@ -414,7 +469,7 @@ void fillDashes(size_t n, uint16_t level)
 	}
 }
 
-void PEprintImageResourceDirectory(const PE_IMAGE_RESOURCE_DIRECTORY* rd, uint64_t offset, uint16_t level)
+void PE_printImageResourceDirectory(const PE_IMAGE_RESOURCE_DIRECTORY* rd, uint64_t offset, uint16_t level)
 {
 	fillDashes(512, level);
 	
@@ -427,7 +482,7 @@ void PEprintImageResourceDirectory(const PE_IMAGE_RESOURCE_DIRECTORY* rd, uint64
 	printf("%s- NumberOfIdEntries: 0x%x\n", dashes, rd->NumberOfIdEntries);
 }
 
-void PEprintImageResourceDirectoryEntryHeader(int type, uint16_t n, uint16_t level)
+void PE_printImageResourceDirectoryEntryHeader(int type, uint16_t n, uint16_t level)
 {
 	fillDashes(512, level);
 	
@@ -437,7 +492,16 @@ void PEprintImageResourceDirectoryEntryHeader(int type, uint16_t n, uint16_t lev
 		printf("%s- ID Entries (%u):\n", dashes, n);
 }
 
-void PEprintImageResourceDirectoryEntry(const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re, uint64_t table_fo, uint64_t offset, uint16_t level, uint16_t id, uint16_t n)
+void PE_printImageResourceDirectoryEntry(const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
+                                         uint64_t table_fo,
+                                         uint64_t offset,
+                                         uint16_t level,
+                                         uint16_t id,
+                                         uint16_t n,
+                                         uint64_t start_file_offset,
+                                         size_t file_size,
+                                         const char* file_name,
+                                         unsigned char* block_s)
 {
 	uint64_t name_offset = 0;
 	size_t size = 0;
@@ -453,19 +517,19 @@ void PEprintImageResourceDirectoryEntry(const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY*
 	if ( re->NAME_UNION.NAME_STRUCT.NameIsString )
 	{
 		name_offset = table_fo + re->NAME_UNION.NAME_STRUCT.NameOffset;
-		if ( !checkFileSpace(name_offset, start_file_offset, 4, "PE_IMAGE_RESOURCE_DIR_STRING_U"))
+		if ( !checkFileSpace(name_offset, start_file_offset, 4, file_size))
 			return;
 
 		name_offset = name_offset + start_file_offset;
-		size = readBlock(file_name, name_offset);
+		size = readCustomBlock(file_name, name_offset, BLOCKSIZE, block_s);
 		if ( size == 0 )
 			return;
 
-		ptr = block_standard;
+		ptr = block_s;
 		name.Length = *((uint16_t*) &ptr[name_offsets.Length]);
 		name.NameString = ((uint16_t*) &ptr[name_offsets.NameString]);
 
-		if ( !checkFileSpace(name_offset, start_file_offset, 2+name_offsets.Length, "PE_IMAGE_RESOURCE_DIR_STRING_U"))
+		if ( !checkFileSpace(name_offset, start_file_offset, 2+name_offsets.Length, file_size))
 			return;
 
 //		printf(" - - Name.Length: 0x%x\n", name.Length);
@@ -486,7 +550,7 @@ void PEprintImageResourceDirectoryEntry(const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY*
 	printf("%s- - - OffsetToData.NameIsDirectory: 0x%x\n", dashes, re->OFFSET_UNION.DATA_STRUCT.DataIsDirectory);
 }
 
-void PEprintImageResourceDataEntry(const PE_IMAGE_RESOURCE_DATA_ENTRY* de, uint64_t offset, uint16_t level)
+void PE_printImageResourceDataEntry(const PE_IMAGE_RESOURCE_DATA_ENTRY* de, uint64_t offset, uint16_t level)
 {
 	fillDashes(512, level);
 	

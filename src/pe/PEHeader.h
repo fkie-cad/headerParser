@@ -451,4 +451,20 @@ typedef struct PE_IMAGE_RESOURCE_DATA_ENTRY {
 	uint32_t Reserved;
 } PE_IMAGE_RESOURCE_DATA_ENTRY;
 
+
+
+// custom
+
+typedef struct StringTable {
+	unsigned char *strings;
+	uint32_t size;
+} StringTable, *PStringTable;
+
+typedef struct SVAS {
+	uint32_t VirtualAddress;
+	uint32_t VirtualSize;
+	uint32_t PointerToRawData;
+	uint32_t SizeOfRawData;
+} SVAS;
+
 #endif

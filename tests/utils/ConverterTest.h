@@ -99,9 +99,12 @@ TEST_F(ConverterTest, testParseUint64)
 		17289301308300324847u,
 	};
 
+	uint64_t r;
+	int s;
 	for ( uint32_t i = 0; i < bytes.size(); i++)
 	{
-		uint64_t r = parseUint64(bytes[i]);
+		s = parseUint64(bytes[i], &r);
+		EXPECT_EQ(s, 0);
 		EXPECT_EQ(r, expteced[i]);
 	}
 }

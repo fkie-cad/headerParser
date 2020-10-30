@@ -10,15 +10,37 @@
 #include "../Globals.h"
 #include "../utils/Helper.h"
 
-void PEgetRealName(const char* short_name, char** real_name, PECoffFileHeader* coff_header);
-int PEgetNameOfStringTable(const char* short_name, char** real_name, PECoffFileHeader* coff_header);
-int PEloadStringTable(PECoffFileHeader* coff_header);
-uint32_t PEgetSizeOfStringTable(uint64_t ptr_to_string_table);
+void PE_getRealName(const char* short_name,
+                    char** real_name,
+                    PECoffFileHeader* coff_header,
+                    uint64_t start_file_offset,
+                    size_t file_size,
+                    const char* file_name,
+                    unsigned char* block_s,
+                    PStringTable st);
+int PE_getNameOfStringTable(const char* short_name,
+                            char** real_name,
+                            PECoffFileHeader* coff_header,
+                            uint64_t start_file_offset,
+                            size_t file_size,
+                            const char* file_name,
+                            unsigned char* block_s,
+                            PStringTable st);
+int PE_loadStringTable(PECoffFileHeader* coff_header,
+                       uint64_t start_file_offset,
+                       size_t file_size,
+                       const char* file_name,
+                       unsigned char* block_s,
+                       PStringTable st);
+uint32_t PE_getSizeOfStringTable(uint64_t ptr_to_string_table,
+                                 uint64_t start_file_offset,
+                                 size_t file_size,
+                                 const char* file_name,
+                                 unsigned char* block_s);
 
-uint8_t PEisStringTableOffset(const char* short_name);
+uint8_t PE_isStringTableOffset(const char* short_name);
 
-unsigned char *string_table = NULL;
-uint32_t size_of_string_table = 0;
+
 
 /**
  * If name is an offset (/xx), load the name from the string table.
@@ -29,17 +51,24 @@ uint32_t size_of_string_table = 0;
  * @param real_name
  * @param coff_header
  */
-void PEgetRealName(const char* short_name, char** real_name, PECoffFileHeader* coff_header)
+void PE_getRealName(const char* short_name,
+                    char** real_name,
+                    PECoffFileHeader* coff_header,
+                    uint64_t start_file_offset,
+                    size_t file_size,
+                    const char* file_name,
+                    unsigned char* block_s,
+                    PStringTable st)
 {
 	size_t s_name_size = 0;
 	size_t name_size = 0;
 	int s = 0;
 
-	debug_info("PEgetRealName");
+	debug_info("PE_getRealName");
 	debug_info(" - raw name: %s\n",short_name);
-	if ( PEisStringTableOffset(short_name) )
+	if ( PE_isStringTableOffset(short_name) )
 	{
-		s = PEgetNameOfStringTable(short_name, real_name, coff_header);
+		s = PE_getNameOfStringTable(short_name, real_name, coff_header, start_file_offset, file_size, file_name, block_s, st);
 		if ( s == 0 ) return;
 	}
 
@@ -50,7 +79,13 @@ void PEgetRealName(const char* short_name, char** real_name, PECoffFileHeader* c
 	strncpy(*real_name, short_name, s_name_size);
 }
 
-uint8_t PEisStringTableOffset(const char* short_name)
+/**
+ * Check if short name is a string table offset (/xx).
+ *
+ * @param short_name
+ * @return
+ */
+uint8_t PE_isStringTableOffset(const char* short_name)
 {
 	int i;
 	if ( short_name[0] != '/' )
@@ -68,44 +103,56 @@ uint8_t PEisStringTableOffset(const char* short_name)
 	return 1;
 }
 
-int PEgetNameOfStringTable(const char* short_name, char** real_name, PECoffFileHeader* coff_header)
+int PE_getNameOfStringTable(const char* short_name,
+                            char** real_name,
+                            PECoffFileHeader* coff_header,
+                            uint64_t start_file_offset,
+                            size_t file_size,
+                            const char* file_name,
+                            unsigned char* block_s,
+                            PStringTable st)
 {
 	size_t s_name_size = 0;
-	size_t name_size = 0;
+	size_t name_buf_size = 0;
 	int s = 0;
 	uint32_t name_offset = 0;
 	uint32_t max_name_ln = 0;
 
-	if ( string_table == NULL )
+	if ( st->strings == NULL )
 	{
-		s = PEloadStringTable(coff_header);
-		if ( s != 0  || string_table == NULL )
+		s = PE_loadStringTable(coff_header, start_file_offset, file_size, file_name, block_s, st);
+		if ( s != 0  || st->strings == NULL )
 			return 1;
 	}
 	name_offset = strtoul((&short_name[1]), NULL, 10);
 	debug_info(" - - name_offset: %u\n", name_offset);
-	debug_info(" - - size_of_string_table: %u\n", size_of_string_table);
-	debug_info(" - - long name: %s\n", &string_table[name_offset]);
+	debug_info(" - - size_of_string_table: %u\n", st->size);
+	debug_info(" - - long name: %s\n", &st->strings[name_offset]);
 
-	if ( name_offset >= size_of_string_table - 1 )
+	if ( name_offset >= st->size - 1 )
 	{
-		header_info("INFO: offset to string table (%u) > size of string table (%u\n", name_offset, size_of_string_table);
+		header_info("INFO: offset to string table (%u) > size of string table (%u\n", name_offset, st->size);
 		return 2;
 	}
 
-	max_name_ln = size_of_string_table - name_offset;
+	max_name_ln = st->size - name_offset;
 	if ( max_name_ln > MAX_SIZE_OF_SECTION_NAME ) max_name_ln = MAX_SIZE_OF_SECTION_NAME;
 
-	s_name_size = strnlen((const char*)(&string_table[name_offset]), max_name_ln);
-	name_size = s_name_size+1;
+	s_name_size = strnlen((const char*)(&st->strings[name_offset]), max_name_ln);
+	name_buf_size = s_name_size+1;
 
-	*real_name = (char*) calloc(name_size, sizeof(char));
-	strncpy(*real_name, (const char*)(&string_table[name_offset]), s_name_size);
+	*real_name = (char*) calloc(name_buf_size, sizeof(char));
+	strncpy(*real_name, (const char*)(&st->strings[name_offset]), s_name_size);
 
 	return 0;
 }
 
-int PEloadStringTable(PECoffFileHeader* coff_header)
+int PE_loadStringTable(PECoffFileHeader* coff_header,
+                       uint64_t start_file_offset,
+                       size_t file_size,
+                       const char* file_name,
+                       unsigned char* block_s,
+                       PStringTable st)
 {
 	uint32_t size = 0;
 	uint64_t ptr_to_string_table = (uint64_t)coff_header->PointerToSymbolTable + (coff_header->NumberOfSymbols * SIZE_OF_SYM_ENT);
@@ -118,20 +165,20 @@ int PEloadStringTable(PECoffFileHeader* coff_header)
 	if ( coff_header->PointerToSymbolTable == 0 || coff_header->NumberOfSymbols == 0 || ptr_to_string_table == 0 )
 		return 3;
 
-	size_of_string_table = PEgetSizeOfStringTable(ptr_to_string_table);
-	if ( size_of_string_table == 0 )
+	st->size = PE_getSizeOfStringTable(ptr_to_string_table, start_file_offset, file_size, file_name, block_s);
+	if ( st->size == 0 )
 		return 4;
 
-	end_of_string_table = ptr_to_string_table + size_of_string_table;
-	debug_info(" - - size of string table: %u\n", size_of_string_table);
+	end_of_string_table = ptr_to_string_table + st->size;
+	debug_info(" - - size of string table: %u\n", st->size);
 	debug_info(" - - end_of_string_table: %lu\n", end_of_string_table);
-	if ( size_of_string_table == 0 )
+	if ( st->size == 0 )
 		return 1;
 
 	ptr_to_string_table += start_file_offset;
 	end_of_string_table += start_file_offset;
 
-	size = readCharArrayFile(file_name, &string_table, ptr_to_string_table, end_of_string_table);
+	size = readCharArrayFile(file_name, &st->strings, ptr_to_string_table, end_of_string_table);
 	if ( !size )
 	{
 		prog_error("Read String Table failed.\n");
@@ -141,7 +188,7 @@ int PEloadStringTable(PECoffFileHeader* coff_header)
 	return 0;
 }
 
-uint32_t PEgetSizeOfStringTable(uint64_t ptr_to_string_table)
+uint32_t PE_getSizeOfStringTable(uint64_t ptr_to_string_table, uint64_t start_file_offset, size_t file_size, const char* file_name, unsigned char* block_s)
 {
 	uint32_t size_of_table = 0;
 	uint32_t size;
@@ -149,11 +196,11 @@ uint32_t PEgetSizeOfStringTable(uint64_t ptr_to_string_table)
 
 	if ( start_file_offset + end_of_size_info > file_size )
 	{
-		header_info("INFO: Image size info (%lu) is written beyond file_size (%u)\n", start_file_offset + end_of_size_info, file_size);
+		header_info("INFO: Image size info (%lu) is written beyond file_size (%zu)\n", start_file_offset + end_of_size_info, file_size);
 		return 0;
 	}
 
-	size = readBlock(file_name, start_file_offset + ptr_to_string_table);
+	size = readCustomBlock(file_name, start_file_offset + ptr_to_string_table, BLOCKSIZE, block_s);
 
 	if ( !size )
 	{
@@ -161,7 +208,7 @@ uint32_t PEgetSizeOfStringTable(uint64_t ptr_to_string_table)
 		return 0;
 	}
 
-	size_of_table = *((uint32_t*) &block_standard[0]);
+	size_of_table = *((uint32_t*) &block_s[0]);
 
 	return size_of_table;
 }

@@ -153,7 +153,7 @@ typedef struct HeaderData
 	CodeRegionData* code_regions;
 	size_t code_regions_size;
 	size_t code_regions_capacity;
-} HeaderData;
+} HeaderData, *PHeaderData;
 #endif
 
 #endif

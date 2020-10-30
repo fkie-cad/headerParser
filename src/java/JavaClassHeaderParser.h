@@ -37,58 +37,57 @@ struct JavaClassHeader {
 #define JAVA_MIN_MJ_VS (46)
 #define JAVA_VS_STR_MAX_SIZE (16)
 
-void parseJavaClassHeader();
-uint16_t JavaClass_getJavaVersion();
-const char* JavaClass_getJavaVersionString(char* java_vs_str);
-const char* JavaClass_getJavaVersionStringV(uint16_t version, char* java_vs_str);
+void parseJavaClassHeader(PHeaderData hd, PGlobalParams gp);
+int JavaClass_getJavaVersionString(char* vs_str, uint64_t start_file_offset, size_t file_size, unsigned char* block_l);
+uint16_t JavaClass_getJavaVersion(uint64_t start_file_offset, size_t file_size, unsigned char* block_l);
+int JavaClass_getJavaVersionStringV(uint16_t version, char* vs_str);
 
-char java_vs_str[JAVA_VS_STR_MAX_SIZE];
-
-void parseJavaClassHeader()
+void parseJavaClassHeader(PHeaderData hd, PGlobalParams gp)
 {
-	HD->headertype = HEADER_TYPE_JAVA_CLASS;
-	HD->CPU_arch = ARCH_JAVA;
-	HD->Machine = JavaClass_getJavaVersionString(java_vs_str);
+	char vs_str[JAVA_VS_STR_MAX_SIZE];
+	JavaClass_getJavaVersionString(vs_str, gp->start_file_offset, gp->file_size, gp->block_large);
+
+	hd->headertype = HEADER_TYPE_JAVA_CLASS;
+	hd->CPU_arch = ARCH_JAVA;
+	hd->Machine = vs_str;
 }
 
-uint16_t JavaClass_getJavaVersion()
+int JavaClass_getJavaVersionString(char* vs_str, uint64_t start_file_offset, size_t file_size, unsigned char* block_l)
 {
-	unsigned char *ptr;
+	uint16_t version = JavaClass_getJavaVersion(start_file_offset, file_size, block_l);
+	JavaClass_getJavaVersionStringV(version, vs_str);
+	return 0;
+}
+
+uint16_t JavaClass_getJavaVersion(uint64_t start_file_offset, size_t file_size, unsigned char* block_l)
+{
 	if ( start_file_offset + 8 > file_size ) return 0;
 
-	ptr = &block_large[0];
-
-	return swapUint16(*((uint16_t*) &ptr[JAVA_CLASS_MJ_VERSION_OFFSET]));
+	return swapUint16(*((uint16_t*) &block_l[JAVA_CLASS_MJ_VERSION_OFFSET]));
 }
 
-const char* JavaClass_getJavaVersionString(char* java_vs_str)
-{
-	uint16_t version = JavaClass_getJavaVersion();
-	return JavaClass_getJavaVersionStringV(version, java_vs_str);
-}
-
-const char* JavaClass_getJavaVersionStringV(uint16_t version, char* java_vs_str)
+int JavaClass_getJavaVersionStringV(uint16_t version, char* vs_str)
 {
 	int vs = version - JAVA_MIN_MJ_VS + 2;
-	memset(java_vs_str, 0, JAVA_VS_STR_MAX_SIZE);
+	memset(vs_str, 0, JAVA_VS_STR_MAX_SIZE);
 	if (vs < 2)
 	{
-		snprintf(java_vs_str, JAVA_VS_STR_MAX_SIZE, "unknown");
+		snprintf(vs_str, JAVA_VS_STR_MAX_SIZE, "unknown");
 	}
 	else if ( vs < 5)
 	{
-		snprintf(java_vs_str, JAVA_VS_STR_MAX_SIZE, "Java 1.%u", vs);
+		snprintf(vs_str, JAVA_VS_STR_MAX_SIZE, "Java 1.%u", vs);
 	}
 	else if ( vs > 100 ) // arbitrary end
 	{
-		snprintf(java_vs_str, JAVA_VS_STR_MAX_SIZE, "unknown");
+		snprintf(vs_str, JAVA_VS_STR_MAX_SIZE, "unknown");
 	}
 	else
 	{
-		snprintf(java_vs_str, JAVA_VS_STR_MAX_SIZE, "Java %u", vs);
+		snprintf(vs_str, JAVA_VS_STR_MAX_SIZE, "Java %u", vs);
 	}
-	java_vs_str[JAVA_VS_STR_MAX_SIZE - 1] = 0;
-	return java_vs_str;
+	vs_str[JAVA_VS_STR_MAX_SIZE - 1] = 0;
+	return 0;
 }
 
 #endif

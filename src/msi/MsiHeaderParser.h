@@ -6,27 +6,40 @@
 #include "MsiHeaderPrinter.h"
 #include "../pe/PEHeaderParser.h"
 
-void parseMSIHeader();
-int MSIreadStructuredHeader(MSIStructuredStorageHeader* ssh);
+void parseMSIHeader(PHeaderData hd,
+					PGlobalParams gp,
+					PPEParams pep);
 
-uint8_t searchPEs(MSIStructuredStorageHeader* ssh);
+int MSI_readStructuredHeader(MSIStructuredStorageHeader* ssh,
+							 uint64_t start_file_offset,
+							 size_t file_size,
+							 unsigned char* block_l);
 
-void parseMSIHeader()
+uint8_t MSI_searchPEs(MSIStructuredStorageHeader* ssh,
+                      PHeaderData hd,
+                      PGlobalParams gp,
+                      PPEParams pep);
+
+
+
+void parseMSIHeader(PHeaderData hd,
+                    PGlobalParams gp,
+                    PPEParams pep)
 {
 	int s = 0;
 	MSIStructuredStorageHeader ssh;
 
-	s = MSIreadStructuredHeader(&ssh);
+	s = MSI_readStructuredHeader(&ssh, gp->start_file_offset, gp->file_size, gp->block_large);
 	if ( s != 0 ) return;
-	if ( info_level >= INFO_LEVEL_FULL )
-		MSIprintStructuredStorageHeader(&ssh);
+	if ( gp->info_level >= INFO_LEVEL_FULL )
+		MSI_printStructuredStorageHeader(&ssh);
 
-	if ( searchPEs(&ssh) )
+	if ( MSI_searchPEs(&ssh, hd, gp, pep) )
 	{
-		HD->headertype = HEADER_TYPE_MSI;
-//		HD->CPU_arch = ARCH_UNSUPPORTED;
-//		HD->Machine = architecture_names[ARCH_UNSUPPORTED];
-		HD->endian = (ssh._uByteOrder == MSI_INTEL_BYTE_ORDERING) ? ENDIAN_LITTLE : ENDIAN_BIG;
+		hd->headertype = HEADER_TYPE_MSI;
+//		hd->CPU_arch = ARCH_UNSUPPORTED;
+//		hd->Machine = architecture_names[ARCH_UNSUPPORTED];
+		hd->endian = (ssh._uByteOrder == MSI_INTEL_BYTE_ORDERING) ? ENDIAN_LITTLE : ENDIAN_BIG;
 	}
 //	else if ( isWordDoc(&ssh) )
 //	{
@@ -37,23 +50,26 @@ void parseMSIHeader()
 //	}
 	else
 	{
-		HD->headertype = HEADER_TYPE_CFBFF;
-		HD->CPU_arch = ARCH_UNSUPPORTED;
-		HD->Machine = architecture_names[ARCH_UNSUPPORTED];
-		HD->endian = (ssh._uByteOrder == MSI_INTEL_BYTE_ORDERING) ? ENDIAN_LITTLE : ENDIAN_BIG;
+		hd->headertype = HEADER_TYPE_CFBFF;
+		hd->CPU_arch = ARCH_UNSUPPORTED;
+		hd->Machine = architecture_names[ARCH_UNSUPPORTED];
+		hd->endian = (ssh._uByteOrder == MSI_INTEL_BYTE_ORDERING) ? ENDIAN_LITTLE : ENDIAN_BIG;
 	}
 }
 
-int MSIreadStructuredHeader(MSIStructuredStorageHeader* ssh)
+int MSI_readStructuredHeader(MSIStructuredStorageHeader* ssh,
+							 uint64_t start_file_offset,
+							 size_t file_size,
+							 unsigned char* block_l)
 {
 	uint32_t i, j;
 	uint32_t end_i_of_sect_fat = MSI_SSH_SECT_FAT_SIZE*4;
 	unsigned char* ptr;
 
-	if ( !checkFileSpace(0, start_file_offset, SIZE_OF_MSI_HEADER, "SIZE_OF_MSI_HEADER") )
+	if ( !checkFileSpace(0, start_file_offset, SIZE_OF_MSI_HEADER, file_size) )
 		return 1;
 
-	ptr = &block_large[0];
+	ptr = &block_l[0];
 
 	for ( i = 0; i < MSI_SSH_AB_SIG_SIZE; i++ )
 		ssh->_abSig[i] = ptr[MSIStructuredStorageHeaderOffsets._abSig+i];
@@ -82,7 +98,10 @@ int MSIreadStructuredHeader(MSIStructuredStorageHeader* ssh)
 	return 0;
 }
 
-uint8_t searchPEs(MSIStructuredStorageHeader* ssh)
+uint8_t MSI_searchPEs(MSIStructuredStorageHeader* ssh,
+                      PHeaderData hd,
+                      PGlobalParams gp,
+                      PPEParams pep)
 {
 	uint64_t offset;
 	uint64_t first_pe_offset = 0;
@@ -91,9 +110,9 @@ uint8_t searchPEs(MSIStructuredStorageHeader* ssh)
 	debug_info(" - sec_size: %x\n", sec_size);
 
 	debug_info("searchPEs\n");
-	for ( offset = sec_size; offset < file_size; offset+=sec_size)
+	for ( offset = sec_size; offset < gp->file_size; offset+=sec_size)
 	{
-		if ( PEhasHeaderAtOffset(offset) )
+		if ( PE_hasHeaderAtOffset(offset, &gp->abs_file_offset, gp->file_size, gp->file_name, gp->block_standard, gp->block_large) )
 		{
 			if ( pe_count == 0 )
 			{
@@ -107,19 +126,19 @@ uint8_t searchPEs(MSIStructuredStorageHeader* ssh)
 
 	if ( first_pe_offset != 0 )
 	{
-		if ( info_level >= INFO_LEVEL_FULL )
+		if ( gp->info_level >= INFO_LEVEL_FULL )
 		{
 			printf("PE file %u/%u at offset 0x%lx:\n", 1, pe_count, first_pe_offset);
 		}
-		start_file_offset = first_pe_offset;
-		abs_file_offset = first_pe_offset;
+        gp->start_file_offset = first_pe_offset;
+		gp->abs_file_offset = first_pe_offset;
 
-		if ( !readLargeBlock(file_name, abs_file_offset) )
+		if ( !readCustomBlock(gp->file_name, gp->abs_file_offset, BLOCKSIZE_LARGE, gp->block_large) )
 		{
 			header_error("ERROR: Read failed.\n");
 			return 0;
 		}
-		parsePEHeaderData(FORCE_NONE);
+		parsePEHeaderData(FORCE_NONE, hd, gp, pep);
 	}
 
 	debug_info(" - found %u PE files\n", pe_count);

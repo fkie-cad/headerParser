@@ -5,12 +5,10 @@
 
 #include <deque>
 #include <filesystem>
-#include <functional>
 #include <vector>
 #include <string>
 
-#include "FileUtil.h"
-#include "StringUtil.h"
+#include "ThreadPool.h"
 
 class DirectoryRunner
 {
@@ -23,7 +21,8 @@ class DirectoryRunner
 		const std::string LINE_CLEAR = "\33[2K";
 		const std::string LINE_RETURN = "\r";
 		uint64_t nr_of_files = 0;
-		uint64_t file_count = 0;
+//		uint64_t file_count = 0;
+		std::atomic_uint_fast64_t file_count = 0;
 		std::deque<std::string> result;
 
 		std::string bin_path;
@@ -31,6 +30,12 @@ class DirectoryRunner
 
 		std::string src_dir;
 		std::vector<std::string> src_files;
+
+		bool threaded = false;
+		uint32_t thread_pool_size = 16;
+		Utils::ThreadPool<int> thread_pool;
+		std::mutex io_lock;
+		std::mutex stdio_lock;
 
 	public:
 		DirectoryRunner() = default;
@@ -45,15 +50,25 @@ class DirectoryRunner
 
 		void runList(const std::vector<std::string>& files);
 
+		virtual
 		void runDirectory(const std::string& dir);
+
+		virtual
+		void runDirectoryT(const std::string& dir);
 
 		void setRunnerName(const std::string& name);
 
 	protected:
-		virtual void fillFileCallback(const std::string& file) = 0;
+		virtual int fillFileCallback(const std::string& file, void* params) = 0;
+
+		virtual void fillFileCallbackT(const std::string& file, void* params);
+
+		virtual void printUsage();
+		virtual void printHelp();
 
 		void printActFileInfo();
-		void printActFileInfo(const std::string& file);
+		void printFileInfo(const std::string& file);
+
 };
 
 #endif

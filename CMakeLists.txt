@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.10)
 project(HeaderParser VERSION 1.0.9 DESCRIPTION "A PE and ELF header parser" LANGUAGES C)
 
+set(LANGUAGE C)
 set(CMAKE_C_STANDARD 90)
 if (UNIX)
-	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall -pedantic -Werror=return-type")
-	set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -Wl,-z,relro,-z,now -fno-builtin -Werror=return-type -D_FILE_OFFSET_BITS=64 -Ofast")
+	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall -pedantic -Werror=return-type -Werror=overflow -Werror=format -D_FILE_OFFSET_BITS=64")
+	set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -Wl,-z,relro,-z,now -fno-builtin -Werror=return-type -Werror=overflow -D_FILE_OFFSET_BITS=64 -Ofast")
 
 	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address -fsanitize=leak -fno-omit-frame-pointer")
 #	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=undefined") # multiple times occuring due to raw bytes casting,  etc.

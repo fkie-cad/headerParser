@@ -245,10 +245,11 @@ int formatTimeStamp(time_t t, char* res, size_t res_size, const char* format)
 /**
  * Parse decimal or hex string to uint16_t.
  *
- * @param arg
- * @return
+ * @param arg char*
+ * @param value uint64_t*
+ * @return int status
  */
-uint64_t parseUint64(const char* arg)
+int parseUint64(const char* arg, uint64_t* value)
 {
 	char* endptr;
 	int err_no = 0;
@@ -259,7 +260,7 @@ uint64_t parseUint64(const char* arg)
 	if ( arg[0] ==  '-' )
 	{
 //		prog_error("Error: %s could not be converted to a number: is negative!\n", arg);
-		exit(0);
+		return -1;
 	}
 	if ( arg[0] ==  '0' && arg[1] ==  'x')
 		base = 16;
@@ -270,15 +271,16 @@ uint64_t parseUint64(const char* arg)
 	if ( endptr == arg )
 	{
 //		prog_error("Error: %s could not be converted to a number: Not a number!\n", arg);
-		exit(0);
+		return -2;
 	}
 	if ( result == UINT64_MAX && err_no == ERANGE)
 	{
 //		prog_error("Error: %s could not be converted to a number: Out of range!\n", arg);
-		exit(0);
+		return -3;
 	}
 
-	return result;
+    *value = result;
+	return 0;
 }
 
 /**

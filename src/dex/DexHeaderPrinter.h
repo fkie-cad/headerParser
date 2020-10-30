@@ -7,18 +7,61 @@
 #include "../stringPool.h"
 #include "DexFileHeader.h"
 
-static void DEXprintFileHeader(DEXFileHeader* h);
-static void DEXprintStringIdItem(DexStringIdItem* item, DexStringDataItem* data, char** strings, uint32_t idx, uint32_t ln, uint64_t offset);
-static void DEXprintTypeIdItem(DexTypeIdItem* item, char** strings, uint32_t idx, uint32_t ln, uint64_t offset);
-static void DEXprintProtoIdItem(DexProtoIdItem* item, uint32_t idx, uint32_t ln, uint64_t offset);
-static void DEXprintFieldIdItem(DexFieldIdItem* item, char** strings, uint32_t idx, uint32_t ln, uint64_t offset);
-static void DEXprintMethodIdItem(DexMethodIdItem* item, char** strings, uint32_t idx, uint32_t ln, uint64_t offset);
-static void DEXprintClassDefItem(DexClassDefItem* item, char** strings, uint32_t idx, uint32_t ln, uint64_t offset);
-static void DEXprintMapList(DexMapList* l, uint64_t offset);
-static void DEXprintMapItem(DexMapItem* i, uint32_t idx, uint32_t ln, uint64_t offset);
+static void DEX_printFileHeader(DEXFileHeader* h,
+								uint8_t endian,
+								uint64_t start_file_offset);
+
+static void DEX_printStringIdItem(DexStringIdItem* item,
+								  DexStringDataItem* di,
+								  char** strings,
+								  uint32_t idx,
+								  uint32_t ln,
+								  uint64_t offset,
+								  uint64_t start_file_offset,
+								  unsigned char* data);
+
+static void DEX_printTypeIdItem(DexTypeIdItem* item,
+								char** strings,
+								uint32_t idx,
+								uint32_t ln,
+								uint64_t offset);
+
+static void DEX_printProtoIdItem(DexProtoIdItem* item,
+								 uint32_t idx,
+								 uint32_t ln,
+								 uint64_t offset);
+
+static void DEX_printFieldIdItem(DexFieldIdItem* item,
+								 char** strings,
+								 uint32_t idx,
+								 uint32_t ln,
+								 uint64_t offset);
+
+static void DEX_printMethodIdItem(DexMethodIdItem* item,
+								  char** strings,
+								  uint32_t idx,
+								  uint32_t ln,
+								  uint64_t offset);
+
+static void DEX_printClassDefItem(DexClassDefItem* item,
+								  char** strings,
+								  uint32_t idx,
+								  uint32_t ln,
+								  uint64_t offset);
+
+static void DEX_printMapList(DexMapList* l,
+							 uint64_t offset);
+
+static void DEX_printMapItem(DexMapItem* i,
+							 uint32_t idx,
+							 uint32_t ln,
+							 uint64_t offset);
+
 static char* getMapItemType(uint16_t type);
 
-void DEXprintFileHeader(DEXFileHeader* h)
+
+
+void DEX_printFileHeader(DEXFileHeader* h, uint8_t endian, uint64_t start_file_offset)
 {
 	int i;
 	DEX_File_Header_Offsets offsets = DEXFileHeaderOffsets;
@@ -43,7 +86,7 @@ void DEXprintFileHeader(DEXFileHeader* h)
 	printf("\n");
 	printf(" - file_size%s: %u\n", fillOffset(offsets.file_size, 0, start_file_offset), h->file_size);
 	printf(" - header_size%s: %u\n", fillOffset(offsets.header_size, 0, start_file_offset), h->header_size);
-	printf(" - endian_tag%s: %s (0x%x)\n", fillOffset(offsets.endian_tag, 0, start_file_offset), endian_type_names[HD->endian], h->endian_tag);
+	printf(" - endian_tag%s: %s (0x%x)\n", fillOffset(offsets.endian_tag, 0, start_file_offset), endian_type_names[endian], h->endian_tag);
 	printf(" - link_size%s: %u\n", fillOffset(offsets.link_size, 0, start_file_offset), h->link_size);
 	printf(" - link_off%s: 0x%x (%u)\n", fillOffset(offsets.link_off, 0, start_file_offset), h->link_off, h->link_off);
 	printf(" - map_off%s: 0x%x (%u)\n", fillOffset(offsets.map_off, 0, start_file_offset), h->map_off, h->map_off);
@@ -64,7 +107,7 @@ void DEXprintFileHeader(DEXFileHeader* h)
 	printf("\n");
 }
 
-void DEXprintStringIdItem(DexStringIdItem* item, DexStringDataItem* data, char** strings, uint32_t idx, uint32_t ln, uint64_t offset)
+void DEX_printStringIdItem(DexStringIdItem* item, DexStringDataItem* di, char** strings, uint32_t idx, uint32_t ln, uint64_t offset, uint64_t start_file_offset, unsigned char* data)
 {
 	Dex_String_Id_Item_Offsets offsets = DexStringIdItemOffsets;
 
@@ -72,15 +115,15 @@ void DEXprintStringIdItem(DexStringIdItem* item, DexStringDataItem* data, char**
 	printf(" - String Id Item (%u / %u):\n", idx, ln);
 	printf(" - - string_data_offset%s: 0x%x\n", fillOffset(offsets.offset, offset, 0), item->offset);
 	printf(" - - string_data:\n");
-	printf(" - - - utf16_size%s: %u\n", fillOffset(DexStringDataItemOffsets.utf16_size, item->offset, start_file_offset), data->utf16_size.val);
+	printf(" - - - utf16_size%s: %u\n", fillOffset(DexStringDataItemOffsets.utf16_size, item->offset, start_file_offset), di->utf16_size.val);
 	printf(" - - - data%s: ", fillOffset(DexStringDataItemOffsets.data, item->offset, start_file_offset));
-	for ( i = 0; i < data->utf16_size.val; i++ )
-		printf("%c", block_standard[i+1]);
+	for ( i = 0; i < di->utf16_size.val; i++ )
+		printf("%c", data[i+1]);
 	printf("\n");
 	printf(" - - - strings[%u]%s: %s\n", idx, fillOffset(DexStringDataItemOffsets.data, item->offset, start_file_offset), strings[idx-1]);
 }
 
-void DEXprintTypeIdItem(DexTypeIdItem* item, char** strings, uint32_t idx, uint32_t ln, uint64_t offset)
+void DEX_printTypeIdItem(DexTypeIdItem* item, char** strings, uint32_t idx, uint32_t ln, uint64_t offset)
 {
 	Dex_Type_Id_Item_Offsets offsets = DexTypeIdItemOffsets;
 
@@ -89,7 +132,7 @@ void DEXprintTypeIdItem(DexTypeIdItem* item, char** strings, uint32_t idx, uint3
 	printf(" - - descriptor: %s\n", strings[item->descriptor_idx]);
 }
 
-void DEXprintProtoIdItem(DexProtoIdItem* item, uint32_t idx, uint32_t ln, uint64_t offset)
+void DEX_printProtoIdItem(DexProtoIdItem* item, uint32_t idx, uint32_t ln, uint64_t offset)
 {
 	Dex_Proto_Id_Item_Offsets offsets = DexProtoIdItemOffsets;
 
@@ -99,7 +142,7 @@ void DEXprintProtoIdItem(DexProtoIdItem* item, uint32_t idx, uint32_t ln, uint64
 	printf(" - - parameters_off%s: 0x%x\n", fillOffset(offsets.parameters_off, offset, 0), item->parameters_off);
 }
 
-void DEXprintFieldIdItem(DexFieldIdItem* item, char** strings, uint32_t idx, uint32_t ln, uint64_t offset)
+void DEX_printFieldIdItem(DexFieldIdItem* item, char** strings, uint32_t idx, uint32_t ln, uint64_t offset)
 {
 	Dex_Field_Id_Item_Offsets offsets = DexFieldIdItemOffsets;
 
@@ -110,7 +153,7 @@ void DEXprintFieldIdItem(DexFieldIdItem* item, char** strings, uint32_t idx, uin
 	printf(" - - name: %s\n", strings[item->name_idx]);
 }
 
-void DEXprintMethodIdItem(DexMethodIdItem* item, char** strings, uint32_t idx, uint32_t ln, uint64_t offset)
+void DEX_printMethodIdItem(DexMethodIdItem* item, char** strings, uint32_t idx, uint32_t ln, uint64_t offset)
 {
 	Dex_Method_Id_Item_Offsets offsets = DexMethodIdItemOffsets;
 
@@ -121,7 +164,7 @@ void DEXprintMethodIdItem(DexMethodIdItem* item, char** strings, uint32_t idx, u
 	printf(" - - name: %s\n", strings[item->name_idx]);
 }
 
-void DEXprintClassDefItem(DexClassDefItem* item, char** strings, uint32_t idx, uint32_t ln, uint64_t offset)
+void DEX_printClassDefItem(DexClassDefItem* item, char** strings, uint32_t idx, uint32_t ln, uint64_t offset)
 {
 	Dex_Class_Def_Item_Offsets offsets = DexClassDefItemOffsets;
 
@@ -158,7 +201,7 @@ void DEXprintClassDefItem(DexClassDefItem* item, char** strings, uint32_t idx, u
 	printf(" - - static_values_off%s: 0x%x\n", fillOffset(offsets.static_values_off, offset, 0), item->static_values_off);
 }
 
-void DEXprintMapList(DexMapList* l, uint64_t offset)
+void DEX_printMapList(DexMapList* l, uint64_t offset)
 {
 	Dex_Map_List_Offsets offsets = DexMapListOffsets;
 
@@ -166,7 +209,7 @@ void DEXprintMapList(DexMapList* l, uint64_t offset)
 	printf(" - size%s: %u\n", fillOffset(offsets.size, offset, 0), l->size);
 }
 
-void DEXprintMapItem(DexMapItem* i, uint32_t idx, uint32_t ln, uint64_t offset)
+void DEX_printMapItem(DexMapItem* i, uint32_t idx, uint32_t ln, uint64_t offset)
 {
 	Dex_Map_Item_Offsets offsets = DexMapItemOffsets;
 

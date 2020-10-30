@@ -12,44 +12,44 @@
 #include "../utils/Helper.h"
 
 static void parseArtHeader();
-static void ARTreadFileHeader(ARTFileHeader009012 *fh);
-static void ARTfillVersion();
+static void ARTfillVersion(uint64_t start_file_offset, size_t file_size, unsigned char* block);
+static void ARTreadFileHeader(ARTFileHeader009012 *fh, uint64_t start_file_offset, unsigned char* block);
 
-void parseArtHeader()
+void parseArtHeader(PHeaderData hd, PGlobalParams gp)
 {
 	ARTFileHeader009012 file_header;
 
-	ARTfillVersion();
+	ARTfillVersion(gp->start_file_offset, gp->file_size, gp->block_large);
 
-	HD->headertype = HEADER_TYPE_ART;
-//	HD->endian = ( file_header.endian_tag == ART_ENDIAN_CONSTANT ) ? ENDIAN_LITTLE : ENDIAN_BIG;
-	HD->CPU_arch = ARCH_ANDROID;
-	HD->Machine = art_arch_id_mapper[0].arch.name;
-	HD->bitness = 32;
+	hd->headertype = HEADER_TYPE_ART;
+//	hd->endian = ( file_header.endian_tag == ART_ENDIAN_CONSTANT ) ? ENDIAN_LITTLE : ENDIAN_BIG;
+	hd->CPU_arch = ARCH_ANDROID;
+	hd->Machine = art_arch_id_mapper[0].arch.name;
+	hd->bitness = 32;
 
-	ARTreadFileHeader(&file_header);
+	ARTreadFileHeader(&file_header, gp->start_file_offset, gp->block_large);
 
-	if ( info_level >= INFO_LEVEL_FULL )
-		ARTprintFileHeader009012(&file_header);
+	if ( gp->info_level >= INFO_LEVEL_FULL )
+		ARTprintFileHeader009012(&file_header, gp->start_file_offset);
 }
 
-void ARTfillVersion()
+void ARTfillVersion(uint64_t start_file_offset, size_t file_size, unsigned char* block)
 {
 	unsigned char *ptr;
 	char* architecture;
 
-	if ( !checkFileSpace(0, start_file_offset, MAGIC_ART_BYTES_FULL_LN, "MAGIC_ART_BYTES_FULL_LN") )
+	if ( !checkFileSpace(0, start_file_offset, MAGIC_ART_BYTES_FULL_LN, file_size) )
 		return;
 
-	ptr = &block_large[0];
+	ptr = &block[0];
 
 	architecture = art_arch_id_mapper[0].arch.name;
-	architecture[25] = ptr[4];
-	architecture[26] = ptr[5];
-	architecture[27] = ptr[6];
+	architecture[25] = (char) ptr[4];
+	architecture[26] = (char) ptr[5];
+	architecture[27] = (char) ptr[6];
 }
 
-void ARTreadFileHeader(ARTFileHeader009012 *fh)
+void ARTreadFileHeader(ARTFileHeader009012 *fh, uint64_t start_file_offset, unsigned char* block)
 {
 	unsigned char *ptr;
 	int i;
@@ -57,10 +57,10 @@ void ARTreadFileHeader(ARTFileHeader009012 *fh)
 	if ( !checkFileSpace(0, start_file_offset, ART_FILE_HEADER_009012_SIZE, "ART_FILE_HEADER_SIZE") )
 		return;
 
-	ptr = &block_large[0];
+	ptr = &block[0];
 
 	for ( i = 0; i < MAGIC_ART_BYTES_FULL_LN; i++ )
-		fh->magic[i] = ptr[ARTFileHeader009012Offsets.magic + i];
+		fh->magic[i] = (char)ptr[ARTFileHeader009012Offsets.magic + i];
 	fh->image_begin = *((uint32_t*) &ptr[ARTFileHeader009012Offsets.image_begin]);
 	fh->image_size = *((uint32_t*) &ptr[ARTFileHeader009012Offsets.image_size]);
 	fh->bitmap_off = *((uint32_t*) &ptr[ARTFileHeader009012Offsets.bitmap_off]);

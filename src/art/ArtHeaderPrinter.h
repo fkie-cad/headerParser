@@ -8,9 +8,9 @@
 #include "ArtFileHeader.h"
 #include "../utils/Helper.h"
 
-void ARTprintFileHeader009012(ARTFileHeader009012* h);
+void ARTprintFileHeader009012(ARTFileHeader009012* h, uint64_t start_file_offset);
 
-void ARTprintFileHeader009012(ARTFileHeader009012* h)
+void ARTprintFileHeader009012(ARTFileHeader009012* h, uint64_t start_file_offset)
 {
 	int i;
 	ART_File_Header_009012_Offsets offsets = ARTFileHeader009012Offsets;

@@ -9,45 +9,45 @@
 #include "MachOFileHeader.h"
 #include "MachOCPUTypes.h"
 
-void MachOprintFileHeader(const MachHeader64* h);
-//char* getMachOCPUTypeName(uint32_t type);
-char* MachOgetCPUSubTypeName(uint32_t type, uint32_t sub_type);
-char* MachOgetFileTypeName(uint32_t type);
-void MachOprintLoadCommand(LoadCommand* c, uint64_t offset);
-//void printMachOFileHeaderFlag(const MachHeader64* h, uint32_t expected, const char* label);
-void MachOprintSegmentCommand(const SegmentCommand64* c, uint64_t offset);
-void MachOprintSection(const MachOSection64* c, uint32_t idx, uint32_t ln, uint64_t offset);
-//void MachOprintFlag(uint32_t flags, uint32_t expected, char* label);
-void MachOprintUuidCommand(UuidCommand* c, uint64_t offset);
-void MachOprintDylibCommand(DylibCommand* c, uint32_t name_ln, unsigned char* ptr, uint64_t offset);
-void MachOprintPreboundDylibCommand(PreboundDylibCommand* c, uint32_t name_ln, unsigned char* ptr, uint64_t offset);
-void MachOprintSubCommand(SubCommand* c, uint32_t name_ln, unsigned char* ptr, uint64_t offset);
-void MachOprintSymtabCommand(SymtabCommand* c, uint64_t offset);
-void MachOprintDySymtabCommand(DySymtabCommand* c, uint64_t offset);
-void MachOprintRoutinesCommand(RoutinesCommand64* c, uint64_t offset);
-void MachOprintVersionMinCommand(VersionMinCommand* c, uint64_t offset);
-void MachOprintThreadCommand(ThreadCommand* c, uint64_t offset);
-void MachOprintLinkedItDataCommand(LinkedItDataCommand* c, uint64_t offset);
-void MachOprintDyldInfoCommand(DyldInfoCommand* c, uint64_t offset);
-void MachOprintSourceVersionCommand(SourceVersionCommand* c, uint64_t offset);
-void MachOprintBuildVersionCommand(BuildVersionCommand* c, uint64_t offset);
+void MachO_printFileHeader(const MachHeader64* h, uint8_t bitness, uint8_t endian, uint64_t start_file_offset);
+//char* getMachO_CPUTypeName(uint32_t type);
+char* MachO_getCPUSubTypeName(uint32_t type, uint32_t sub_type);
+char* MachO_getFileTypeName(uint32_t type);
+void MachO_printLoadCommand(LoadCommand* c, uint64_t offset);
+//void printMachO_FileHeaderFlag(const MachHeader64* h, uint32_t expected, const char* label);
+void MachO_printSegmentCommand(const SegmentCommand64* c, uint64_t offset, uint8_t bitness);
+void MachO_printSection(const MachOSection64* c, uint32_t idx, uint32_t ln, uint64_t offset, uint8_t bitness);
+//void MachO_printFlag(uint32_t flags, uint32_t expected, char* label);
+void MachO_printUuidCommand(UuidCommand* c, uint64_t offset);
+void MachO_printDylibCommand(DylibCommand* c, uint32_t name_ln, unsigned char* ptr, uint64_t offset, uint8_t info_level);
+void MachO_printPreboundDylibCommand(PreboundDylibCommand* c, uint32_t name_ln, unsigned char* ptr, uint64_t offset);
+void MachO_printSubCommand(SubCommand* c, uint32_t name_ln, unsigned char* ptr, uint64_t offset);
+void MachO_printSymtabCommand(SymtabCommand* c, uint64_t offset);
+void MachO_printDySymtabCommand(DySymtabCommand* c, uint64_t offset);
+void MachO_printRoutinesCommand(RoutinesCommand64* c, uint64_t offset, uint8_t bitness);
+void MachO_printVersionMinCommand(VersionMinCommand* c, uint64_t offset);
+void MachO_printThreadCommand(ThreadCommand* c, uint64_t offset);
+void MachO_printLinkedItDataCommand(LinkedItDataCommand* c, uint64_t offset);
+void MachO_printDyldInfoCommand(DyldInfoCommand* c, uint64_t offset);
+void MachO_printSourceVersionCommand(SourceVersionCommand* c, uint64_t offset);
+void MachO_printBuildVersionCommand(BuildVersionCommand* c, uint64_t offset);
 
-void printLUhd(char* label, uint64_t struct_offset, uint64_t file_offset, uint64_t value);
-void printUhd(char* label, uint64_t struct_offset, uint64_t file_offset, uint32_t value);
-void parseV32(uint32_t value, Version32* v32);
+void MachO_printLUhd(char* label, uint64_t struct_offset, uint64_t file_offset, uint64_t value);
+void MachO_printUhd(char* label, uint64_t struct_offset, uint64_t file_offset, uint32_t value);
+void MachO_parseV32(uint32_t value, Version32* v32);
 
-void MachOprintFileHeader(const MachHeader64* h)
+void MachO_printFileHeader(const MachHeader64* h, uint8_t bitness, uint8_t endian, uint64_t start_file_offset)
 {
 	ArchitectureMapEntry* arch = getArchitecture(h->cputype, mach_o_arch_id_mapper, mach_o_arch_id_mapper_size);
 
 	printf("MachOHeader:\n");
 	printf(" - magic%s: 0x%x\n", fillOffset(MachHeaderOffsets.magic, 0, start_file_offset), h->magic);
-	printf(" - - %x-bit, %s-endian\n", HD->bitness, (HD->endian==ENDIAN_LITTLE)?"little":"big");
+	printf(" - - %x-bit, %s-endian\n", bitness, (endian==ENDIAN_LITTLE)?"little":"big");
 	printf(" - cputype%s: %s (0x%x)\n", fillOffset(MachHeaderOffsets.cputype, 0, start_file_offset), arch->arch.name, h->cputype);
 	printf(" - cpusubtype%s: %s (0x%x)\n", fillOffset(MachHeaderOffsets.cpusubtype, 0, start_file_offset),
-		   MachOgetCPUSubTypeName(h->cputype, h->cpusubtype), h->cpusubtype);
+		   MachO_getCPUSubTypeName(h->cputype, h->cpusubtype), h->cpusubtype);
 	printf(" - filetype%s: %s (%u)\n", fillOffset(MachHeaderOffsets.filetype, 0, start_file_offset),
-		   MachOgetFileTypeName(h->filetype), h->filetype);
+		   MachO_getFileTypeName(h->filetype), h->filetype);
 	printf(" - ncmds%s: %u\n", fillOffset(MachHeaderOffsets.ncmds, 0, start_file_offset), h->ncmds);
 	printf(" - sizeofcmds%s: 0x%x\n", fillOffset(MachHeaderOffsets.sizeofcmds, 0, start_file_offset), h->sizeofcmds);
 	printf(" - flags%s: 0x%x\n", fillOffset(MachHeaderOffsets.flags, 0, start_file_offset), h->flags);
@@ -76,11 +76,11 @@ void MachOprintFileHeader(const MachHeader64* h)
 	printFlag32F(h->flags, MH_DEAD_STRIPPABLE_DYLIB, "Only for use on dylibs.  When linking against a dylib that has this bit set, the static linker will automatically not create a LC_LOAD_DYLIB load command to the dylib if no symbols are being referenced from the dylib.", " - - ", '\n');
 	printFlag32F(h->flags, MH_HAS_TLV_DESCRIPTORS, "Contains a section of type S_THREAD_LOCAL_VARIABLES", " - - ", '\n');
 	printFlag32F(h->flags, MH_NO_HEAP_EXECUTION, "The OS will run the main executable with a non-executable heap even on platforms (e.g. i386) that don't require it. Only used in MH_EXECUTE filetypes.", " - - ", '\n');
-	if ( HD->bitness == 64 ) printf(" - reserved%s: 0x%x\n", fillOffset(MachHeaderOffsets.reserved, 0, start_file_offset), h->reserved);
+	if ( bitness == 64 ) printf(" - reserved%s: 0x%x\n", fillOffset(MachHeaderOffsets.reserved, 0, start_file_offset), h->reserved);
 	printf("\n");
 }
 
-/*char* getMachOCPUTypeName(uint32_t type)
+/*char* getMachO_CPUTypeName(uint32_t type)
 {
 //		case CPU_ARCH_ABI64: return "64-bit architectures (when running a 64-bit ABI";
 //		case CPU_ARCH_ABI32: return "64-bit architectures (when running a 32-bit ABI";
@@ -97,7 +97,7 @@ void MachOprintFileHeader(const MachHeader64* h)
 		else return "None";
 }*/
 
-char* MachOgetCPUSubTypeName(uint32_t type, uint32_t sub_type)
+char* MachO_getCPUSubTypeName(uint32_t type, uint32_t sub_type)
 {
 	if ( type == CPU_TYPE_I386 )
 	{
@@ -179,7 +179,7 @@ char* MachOgetCPUSubTypeName(uint32_t type, uint32_t sub_type)
 	return "None";
 }
 
-char* MachOgetFileTypeName(uint32_t type)
+char* MachO_getFileTypeName(uint32_t type)
 {
 	if ( type == MH_OBJECT ) return "relocatable object file";
 	else if ( type == MH_EXECUTE ) return "demand paged executable file";
@@ -195,15 +195,15 @@ char* MachOgetFileTypeName(uint32_t type)
 	else return "None";
 }
 
-void MachOprintLoadCommand(LoadCommand* lc, uint64_t offset)
+void MachO_printLoadCommand(LoadCommand* lc, uint64_t offset)
 {
 	printf(" - cmd%s: 0x%x\n", fillOffset(LoadCommandOffsets.cmd, offset, 0), lc->cmd);
 	printf(" - cmdsize%s: %u\n", fillOffset(LoadCommandOffsets.cmdsize, offset, 0), lc->cmdsize);
 }
 
-void MachOprintSegmentCommand(const SegmentCommand64* c, uint64_t offset)
+void MachO_printSegmentCommand(const SegmentCommand64* c, uint64_t offset, uint8_t bitness)
 {
-	Segment_Command_Offsets offsets = ( HD->bitness == 32 ) ? SegmentCommandOffsets32 : SegmentCommandOffsets64;
+	Segment_Command_Offsets offsets = ( bitness == 32 ) ? SegmentCommandOffsets32 : SegmentCommandOffsets64;
 	char *seg_type = (c->cmd == LC_SEGMENT ) ? "LC_SEGMENT" : "LC_SEGMENT_64";
 
 	uint32_t i;
@@ -212,7 +212,7 @@ void MachOprintSegmentCommand(const SegmentCommand64* c, uint64_t offset)
 	for ( i = 0; i < MACH_O_SEG_NAME_LN; i++ )
 		printf("%c", c->segname[i]);
 	printf("\n");
-	printUhd("cmd", offsets.cmd, offset, c->cmd);
+	MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
 	printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
 //	printf(" - segname%s: %s\n", c->segname);
 	printf(" - vmaddr%s: 0x%lx\n", fillOffset(offsets.vmaddr, offset, 0), c->vmaddr);
@@ -234,9 +234,9 @@ void MachOprintSegmentCommand(const SegmentCommand64* c, uint64_t offset)
 	}
 }
 
-void MachOprintSection(const MachOSection64* sec, uint32_t idx, uint32_t ln, uint64_t offset)
+void MachO_printSection(const MachOSection64* sec, uint32_t idx, uint32_t ln, uint64_t offset, uint8_t bitness)
 {
-	MachO_Section_Offsets offsets = ( HD->bitness == 32 ) ? MachOsectionOffsets32 : MachOsectionOffsets64;
+	MachO_Section_Offsets offsets = ( bitness == 32 ) ? MachOsectionOffsets32 : MachOsectionOffsets64;
 
 	uint32_t i;
 //	printf(" - - segname%s: ");
@@ -294,16 +294,16 @@ void MachOprintSection(const MachOSection64* sec, uint32_t idx, uint32_t ln, uin
 	printf("\n");
 	printf(" - - reserved1%s: 0x%x\n", fillOffset(offsets.reserved1, offset, 0), sec->reserved1);
 	printf(" - - reserved2%s: 0x%x\n", fillOffset(offsets.reserved2, offset, 0), sec->reserved2);
-	if ( HD->bitness == 64 ) printf(" - - reserved3%s: 0x%x\n", fillOffset(offsets.reserved3, offset, 0), sec->reserved3);
+	if ( bitness == 64 ) printf(" - - reserved3%s: 0x%x\n", fillOffset(offsets.reserved3, offset, 0), sec->reserved3);
 }
 
-void MachOprintUuidCommand(UuidCommand* c, uint64_t offset)
+void MachO_printUuidCommand(UuidCommand* c, uint64_t offset)
 {
 	Uuid_Command_Offsets offsets = UuidCommandOffsets;
 
 	uint32_t i;
 	printf("UUID (LC_UUID)\n");
-	printUhd("cmd", offsets.cmd, offset, c->cmd);
+	MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
 	printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
 	printf(" - uuid%s: ", fillOffset(offsets.uuid, offset, 0));
 	for ( i = 0; i < MACH_O_UUID_LN; i++ )
@@ -314,7 +314,7 @@ void MachOprintUuidCommand(UuidCommand* c, uint64_t offset)
 	printf("\n");
 }
 
-void MachOprintDylibCommand(DylibCommand* c, uint32_t name_ln, unsigned char* ptr, uint64_t offset)
+void MachO_printDylibCommand(DylibCommand* c, uint32_t name_ln, unsigned char* ptr, uint64_t offset, uint8_t info_level)
 {
 	uint32_t i;
 	Dylib_Command_Offsets offsets = DylibCommandOffsets;
@@ -323,12 +323,12 @@ void MachOprintDylibCommand(DylibCommand* c, uint32_t name_ln, unsigned char* pt
 
 //	char date[32];
 //	formatTimeStampD(c->dylib.timestamp, date, sizeof(date));
-	parseV32(c->dylib.current_version, &current_version);
-	parseV32(c->dylib.compatibility_version, &compatibility_version);
+	MachO_parseV32(c->dylib.current_version, &current_version);
+	MachO_parseV32(c->dylib.compatibility_version, &compatibility_version);
 
 	char* type = ( c->cmd == LC_ID_DYLIB ) ? "LC_ID_DYLIB" : "LC_LOAD_DYLIB";
 	printf("Dynamic Library (%s)\n", type);
-	printUhd("cmd", offsets.cmd, offset, c->cmd);
+	MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
 	printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
 	if ( info_level == INFO_LEVEL_FULL_WITH_OFFSETS )
 		printf(" - dylib.name.offset%s: 0x%x (%u)\n", fillOffset((uint64_t)offsets.dylib+DylibOffsets.name, offset, 0), c->dylib.name.offset, c->dylib.name.offset);
@@ -339,17 +339,17 @@ void MachOprintDylibCommand(DylibCommand* c, uint32_t name_ln, unsigned char* pt
 	printf(" - dylib.timestamp%s: %u\n", fillOffset((uint64_t)offsets.dylib+DylibOffsets.timestamp, offset, 0), c->dylib.timestamp);
 	printf(" - dylib.current_version%s: %u.%u.%u (0x%x)\n", fillOffset((uint64_t)offsets.dylib+DylibOffsets.current_version, offset, 0), current_version.v0, current_version.v1, current_version.v2, c->dylib.current_version);
 	printf(" - dylib.compatibility_version%s: %u.%u.%u (0x%x)\n", fillOffset((uint64_t)offsets.dylib+DylibOffsets.compatibility_version, offset, 0), compatibility_version.v0, compatibility_version.v1, compatibility_version.v2, c->dylib.compatibility_version);
-//	printUhd("dylib.current_version", offsets.dylib+DylibOffsets.current_version, offset, c->dylib.current_version);
-//	printUhd("dylib.compatibility_version", offsets.dylib+DylibOffsets.compatibility_version, offset, c->dylib.compatibility_version);
+//	MachO_printUhd("dylib.current_version", offsets.dylib+DylibOffsets.current_version, offset, c->dylib.current_version);
+//	MachO_printUhd("dylib.compatibility_version", offsets.dylib+DylibOffsets.compatibility_version, offset, c->dylib.compatibility_version);
 }
 
-void MachOprintPreboundDylibCommand(PreboundDylibCommand* c, uint32_t name_ln, unsigned char* ptr, uint64_t offset)
+void MachO_printPreboundDylibCommand(PreboundDylibCommand* c, uint32_t name_ln, unsigned char* ptr, uint64_t offset)
 {
 	uint32_t i;
 	Prebound_Dylib_Command_Offsets offsets = PreboundDylibCommandOffsets;
 
 	printf("Prebound Dynamic Library (LC_PREBOUND_DYLIB)\n");
-	printUhd("cmd", offsets.cmd, offset, c->cmd);
+	MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
 	printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
 //	printf(" - name.offset%s: %u\n", fillOffset(offsets., offset, 0), c->name.offset);
 	printf(" - nmodules%s: %u\n", fillOffset(offsets.nmodules, offset, 0), c->nmodules);
@@ -360,7 +360,7 @@ void MachOprintPreboundDylibCommand(PreboundDylibCommand* c, uint32_t name_ln, u
 	printf("\n");
 }
 
-void MachOprintSubCommand(SubCommand* c, uint32_t name_ln, unsigned char* ptr, uint64_t offset)
+void MachO_printSubCommand(SubCommand* c, uint32_t name_ln, unsigned char* ptr, uint64_t offset)
 {
 	uint32_t i;
 	Sub_Command_Offsets offsets = SubCommandOffsets;
@@ -375,7 +375,7 @@ void MachOprintSubCommand(SubCommand* c, uint32_t name_ln, unsigned char* ptr, u
 	else type = "NONE";
 
 	printf("Prebound Dynamic Library (%s)\n", type);
-	printUhd("cmd", offsets.cmd, offset, c->cmd);
+	MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
 	printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
 //	printf(" - name.offset%s: %u\n", fillOffset(offsets., offset, 0), c->name.offset);
 	printf(" - name%s%s: ", fillOffset(offsets.name, offset, 0), fillOffset(c->name.offset, 0, 0));
@@ -384,12 +384,12 @@ void MachOprintSubCommand(SubCommand* c, uint32_t name_ln, unsigned char* ptr, u
 	printf("\n");
 }
 
-void MachOprintSymtabCommand(SymtabCommand* c, uint64_t offset)
+void MachO_printSymtabCommand(SymtabCommand* c, uint64_t offset)
 {
 	Symtab_Command_Offsets offsets = SymtabCommandOffsets;
 
 	printf("Symbol tables (LC_SYMTAB)\n");
-	printUhd("cmd", offsets.cmd, offset, c->cmd);
+	MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
 	printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
 	printf(" - symoff%s: 0x%x\n", fillOffset(offsets.symoff, offset, 0), c->symoff);
 	printf(" - nsyms%s: %u\n", fillOffset(offsets.nsyms, offset, 0), c->nsyms);
@@ -397,12 +397,12 @@ void MachOprintSymtabCommand(SymtabCommand* c, uint64_t offset)
 	printf(" - strsize%s: %u\n", fillOffset(offsets.strsize, offset, 0), c->strsize);
 }
 
-void MachOprintDySymtabCommand(DySymtabCommand* c, uint64_t offset)
+void MachO_printDySymtabCommand(DySymtabCommand* c, uint64_t offset)
 {
 	Dysymtab_Command_Offsets offsets = DySymtabCommandOffsets;
 
 	printf("Symbol tables (LC_DYSYMTAB)\n");
-	printUhd("cmd", offsets.cmd, offset, c->cmd);
+	MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
 	printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
 	printf(" - ilocalsym%s: %u\n", fillOffset(offsets.ilocalsym, offset, 0), c->ilocalsym);
 	printf(" - nlocalsym%s: %u\n", fillOffset(offsets.nlocalsym, offset, 0), c->nlocalsym);
@@ -424,9 +424,9 @@ void MachOprintDySymtabCommand(DySymtabCommand* c, uint64_t offset)
 	printf(" - nlocrel%s: %u\n", fillOffset(offsets.nlocrel, offset, 0), c->nlocrel);
 }
 
-void MachOprintRoutinesCommand(RoutinesCommand64* c, uint64_t offset)
+void MachO_printRoutinesCommand(RoutinesCommand64* c, uint64_t offset, uint8_t bitness)
 {
-	Routines_Command_Offsets offsets = (HD->bitness == 32) ? RoutinesCommandOffsets : RoutinesCommand64Offsets;
+	Routines_Command_Offsets offsets = (bitness == 32) ? RoutinesCommandOffsets : RoutinesCommand64Offsets;
 
 	char* type;
 	if ( c->cmd == LC_ROUTINES ) type = "LC_ROUTINES";
@@ -445,7 +445,7 @@ void MachOprintRoutinesCommand(RoutinesCommand64* c, uint64_t offset)
 	printf(" - reserved6%s: 0x%lx\n", fillOffset(offsets.reserved6, offset, 0), c->reserved6);
 }
 
-void MachOprintVersionMinCommand(VersionMinCommand* c, uint64_t offset)
+void MachO_printVersionMinCommand(VersionMinCommand* c, uint64_t offset)
 {
 	Version_Min_Command_Offsets offsets = VersionMinCommandOffsets;
 	Version32 version;
@@ -457,17 +457,17 @@ void MachOprintVersionMinCommand(VersionMinCommand* c, uint64_t offset)
 	else if ( c->cmd == LC_VERSION_MIN_WATCHOS ) type = "LC_VERSION_MIN_WATCHOS";
 	else type = "NONE";
 
-	parseV32(c->version, &version);
+	MachO_parseV32(c->version, &version);
 
 	printf("Version Min Command (%s)\n", type);
-	printUhd("cmd", offsets.cmd, offset, c->cmd);
+	MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
 	printf(" - cmd%s: %u\n", fillOffset(offsets.cmd, offset, 0), c->cmd);
 	printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
 	printf(" - version%s: %u.%u.%u (0x%x)\n", fillOffset(offsets.version, offset, 0), version.v0, version.v1, version.v2, c->version);
 	printf(" - reserved%s: 0x%x\n", fillOffset(offsets.reserved, offset, 0), c->reserved);
 }
 
-void MachOprintThreadCommand(ThreadCommand* c, uint64_t offset)
+void MachO_printThreadCommand(ThreadCommand* c, uint64_t offset)
 {
 	Thread_Command_Offsets offsets = ThreadCommandOffsets;
 
@@ -476,14 +476,14 @@ void MachOprintThreadCommand(ThreadCommand* c, uint64_t offset)
 	else type = "LC_UNIXTHREAD";
 
 	printf("Thread Command (%s)\n", type);
-	printUhd("cmd", offsets.cmd, offset, c->cmd);
+	MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
 	printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
 	printf(" - flavor%s: 0x%x\n", fillOffset(offsets.flavor, offset, 0), c->flavor);
 	printf(" - count%s: %u\n", fillOffset(offsets.count, offset, 0), c->count);
 	printf(" - state%s: %s\n", fillOffset(offsets.state, offset, 0), "...");
 }
 
-void MachOprintLinkedItDataCommand(LinkedItDataCommand* c, uint64_t offset)
+void MachO_printLinkedItDataCommand(LinkedItDataCommand* c, uint64_t offset)
 {
 	Linked_It_Data_Command_Offsets offsets = LinkedItDataCommandOffsets;
 
@@ -497,13 +497,13 @@ void MachOprintLinkedItDataCommand(LinkedItDataCommand* c, uint64_t offset)
 	else type = "NONE";
 
 	printf("Linked IT Data Command (%s)\n", type);
-	printUhd("cmd", offsets.cmd, offset, c->cmd);
+	MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
 	printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
 	printf(" - offset%s: 0x%x\n", fillOffset(offsets.offset, offset, 0), c->offset);
 	printf(" - size%s: %u\n", fillOffset(offsets.size, offset, 0), c->size);
 }
 
-void MachOprintDyldInfoCommand(DyldInfoCommand* c, uint64_t offset)
+void MachO_printDyldInfoCommand(DyldInfoCommand* c, uint64_t offset)
 {
 	Dyld_Info_Command_Offsets offsets = DyldInfoCommandOffsets;
 
@@ -512,7 +512,7 @@ void MachOprintDyldInfoCommand(DyldInfoCommand* c, uint64_t offset)
 	else type = "LC_DYLD_INFO_ONLY";
 
 	printf("Data In Code Command (%s)\n", type);
-	printUhd("cmd", offsets.cmd, offset, c->cmd);
+	MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
 	printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
 	printf(" - rebase_off%s: 0x%x\n", fillOffset(offsets.rebase_off, offset, 0), c->rebase_off);
 	printf(" - rebase_size%s: %u\n", fillOffset(offsets.rebase_size, offset, 0), c->rebase_size);
@@ -526,7 +526,7 @@ void MachOprintDyldInfoCommand(DyldInfoCommand* c, uint64_t offset)
 	printf(" - export_size%s: %u\n", fillOffset(offsets.export_size, offset, 0), c->export_size);
 }
 
-void MachOprintSourceVersionCommand(SourceVersionCommand* c, uint64_t offset)
+void MachO_printSourceVersionCommand(SourceVersionCommand* c, uint64_t offset)
 {
 	Source_Version_Command_Offsets offsets = SourceVersionCommandOffsets;
 //	uint32_t v_a;
@@ -542,51 +542,51 @@ void MachOprintSourceVersionCommand(SourceVersionCommand* c, uint64_t offset)
 //	v_e = (c->version >> 0u) & 0x3ffu;
 
 	printf("Source Version Command (LC_SOURCE_VERSION)\n");
-	printUhd("cmd", offsets.cmd, offset, c->cmd);
+	MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
 	printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
 	// a24.b10.c10.d10.e10.
-	printLUhd("version", offsets.version, offset, c->version);
+	MachO_printLUhd("version", offsets.version, offset, c->version);
 //	printf(" - version%s: %u.%u.%u.%u.%u (%lx)\n", fillOffset(offsets.version, offset, 0), v_a, v_b, v_c, v_d, v_e, c->version);
 }
 
-void MachOprintMainDylibCommand(MainDylibCommand* c, uint64_t offset)
+void MachO_printMainDylibCommand(MainDylibCommand* c, uint64_t offset)
 {
 	Main_Dylib_Command_Offsets offsets = MainDylibCommandOffsets;
 
 	printf("Main Dylib Command (LC_MAIN)\n");
-	printUhd("cmd", offsets.cmd, offset, c->cmd);
+	MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
 	printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
-	printLUhd("entry_off", offsets.entry_off, offset, c->entry_off);
-	printLUhd("stack_size", offsets.stack_size, offset, c->stack_size);
+	MachO_printLUhd("entry_off", offsets.entry_off, offset, c->entry_off);
+	MachO_printLUhd("stack_size", offsets.stack_size, offset, c->stack_size);
 }
 
-void MachOprintBuildVersionCommand(BuildVersionCommand* c, uint64_t offset)
+void MachO_printBuildVersionCommand(BuildVersionCommand* c, uint64_t offset)
 {
 	Build_Version_Command_Offsets offsets = BuildVersionCommandOffsets;
 
 	printf("Build Version Command (LC_BUILD_VERSION)\n");
-	printUhd("cmd", offsets.cmd, offset, c->cmd);
+	MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
 	printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
-	printUhd("platform", offsets.platform, offset, c->platform);
-	printUhd("minos", offsets.minos, offset, c->minos);
-	printUhd("sdk", offsets.sdk, offset, c->sdk);
-	printUhd("ntools", offsets.ntools, offset, c->ntools);
+	MachO_printUhd("platform", offsets.platform, offset, c->platform);
+	MachO_printUhd("minos", offsets.minos, offset, c->minos);
+	MachO_printUhd("sdk", offsets.sdk, offset, c->sdk);
+	MachO_printUhd("ntools", offsets.ntools, offset, c->ntools);
 	printf(" - tools%s: %s\n", fillOffset(offsets.tools, offset, 0), "...");
 }
 
-void printLUhd(char* label, uint64_t struct_offset, uint64_t file_offset, uint64_t value)
+void MachO_printLUhd(char* label, uint64_t struct_offset, uint64_t file_offset, uint64_t value)
 {
 	printf(" - %s%s: 0x%lx (%lu)\n",
 			label, fillOffset(struct_offset, file_offset, 0), value, value);
 }
 
-void printUhd(char* label, uint64_t struct_offset, uint64_t file_offset, uint32_t value)
+void MachO_printUhd(char* label, uint64_t struct_offset, uint64_t file_offset, uint32_t value)
 {
 	printf(" - %s%s: 0x%x (%u)\n",
 			label, fillOffset(struct_offset, file_offset, 0), value, value);
 }
 
-void parseV32(uint32_t value, Version32* v32)
+void MachO_parseV32(uint32_t value, Version32* v32)
 {
 	v32->v0 = (uint16_t) (value>>16u);
 	v32->v1 = (uint8_t)(value>>8u);

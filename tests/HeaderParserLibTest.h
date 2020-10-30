@@ -21,6 +21,11 @@ class HeaderParserLibTest : public testing::Test
 
 		void printHeaderData(HeaderData* data)
 		{
+		    if ( data == NULL)
+            {
+		        printf("ERROR: no data\n");
+		        return;
+            }
 			size_t i;
 			printf("\nHeaderData:\n");
 			printf("coderegions:\n");
@@ -119,7 +124,7 @@ TEST_F(HeaderParserLibTest, test_getHeaderDataEndianType)
 	EXPECT_STREQ(getHeaderDataEndianType(i), endian_type_names[0]);
 }
 
-TEST_F(HeaderParserLibTest, testBasicInfoFile)
+TEST_F(HeaderParserLibTest, checkBasicInfoFile)
 {
 	const char* src = "";
 	size_t start = 0;

@@ -1,14 +1,15 @@
 #include <iostream>
+#include <set>
 
 #include "DirectoryRunner.h"
-
 #include "FileUtil.h"
-#include "StringUtil.h"
+
 
 using namespace std;
+using namespace Utils;
+using namespace placeholders;
 namespace fs = filesystem;
 
-using namespace Utils;
 
 DirectoryRunner::DirectoryRunner(const std::string& bin_name)
 {
@@ -22,27 +23,37 @@ DirectoryRunner::~DirectoryRunner()
 void DirectoryRunner::printActFileInfo()
 {
 	++file_count;
+	stdio_lock.lock();
 	cout << LINE_UP << LINE_CLEAR << LINE_RETURN; // for "i / file_list_size"
 	cout << "File: " << file_count << " / " << nr_of_files << " ("
 		 << (int) ((float) file_count / nr_of_files * 100) << "%)"
 		 //				 <<" : " << fs::path(file).filename()
 		 << endl;
+	stdio_lock.unlock();
 }
 
-void DirectoryRunner::printActFileInfo(const string& file)
+void DirectoryRunner::printFileInfo(const string& file)
 {
 	++file_count;
+	stdio_lock.lock();
 	cout << LINE_UP << LINE_CLEAR << LINE_RETURN; // for "i / file_list_size"
 	cout << "File: " << file_count << " / " << nr_of_files << " ("
 		 << (int) ((float) file_count / nr_of_files * 100) << "%)"
-		 				 <<" : " << fs::path(file).filename()
+//		 				 <<" : " << fs::path(file).filename()
+		 				 <<" : " << file
 		 << endl;
+	stdio_lock.unlock();
 }
 
 void DirectoryRunner::run()
 {
 	if ( !src_dir.empty() )
-		runDirectory(src_dir);
+	{
+		if ( threaded )
+			runDirectoryT(src_dir);
+		else
+			runDirectory(src_dir);
+	}
 	else if ( !src_files.empty() )
 		runList(src_files);
 }
@@ -53,7 +64,7 @@ void DirectoryRunner::runList(const vector<string>& files)
 	cout << "number of files : " << nr_of_files << "\n\n\n";
 
 	for ( const string& f : files )
-		fillFileCallback(f);
+		fillFileCallback(f, NULL);
 
 	cout << endl;
 	printf("result (%lu/%lu):\n", result.size(), nr_of_files);
@@ -76,7 +87,7 @@ void DirectoryRunner::runDirectory(const string& dir)
 		return types.find(p.extension()) != types.end();
 	};
 
-	FileUtil::actOnFilesInDir(dir, bind(&DirectoryRunner::fillFileCallback, this, placeholders::_1),
+	FileUtil::actOnFilesInDir(dir, bind(&DirectoryRunner::fillFileCallback, this, _1, _2),
 							  isWhiteListed, true);
 
 	cout << endl;
@@ -86,24 +97,112 @@ void DirectoryRunner::runDirectory(const string& dir)
 	cout << endl;
 }
 
+void DirectoryRunner::runDirectoryT(const string& dir)
+{
+	cout << "counting files in \"" << dir << "\" ...\n";
+	nr_of_files = FileUtil::countFiles(dir, {}, true, true);
+	cout << "number of files : " << nr_of_files << "\n\n\n";
+
+	set<string> types = {};
+	auto isWhiteListed = [&types](const string& file) -> bool {
+		if ( types.empty()) return true;
+		fs::path p(file);
+		return types.find(p.extension()) != types.end();
+	};
+
+	thread_pool.setPoolSize(thread_pool_size);
+	thread_pool.setLaunchPolicy(launch::async);
+
+
+	FileUtil::actOnFilesInDir(dir, bind(&DirectoryRunner::fillFileCallbackT, this, _1, _2),
+							  isWhiteListed, true);
+
+	thread_pool.getResults();
+
+	cout << endl;
+	printf("result (%lu/%lu):\n", result.size(), nr_of_files);
+	for ( const string& r : result )
+		cout << r << ", ";
+	cout << endl;
+}
+
+void DirectoryRunner::fillFileCallbackT(const string& file, void* params)
+{
+	thread_pool.add(&DirectoryRunner::fillFileCallback, this, file, params);
+}
+
+void DirectoryRunner::printUsage()
+{
+	printf("Usage: %s [-t x] -d|-f a/dir/path|file0 file1 ...\n", runner_name.c_str());
+}
+
+void DirectoryRunner::printHelp()
+{
+	printUsage();
+	printf("\n");
+	printf("Options:\n");
+	printf(" -d:string : One or more source directories\n");
+	printf(" -f:string : One or more source files\n");
+	printf(" -t:uint16 : Number of threads\n");
+	printf("\n");
+	printf("Examples:\n");
+	printf("$ %s -d a/dir/path\n", runner_name.c_str());
+	printf("$ %s -f file0 file1 ...\n", runner_name.c_str());
+}
+
 int DirectoryRunner::parseArgs(int argc, char** argv)
 {
+	if ( argc > 1 && argv[1][0] == '-' && argv[1][1] == 'h' && argv[1][2] == 0 )
+	{
+		printHelp();
+		return 0;
+	}
 	if ( argc < 3 )
 	{
-		printf("Usage: %s -d|-f a/dir/path|file0 file1 ...\n", runner_name.c_str());
-		printf("Example: %s -d a/dir/path\n", runner_name.c_str());
-		printf("Example: %s -f file0 file1 ...\n", runner_name.c_str());
+		printUsage();
 		return -1;
 	}
+	int type_i = 1;
+	int start_pi = 2;
+	int i;
+	char* arg;
+	int type = 0;
 
-	string argv1 = argv[1];
-
-	if ( argv1 == "-d" )
-		src_dir = argv[2];
-
-	if ( argv1 == "-f" )
+	for (i = 1; i < argc-1; i++ )
 	{
-		for ( int i = 2; i < argc; i++ )
+		arg = argv[i];
+		if ( arg[0] == '-' )
+		{
+			if ( arg[1]=='t')
+			{
+				threaded = true;
+				thread_pool_size = strtol(argv[i+1], nullptr, 0);
+				i++;
+			}
+			else if ( arg[1]=='d')
+				type = 1;
+			else if ( arg[1]=='f')
+				type = 2;
+		}
+		else
+			break;
+	}
+	start_pi = i;
+	if ( i >= argc )
+	{
+		printf("Error: No input path!\n");
+		return 0;
+	}
+
+	printf("Threads: %d\n", threaded);
+	printf("thread_pool_size: %u\n", thread_pool_size);
+
+	if ( type == 1 )
+		src_dir = argv[start_pi];
+
+	if ( type == 2 )
+	{
+		for ( i = start_pi; i < argc; i++ )
 		{
 			string file = argv[i];
 			if ( !fs::exists(file) || !fs::is_regular_file(file) )

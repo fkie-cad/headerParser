@@ -38,10 +38,11 @@ class HeaderParserDirectoryRunner : public DirectoryRunner
 	public:
 		HeaderParserDirectoryRunner()
 		: DirectoryRunner("headerParser")
-		{}
+		{
+		}
 
 	private:
-		void fillFileCallback(const string& file) override
+		int fillFileCallback(const string& file, void* params) override
 		{
 			printActFileInfo();
 
@@ -56,6 +57,8 @@ class HeaderParserDirectoryRunner : public DirectoryRunner
 
 			if ( !compareHPRawOutPutToLibData(output, data) )
 				result.emplace_back(file);
+
+			return 0;
 		}
 
 		bool compareHPRawOutPutToLibData(const vector<string>& output, HeaderData* data)
@@ -187,7 +190,7 @@ int main(int argc, char** argv)
 	HeaderParserDirectoryRunner dr;
 	dr.setRunnerName("HeaderParserDirectoryRunner");
 	if ( dr.parseArgs(argc, argv) != 0 )
-		exit(0);
+		return 0;
 
 	dr.run();
 }
