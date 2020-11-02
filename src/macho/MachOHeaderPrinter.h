@@ -42,7 +42,7 @@ void MachO_printFileHeader(const MachHeader64* h, uint8_t bitness, uint8_t endia
 
 	printf("MachOHeader:\n");
 	printf(" - magic%s: 0x%x\n", fillOffset(MachHeaderOffsets.magic, 0, start_file_offset), h->magic);
-	printf(" - - %x-bit, %s-endian\n", bitness, (endian==ENDIAN_LITTLE)?"little":"big");
+	printf("   - %x-bit, %s-endian\n", bitness, (endian==ENDIAN_LITTLE)?"little":"big");
 	printf(" - cputype%s: %s (0x%x)\n", fillOffset(MachHeaderOffsets.cputype, 0, start_file_offset), arch->arch.name, h->cputype);
 	printf(" - cpusubtype%s: %s (0x%x)\n", fillOffset(MachHeaderOffsets.cpusubtype, 0, start_file_offset),
 		   MachO_getCPUSubTypeName(h->cputype, h->cpusubtype), h->cpusubtype);
@@ -51,31 +51,31 @@ void MachO_printFileHeader(const MachHeader64* h, uint8_t bitness, uint8_t endia
 	printf(" - ncmds%s: %u\n", fillOffset(MachHeaderOffsets.ncmds, 0, start_file_offset), h->ncmds);
 	printf(" - sizeofcmds%s: 0x%x\n", fillOffset(MachHeaderOffsets.sizeofcmds, 0, start_file_offset), h->sizeofcmds);
 	printf(" - flags%s: 0x%x\n", fillOffset(MachHeaderOffsets.flags, 0, start_file_offset), h->flags);
-	printFlag32F(h->flags, MH_NOUNDEFS, "The object file has no undefined references", " - - ", '\n');
-	printFlag32F(h->flags, MH_INCRLINK, "The object file is the output of an incremental link against a base file and can't be link edited again", " - - ", '\n');
-	printFlag32F(h->flags, MH_DYLDLINK, "The object file is input for the dynamic linker and can't be staticly link edited again", " - - ", '\n');
-	printFlag32F(h->flags, MH_BINDATLOAD, "The object file's undefined references are bound by the dynamic linker when loaded.", " - - ", '\n');
-	printFlag32F(h->flags, MH_PREBOUND, "The file has its dynamic undefined references prebound.", " - - ", '\n');
-	printFlag32F(h->flags, MH_SPLIT_SEGS, "The file has its read-only and read-write segments split", " - - ", '\n');
-	printFlag32F(h->flags, MH_LAZY_INIT, "The shared library init routine is to be run lazily via catching memory faults to its writeable segments (obsolete)", " - - ", '\n');
-	printFlag32F(h->flags, MH_TWOLEVEL, "The image is using two-level name space bindings", " - - ", '\n');
-	printFlag32F(h->flags, MH_FORCE_FLAT, "The executable is forcing all images to use flat name space bindings", " - - ", '\n');
-	printFlag32F(h->flags, MH_NOMULTIDEFS, "This umbrella guarantees no multiple defintions of symbols in its sub-images so the two-level namespace hints can always be used.", " - - ", '\n');
-	printFlag32F(h->flags, MH_NOFIXPREBINDING, "do not have dyld notify the prebinding agent about this executable", " - - ", '\n');
-	printFlag32F(h->flags, MH_PREBINDABLE, "The binary is not prebound but can have its prebinding redone. only used when MH_PREBOUND is not set.", " - - ", '\n');
-	printFlag32F(h->flags, MH_ALLMODSBOUND, "indicates that this binary binds to all two-level namespace modules of its dependent libraries. only used when MH_PREBINDABLE and MH_TWOLEVEL are both set.", " - - ", '\n');
-	printFlag32F(h->flags, MH_SUBSECTIONS_VIA_SYMBOLS, "safe to divide up the sections into sub-sections via symbols for dead code stripping", " - - ", '\n');
-	printFlag32F(h->flags, MH_CANONICAL, "The binary has been canonicalized via the unprebind operation", " - - ", '\n');
-	printFlag32F(h->flags, MH_WEAK_DEFINES, "The final linked image contains external weak symbols", " - - ", '\n');
-	printFlag32F(h->flags, MH_BINDS_TO_WEAK, "The final linked image uses weak symbols", " - - ", '\n');
-	printFlag32F(h->flags, MH_ALLOW_STACK_EXECUTION, "All stacks in the task will be given stack execution privilege.  Only used in MH_EXECUTE filetypes.", " - - ", '\n');
-	printFlag32F(h->flags, MH_ROOT_SAFE, "The binary declares it is safe for use in processes with uid zero", " - - ", '\n');
-	printFlag32F(h->flags, MH_SETUID_SAFE, "The binary declares it is safe for use in processes when issetugid() is true", " - - ", '\n');
-	printFlag32F(h->flags, MH_NO_REEXPORTED_DYLIBS, "The static linker does not need to examine dependent dylibs to see if any are re-exported", " - - ", '\n');
-	printFlag32F(h->flags, MH_PIE, "The OS will load the main executable at a random address.  Only used in MH_EXECUTE filetypes.", " - - ", '\n');
-	printFlag32F(h->flags, MH_DEAD_STRIPPABLE_DYLIB, "Only for use on dylibs.  When linking against a dylib that has this bit set, the static linker will automatically not create a LC_LOAD_DYLIB load command to the dylib if no symbols are being referenced from the dylib.", " - - ", '\n');
-	printFlag32F(h->flags, MH_HAS_TLV_DESCRIPTORS, "Contains a section of type S_THREAD_LOCAL_VARIABLES", " - - ", '\n');
-	printFlag32F(h->flags, MH_NO_HEAP_EXECUTION, "The OS will run the main executable with a non-executable heap even on platforms (e.g. i386) that don't require it. Only used in MH_EXECUTE filetypes.", " - - ", '\n');
+	printFlag32F(h->flags, MH_NOUNDEFS, "The object file has no undefined references", "   - ", '\n');
+	printFlag32F(h->flags, MH_INCRLINK, "The object file is the output of an incremental link against a base file and can't be link edited again", "   - ", '\n');
+	printFlag32F(h->flags, MH_DYLDLINK, "The object file is input for the dynamic linker and can't be staticly link edited again", "   - ", '\n');
+	printFlag32F(h->flags, MH_BINDATLOAD, "The object file's undefined references are bound by the dynamic linker when loaded.", "   - ", '\n');
+	printFlag32F(h->flags, MH_PREBOUND, "The file has its dynamic undefined references prebound.", "   - ", '\n');
+	printFlag32F(h->flags, MH_SPLIT_SEGS, "The file has its read-only and read-write segments split", "   - ", '\n');
+	printFlag32F(h->flags, MH_LAZY_INIT, "The shared library init routine is to be run lazily via catching memory faults to its writeable segments (obsolete)", "   - ", '\n');
+	printFlag32F(h->flags, MH_TWOLEVEL, "The image is using two-level name space bindings", "   - ", '\n');
+	printFlag32F(h->flags, MH_FORCE_FLAT, "The executable is forcing all images to use flat name space bindings", "   - ", '\n');
+	printFlag32F(h->flags, MH_NOMULTIDEFS, "This umbrella guarantees no multiple defintions of symbols in its sub-images so the two-level namespace hints can always be used.", "   - ", '\n');
+	printFlag32F(h->flags, MH_NOFIXPREBINDING, "do not have dyld notify the prebinding agent about this executable", "   - ", '\n');
+	printFlag32F(h->flags, MH_PREBINDABLE, "The binary is not prebound but can have its prebinding redone. only used when MH_PREBOUND is not set.", "   - ", '\n');
+	printFlag32F(h->flags, MH_ALLMODSBOUND, "indicates that this binary binds to all two-level namespace modules of its dependent libraries. only used when MH_PREBINDABLE and MH_TWOLEVEL are both set.", "   - ", '\n');
+	printFlag32F(h->flags, MH_SUBSECTIONS_VIA_SYMBOLS, "safe to divide up the sections into sub-sections via symbols for dead code stripping", "   - ", '\n');
+	printFlag32F(h->flags, MH_CANONICAL, "The binary has been canonicalized via the unprebind operation", "   - ", '\n');
+	printFlag32F(h->flags, MH_WEAK_DEFINES, "The final linked image contains external weak symbols", "   - ", '\n');
+	printFlag32F(h->flags, MH_BINDS_TO_WEAK, "The final linked image uses weak symbols", "   - ", '\n');
+	printFlag32F(h->flags, MH_ALLOW_STACK_EXECUTION, "All stacks in the task will be given stack execution privilege.  Only used in MH_EXECUTE filetypes.", "   - ", '\n');
+	printFlag32F(h->flags, MH_ROOT_SAFE, "The binary declares it is safe for use in processes with uid zero", "   - ", '\n');
+	printFlag32F(h->flags, MH_SETUID_SAFE, "The binary declares it is safe for use in processes when issetugid() is true", "   - ", '\n');
+	printFlag32F(h->flags, MH_NO_REEXPORTED_DYLIBS, "The static linker does not need to examine dependent dylibs to see if any are re-exported", "   - ", '\n');
+	printFlag32F(h->flags, MH_PIE, "The OS will load the main executable at a random address.  Only used in MH_EXECUTE filetypes.", "   - ", '\n');
+	printFlag32F(h->flags, MH_DEAD_STRIPPABLE_DYLIB, "Only for use on dylibs.  When linking against a dylib that has this bit set, the static linker will automatically not create a LC_LOAD_DYLIB load command to the dylib if no symbols are being referenced from the dylib.", "   - ", '\n');
+	printFlag32F(h->flags, MH_HAS_TLV_DESCRIPTORS, "Contains a section of type S_THREAD_LOCAL_VARIABLES", "   - ", '\n');
+	printFlag32F(h->flags, MH_NO_HEAP_EXECUTION, "The OS will run the main executable with a non-executable heap even on platforms (e.g. i386) that don't require it. Only used in MH_EXECUTE filetypes.", "   - ", '\n');
 	if ( bitness == 64 ) printf(" - reserved%s: 0x%x\n", fillOffset(MachHeaderOffsets.reserved, 0, start_file_offset), h->reserved);
 	printf("\n");
 }
@@ -239,7 +239,7 @@ void MachO_printSection(const MachOSection64* sec, uint32_t idx, uint32_t ln, ui
 	MachO_Section_Offsets offsets = ( bitness == 32 ) ? MachOsectionOffsets32 : MachOsectionOffsets64;
 
 	uint32_t i;
-//	printf(" - - segname%s: ");
+//	printf("   - segname%s: ");
 //	for ( i = 0; i < MACH_O_SEG_NAME_LN; i++ )
 //		printf("%c", sec->segname[i]);
 //	printf("\n");
@@ -247,13 +247,13 @@ void MachO_printSection(const MachOSection64* sec, uint32_t idx, uint32_t ln, ui
 	for ( i = 0; i < MACH_O_SEG_NAME_LN; i++ )
 		printf("%c", sec->sectname[i]);
 	printf("\n");
-	printf(" - - addr%s: 0x%lx\n", fillOffset(offsets.addr, offset, 0), sec->addr);
-	printf(" - - size%s: 0x%lx\n", fillOffset(offsets.size, offset, 0), sec->size);
-	printf(" - - offset%s: 0x%x\n", fillOffset(offsets.offset, offset, 0), sec->offset);
-	printf(" - - align%s: 0x%x\n", fillOffset(offsets.align, offset, 0), sec->align);
-	printf(" - - reloff%s: %u\n", fillOffset(offsets.reloff, offset, 0), sec->reloff);
-	printf(" - - nreloc%s: %u\n", fillOffset(offsets.nreloc, offset, 0), sec->nreloc);
-	printf(" - - flags%s: 0x%x\n", fillOffset(offsets.flags, offset, 0), sec->flags);
+	printf("   - addr%s: 0x%lx\n", fillOffset(offsets.addr, offset, 0), sec->addr);
+	printf("   - size%s: 0x%lx\n", fillOffset(offsets.size, offset, 0), sec->size);
+	printf("   - offset%s: 0x%x\n", fillOffset(offsets.offset, offset, 0), sec->offset);
+	printf("   - align%s: 0x%x\n", fillOffset(offsets.align, offset, 0), sec->align);
+	printf("   - reloff%s: %u\n", fillOffset(offsets.reloff, offset, 0), sec->reloff);
+	printf("   - nreloc%s: %u\n", fillOffset(offsets.nreloc, offset, 0), sec->nreloc);
+	printf("   - flags%s: 0x%x\n", fillOffset(offsets.flags, offset, 0), sec->flags);
 	printf(" - -");
 	printFlag32(sec->flags, SECTION_TYPE, "256 section types");
 	printFlag32(sec->flags, SECTION_ATTRIBUTES, " 24 section attributes");
@@ -292,9 +292,9 @@ void MachO_printSection(const MachOSection64* sec, uint32_t idx, uint32_t ln, ui
 	printFlag32(sec->flags, S_ATTR_EXT_RELOC, "section has external relocation entries");
 	printFlag32(sec->flags, S_ATTR_LOC_RELOC, "section has local relocation entries");
 	printf("\n");
-	printf(" - - reserved1%s: 0x%x\n", fillOffset(offsets.reserved1, offset, 0), sec->reserved1);
-	printf(" - - reserved2%s: 0x%x\n", fillOffset(offsets.reserved2, offset, 0), sec->reserved2);
-	if ( bitness == 64 ) printf(" - - reserved3%s: 0x%x\n", fillOffset(offsets.reserved3, offset, 0), sec->reserved3);
+	printf("   - reserved1%s: 0x%x\n", fillOffset(offsets.reserved1, offset, 0), sec->reserved1);
+	printf("   - reserved2%s: 0x%x\n", fillOffset(offsets.reserved2, offset, 0), sec->reserved2);
+	if ( bitness == 64 ) printf("   - reserved3%s: 0x%x\n", fillOffset(offsets.reserved3, offset, 0), sec->reserved3);
 }
 
 void MachO_printUuidCommand(UuidCommand* c, uint64_t offset)
