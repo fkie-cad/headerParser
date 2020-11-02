@@ -44,7 +44,8 @@ int JavaClass_getJavaVersionStringV(uint16_t version, char* vs_str);
 
 void parseJavaClassHeader(PHeaderData hd, PGlobalParams gp)
 {
-	char vs_str[JAVA_VS_STR_MAX_SIZE];
+    // freed in freeInnerHeaderData
+	char* vs_str = calloc(1, JAVA_VS_STR_MAX_SIZE);
 	JavaClass_getJavaVersionString(vs_str, gp->start_file_offset, gp->file_size, gp->block_large);
 
 	hd->headertype = HEADER_TYPE_JAVA_CLASS;
@@ -78,7 +79,7 @@ int JavaClass_getJavaVersionStringV(uint16_t version, char* vs_str)
 	{
 		snprintf(vs_str, JAVA_VS_STR_MAX_SIZE, "Java 1.%u", vs);
 	}
-	else if ( vs > 100 ) // arbitrary end
+	else if ( vs > 100 ) // arbitrary max value
 	{
 		snprintf(vs_str, JAVA_VS_STR_MAX_SIZE, "unknown");
 	}

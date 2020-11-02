@@ -27,10 +27,11 @@ void PE_printImageSectionHeader(PEImageSectionHeader* sh,
                                 uint64_t offset,
                                 uint64_t start_file_offset,
                                 size_t file_size,
-                                const char* file_name,
+                                FILE* fp,
                                 unsigned char* block_s,
                                 PStringTable st);
 const char* PE_getSubsystemName(enum PEWinudowsSubsystem type);
+void PE_printImageImportTableHeader(PEImageImportDescriptor* impd);
 void PE_printImageImportDescriptor(PEImageImportDescriptor* impd, uint64_t offset, const char* impd_name);
 void PE_printHintFunctionHeader(PEImageThunkData64* td);
 void PE_printImageThunkData(PEImageThunkData64* td, PEImageImportByName* ibn, uint64_t td_offset, uint64_t ibn_offset);
@@ -48,7 +49,7 @@ void PE_printImageResourceDirectoryEntry(const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY
                                          uint16_t n,
                                          uint64_t start_file_offset,
                                          size_t file_size,
-                                         const char* file_name,
+                                         FILE* fp,
                                          unsigned char* block_s);
 
 const char* ImageDirectoryEntryNames[] = {
@@ -272,13 +273,13 @@ PE_printImageSectionHeader(PEImageSectionHeader* sh,
                            uint64_t offset,
                            uint64_t start_file_offset,
                            size_t file_size,
-                           const char* file_name,
+                           FILE* fp,
                            unsigned char* block_s,
                            PStringTable st)
 {
 	char characteristics_bin[33];
 	char* name;
-	PE_getRealName(sh->Name, &name, ch, start_file_offset, file_size, file_name, block_s, st);
+	PE_getRealName(sh->Name, &name, ch, start_file_offset, file_size, fp, block_s, st);
 
 	printf("%u / %u\n", (idx+1), size);
 //	printf(" - short name: %c%c%c%c%c%c%c%c\n", sh->Name[0], sh->Name[1], sh->Name[2], sh->Name[3], sh->Name[4], sh->Name[5], sh->Name[6], sh->Name[7]);
@@ -317,6 +318,14 @@ PE_printImageSectionHeader(PEImageSectionHeader* sh,
 	if ( sh->Characteristics != 0 ) printf("\n");
 
 	free(name);
+}
+
+void PE_printImageImportTableHeader(PEImageImportDescriptor* impd)
+{
+    if ( impd->Characteristics != 0 )
+        printf("Image Import Table:\n");
+    else
+        printf("No Image Import Table\n");
 }
 
 void PE_printImageImportDescriptor(PEImageImportDescriptor* impd, uint64_t offset, const char* impd_name)
@@ -500,7 +509,7 @@ void PE_printImageResourceDirectoryEntry(const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY
                                          uint16_t n,
                                          uint64_t start_file_offset,
                                          size_t file_size,
-                                         const char* file_name,
+                                         FILE* fp,
                                          unsigned char* block_s)
 {
 	uint64_t name_offset = 0;
@@ -521,7 +530,8 @@ void PE_printImageResourceDirectoryEntry(const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY
 			return;
 
 		name_offset = name_offset + start_file_offset;
-		size = readCustomBlock(file_name, name_offset, BLOCKSIZE, block_s);
+//		size = readCustomBlock(file_name, name_offset, BLOCKSIZE, block_s);
+		size = readFile(fp, name_offset, BLOCKSIZE, block_s);
 		if ( size == 0 )
 			return;
 

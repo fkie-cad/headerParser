@@ -8,11 +8,11 @@
 #ifdef __cplusplus
 extern "C"{
 #endif
-void freeHeaderData(HeaderData* header_data);
+void freeHeaderData(HeaderData* hd);
 #ifdef __cplusplus
 }
 #endif
-void freeInnerHeaderData(HeaderData* header_data);
+static void freeInnerHeaderData(HeaderData* hd);
 int initHeaderData(HeaderData* header_data, size_t code_regions_capacity);
 static uint8_t resizeHeaderDataCodeRegions(HeaderData* header_data);
 static void addCodeRegionDataToHeaderData(CodeRegionData* data, HeaderData* header_data);
@@ -33,28 +33,34 @@ int initHeaderData(HeaderData* header_data, size_t code_regions_capacity)
 	return 0;
 }
 
-void freeHeaderData(HeaderData* header_data)
+void freeHeaderData(HeaderData* hd)
 {
-	freeInnerHeaderData(header_data);
+    if ( hd == NULL )
+        return;
 
-	free(header_data);
+	freeInnerHeaderData(hd);
+	free(hd);
 }
 
-void freeInnerHeaderData(HeaderData* header_data)
+void freeInnerHeaderData(HeaderData* hd)
 {
 	size_t i;
 
-	if ( header_data == NULL )
+	if ( hd == NULL )
 		return;
 
-	for ( i = 0; i < header_data->code_regions_size; i++ )
-		free(header_data->code_regions[i].name);
+	for ( i = 0; i < hd->code_regions_size; i++ )
+		free(hd->code_regions[i].name);
 
-	free(header_data->code_regions);
-	header_data->code_regions = NULL;
+	free(hd->code_regions);
+    hd->code_regions = NULL;
 
-	header_data->code_regions_capacity = 0;
-	header_data->code_regions_size = 0;
+    hd->code_regions_capacity = 0;
+    hd->code_regions_size = 0;
+
+    // java allocates machine string
+	if ( hd->headertype == HEADER_TYPE_JAVA_CLASS )
+	    free((char*)hd->Machine);
 }
 
 void addCodeRegionDataToHeaderData(CodeRegionData* data, HeaderData* header_data)

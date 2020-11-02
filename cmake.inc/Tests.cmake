@@ -7,6 +7,7 @@ if ( ${GTEST_FOUND} )
 		${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/misc/StringUtil.h
 
 		${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/jar/JarParserTest.h
+		${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/pe/PEParserTest.h
 		${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/utils/ConverterTest.h
 		${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/utils/HelperTest.h
 		${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/HeaderParserTest.h
@@ -69,15 +70,15 @@ add_dependencies(testHeaderParserLibPE ${HEADER_PARSER_SO})
 
 
 add_executable(
-	headerParserDirectoryRunner
-	${G_TESTS_DIR}/HeaderParserDirectoryRunner.cpp
+	HPDirectoryRunner
+	${G_TESTS_DIR}/HPDirectoryRunner.cpp
 	${G_TESTS_DIR}/misc/DirectoryRunner.cpp
 	${G_TESTS_DIR}/misc/DirectoryRunner.h
 	${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/misc/FileUtil.h
 	${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/misc/RawHeaderDataParser.h
 	${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/misc/StringUtil.h
 )
-set_target_properties(headerParserDirectoryRunner PROPERTIES
+set_target_properties(HPDirectoryRunner PROPERTIES
 	CXX_STANDARD 17
 	CXX_STANDARD_REQUIRED YES
 	CXX_EXTENSIONS NO
@@ -86,10 +87,10 @@ set_target_properties(headerParserDirectoryRunner PROPERTIES
 #	COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer"
 	LINK_FLAGS "${CMAKE_LINKER_FLAGS_DEBUG} -fsanitize=address -fsanitize=leak -fsanitize=undefined -fno-omit-frame-pointer"
 	)
-target_link_libraries(headerParserDirectoryRunner PRIVATE
+target_link_libraries(HPDirectoryRunner PRIVATE
 	stdc++fs
 	optimized ${HEADER_PARSER_LIB}
 	debug ${HEADER_PARSER_DEBUG_LIB}
 	${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/misc/libutils_full.so
 	)
-add_dependencies(headerParserDirectoryRunner ${HEADER_PARSER} ${HEADER_PARSER_SO})
+add_dependencies(HPDirectoryRunner ${HEADER_PARSER} ${HEADER_PARSER_SO})

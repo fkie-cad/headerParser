@@ -35,7 +35,7 @@ static void DEX_fillFieldIdItem(uint32_t offset, uint32_t idx, uint32_t size, PG
 static void DEX_fillMethodIdItem(uint32_t offset, uint32_t idx, uint32_t size, PGlobalParams gp, char** strings);
 static void DEX_fillClassDefItem(uint32_t offset, uint32_t idx, uint32_t size, PGlobalParams gp, char** strings);
 
-static uint8_t DEX_readMap(DEXFileHeader *fh, unsigned char* block_l, uint8_t info_level, uint64_t* abs_file_offset, uint64_t start_file_offset, PHeaderData hd, const char* file_name, size_t file_size);
+static uint8_t DEX_readMap(DEXFileHeader *fh, unsigned char* block_l, uint8_t info_level, uint64_t* abs_file_offset, uint64_t start_file_offset, PHeaderData hd, FILE* fp, size_t file_size);
 static uint64_t DEX_readMapItem(uint64_t offset, uint32_t idx, uint32_t ln, unsigned char* block_l, uint8_t info_level, uint64_t abs_file_offset, PHeaderData hd);
 static void DEX_fillCodeRegion(DexMapItem* item, PHeaderData hd);
 
@@ -78,7 +78,7 @@ void parseDexHeader(PHeaderData hd, PGlobalParams gp)
 		s = DEX_readItemIds(file_header.class_defs_off, file_header.class_defs_size, DEX_SIZE_OF_CLASS_DEF_ITEM, "Class Ids", DEX_fillClassDefItem, gp, strings);
 	}
 
-	DEX_readMap(&file_header, gp->block_large, gp->info_level, &gp->abs_file_offset, gp->start_file_offset, hd, gp->file_name, gp->file_size);
+	DEX_readMap(&file_header, gp->block_large, gp->info_level, &gp->abs_file_offset, gp->start_file_offset, hd, gp->fp, gp->file_size);
 
 	if ( strings != NULL )
 	{
@@ -165,8 +165,8 @@ uint8_t DEX_readItemIds(uint64_t offset,
 		return 2;
 
 	// read block at start to ease up offsetting
-//	i = readLargeBlock(file_name, offset+start_file_offset);
-	i = readCustomBlock(gp->file_name, offset+gp->start_file_offset, BLOCKSIZE_LARGE, gp->block_large);
+//	i = readCustomBlock(gp->file_name, offset+gp->start_file_offset, BLOCKSIZE_LARGE, gp->block_large);
+	i = readFile(gp->fp, offset+gp->start_file_offset, BLOCKSIZE_LARGE, gp->block_large);
 	if ( i == 0 )
 	{
 		header_error("ERROR: reading block failed.\n");
@@ -182,7 +182,7 @@ uint8_t DEX_readItemIds(uint64_t offset,
 	{
 		if ( !checkFileSpace(offset, gp->abs_file_offset, item_size, gp->file_size) )
 			return 2;
-		if ( !checkLargeBlockSpace(&offset, &gp->abs_file_offset, item_size, gp->block_large, gp->file_name) )
+		if ( !checkLargeBlockSpace(&offset, &gp->abs_file_offset, item_size, gp->block_large, gp->fp) )
 			return 3;
 
 		filler(offset, i, size, gp, strings);
@@ -209,8 +209,8 @@ void DEX_fillStringIdItem(uint32_t offset,
 
 	item.offset = *((uint32_t*) &ptr[DexStringIdItemOffsets.offset]);
 
-//	r_size = readBlock(file_name, item.offset+start_file_offset);
-	r_size = readCustomBlock(gp->file_name, item.offset+gp->start_file_offset, BLOCKSIZE, gp->block_standard);
+//	r_size = readCustomBlock(gp->file_name, item.offset+gp->start_file_offset, BLOCKSIZE, gp->block_standard);
+	r_size = readFile(gp->fp, item.offset+gp->start_file_offset, BLOCKSIZE, gp->block_standard);
 	if ( r_size == 0 )
 	{
 		header_error("ERROR: Reading block failed!\n");
@@ -327,7 +327,7 @@ uint8_t DEX_readMap(DEXFileHeader *fh,
 					uint64_t* abs_file_offset,
 					uint64_t start_file_offset,
 					PHeaderData hd,
-					const char* file_name,
+					FILE* fp,
 					size_t file_size)
 {
 	unsigned char* ptr;
@@ -340,8 +340,8 @@ uint8_t DEX_readMap(DEXFileHeader *fh,
 		return 1;
 
 	*abs_file_offset = offset+start_file_offset;
-//	i = readLargeBlock(file_name, abs_file_offset);
-	i = readCustomBlock(file_name, *abs_file_offset, BLOCKSIZE_LARGE, block_l);
+//	i = readCustomBlock(file_name, *abs_file_offset, BLOCKSIZE_LARGE, block_l);
+	i = readFile(fp, *abs_file_offset, BLOCKSIZE_LARGE, block_l);
 	if ( i == 0 )
 	{
 		header_error("ERROR: reading block failed.\n");
@@ -361,7 +361,7 @@ uint8_t DEX_readMap(DEXFileHeader *fh,
 	{
 		if ( !checkFileSpace(offset, *abs_file_offset, item_size, file_size) )
 			return 3;
-		if ( !checkLargeBlockSpace(&offset, abs_file_offset, item_size, block_l, file_name) )
+		if ( !checkLargeBlockSpace(&offset, abs_file_offset, item_size, block_l, fp) )
 			return 4;
 
 		DEX_readMapItem(offset, i+1, l.size, block_l, info_level, *abs_file_offset, hd);

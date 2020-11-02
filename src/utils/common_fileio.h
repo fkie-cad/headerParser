@@ -14,10 +14,10 @@
 // Contains : lowlevel fileio support.
 
 static size_t getSize(const char* finame);
-//static size_t readBlock(const char* finame, size_t begin);
-//static size_t readLargeBlock(const char* finame, size_t begin);
+static size_t getSizeFP(FILE* fi);
 static size_t readCharArrayFile(const char* finame, unsigned char ** pData, size_t begin, size_t stopAt);
 static size_t readFile(FILE* fi, size_t begin, size_t size, unsigned char* data);
+static size_t readFileA(FILE* fi, size_t begin, size_t size, unsigned char** data);
 static size_t readCustomBlock(const char* finame, size_t offset, size_t size, unsigned char* data);
 static uint8_t dirExists(const char* path);
 
@@ -45,6 +45,25 @@ size_t getSize(const char* finame)
     fclose(fi);
 
     // prog_error("Filesize: 0x%x (dez. %d)\n",Filesize,Filesize);
+
+    return Filesize;
+}
+
+size_t getSizeFP(FILE* fi)
+{
+    size_t pos=0,Filesize=0;
+//    int errsv;
+//    errno = 0;
+	if (!fi)
+	{
+		printf("ERROR (0x%x): Passed file pointer is NULL.\n", 1);
+		return 0;
+	}
+
+    pos = ftell(fi);
+    fseek(fi,0,SEEK_END);
+    Filesize = ftell(fi);
+    fseek(fi,pos,SEEK_SET);
 
     return Filesize;
 }
@@ -153,12 +172,43 @@ size_t readFile(FILE* fi, size_t begin, size_t size, unsigned char* data)
 {
 	size_t n = 0;
 
-	if ( begin )
+//	if ( begin )
 	{
 		fseek(fi, begin, SEEK_SET);
 	}
 
 	n = fread(data, 1, size, fi);
+
+	return n;
+}
+
+/**
+ * Read from fi at begin size bytes into data**
+ * (Caller is responsible for allocation)
+ *
+ * @param fi FILE* opened FILE*
+ * @param begin size_t offset into file
+ * @param size size_t size to read
+ * @param data unsigned char**
+ * @return size_t number of read bytes
+ */
+size_t readFileA(FILE* fi, size_t begin, size_t size, unsigned char** data)
+{
+	size_t n = 0;
+
+    *data = (unsigned char *) malloc(size);
+    if (!(*data))
+    {
+//		prog_error("Malloc failed.\n");
+        return 0;
+    }
+
+//	if ( begin )
+	{
+		fseek(fi, begin, SEEK_SET);
+	}
+
+	n = fread(*data, 1, size, fi);
 
 	return n;
 }

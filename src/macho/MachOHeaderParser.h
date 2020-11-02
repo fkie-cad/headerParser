@@ -32,7 +32,7 @@ void MachO_readCommands(uint32_t ncmds,
 						size_t file_size,
 						uint8_t info_level,
 						PHeaderData hd,
-						const char* file_name,
+						FILE* fp,
 						unsigned char* block_l);
 void MachO_fillLoadCommand(LoadCommand* lc,
 						   uint64_t offset,
@@ -45,7 +45,7 @@ uint64_t MachO_fillSegmentCommand(uint64_t sc_offset,
 								  size_t file_size,
 								  uint8_t info_level,
 								  PHeaderData hd,
-								  const char* file_name,
+								  FILE* fp,
 								  unsigned char* block_l);
 uint64_t MachO_readSections(SegmentCommand64* c,
 							uint64_t offset,
@@ -53,7 +53,7 @@ uint64_t MachO_readSections(SegmentCommand64* c,
 							size_t file_size,
 							uint8_t info_level,
 							PHeaderData hd,
-							const char* file_name,
+							FILE* fp,
 							unsigned char* block_l);
 void MachO_readSection(MachOSection64* sec,
 					   uint64_t offset,
@@ -167,7 +167,7 @@ void parseMachOHeader(PHeaderData hd, PGlobalParams gp)
 	hd->Machine = arch->arch.name;
 	hd->CPU_arch = arch->arch_id;
 
-	MachO_readCommands(mach_header.ncmds, &gp->abs_file_offset, gp->file_size, gp->info_level, hd, gp->file_name, gp->block_large);
+	MachO_readCommands(mach_header.ncmds, &gp->abs_file_offset, gp->file_size, gp->info_level, hd, gp->fp, gp->block_large);
 }
 
 void MachO_fillHeaderDataWithMagic(PHeaderData hd,
@@ -239,7 +239,7 @@ void MachO_readCommands(uint32_t ncmds,
 						size_t file_size,
 						uint8_t info_level,
 						PHeaderData hd,
-						const char* file_name,
+						FILE* fp,
 						unsigned char* block_l)
 {
 	uint32_t i;
@@ -272,7 +272,7 @@ void MachO_readCommands(uint32_t ncmds,
 		if ( !checkFileSpace(sc_offset, *abs_file_offset, SIZE_OF_MACHO_O_LOAD_COMMAND, file_size) )
 			return;
 
-		if ( !checkLargeBlockSpace(&sc_offset, abs_file_offset, SIZE_OF_MACHO_O_LOAD_COMMAND, block_l, file_name) )
+		if ( !checkLargeBlockSpace(&sc_offset, abs_file_offset, SIZE_OF_MACHO_O_LOAD_COMMAND, block_l, fp) )
 			return;
 
 		MachO_fillLoadCommand(&lc, sc_offset, hd, block_l);
@@ -285,7 +285,7 @@ void MachO_readCommands(uint32_t ncmds,
 		if ( !checkFileSpace(sc_offset, *abs_file_offset, lc.cmdsize, file_size) )
 			return;
 
-		if ( !checkLargeBlockSpace(&sc_offset, abs_file_offset, lc.cmdsize, block_l, file_name) )
+		if ( !checkLargeBlockSpace(&sc_offset, abs_file_offset, lc.cmdsize, block_l, fp) )
 			return;
 
 		if ( lc.cmd == LC_SEGMENT || lc.cmd == LC_SEGMENT_64 )
@@ -294,7 +294,7 @@ void MachO_readCommands(uint32_t ncmds,
 			SegmentCommand64 c;
 			c.cmd = lc.cmd;
 			c.cmdsize = lc.cmdsize;
-			sc_offset = MachO_fillSegmentCommand(sc_offset, &c, seg_offsets, abs_file_offset, file_size, info_level, hd, file_name, block_l);
+			sc_offset = MachO_fillSegmentCommand(sc_offset, &c, seg_offsets, abs_file_offset, file_size, info_level, hd, fp, block_l);
 		}
 		else if ( lc.cmd == LC_UUID )
 		{
@@ -515,7 +515,7 @@ uint64_t MachO_fillSegmentCommand(uint64_t sc_offset,
 								  size_t file_size,
 								  uint8_t info_level,
 								  PHeaderData hd,
-								  const char* file_name,
+								  FILE* fp,
 								  unsigned char* block_l)
 {
 	unsigned char *ptr;
@@ -567,7 +567,7 @@ uint64_t MachO_fillSegmentCommand(uint64_t sc_offset,
 	if ( info_level >= INFO_LEVEL_FULL )
 		MachO_printSegmentCommand(sc, *abs_file_offset+sc_offset, hd->bitness);
 
-	sc_offset = MachO_readSections(sc, sec_offset, abs_file_offset, file_size, info_level, hd, file_name, block_l);
+	sc_offset = MachO_readSections(sc, sec_offset, abs_file_offset, file_size, info_level, hd, fp, block_l);
 
 	return sc_offset;
 //	return sc_offset + sc->cmdsize;
@@ -579,7 +579,7 @@ uint64_t MachO_readSections(SegmentCommand64* c,
 							size_t file_size,
 							uint8_t info_level,
 							PHeaderData hd,
-							const char* file_name,
+							FILE* fp,
 							unsigned char* block_l)
 {
 	uint32_t i;
@@ -604,7 +604,7 @@ uint64_t MachO_readSections(SegmentCommand64* c,
 		if ( !checkFileSpace(offset, *abs_file_offset, sect_size, file_size) )
 			return UINT32_MAX;
 
-		if ( !checkLargeBlockSpace(&offset, abs_file_offset, sect_size, block_l, file_name) )
+		if ( !checkLargeBlockSpace(&offset, abs_file_offset, sect_size, block_l, fp) )
 			return UINT32_MAX;
 
 		MachO_readSection(&sec, offset, offsets, hd->bitness, hd->endian, block_l);

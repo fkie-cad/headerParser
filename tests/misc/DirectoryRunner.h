@@ -25,6 +25,8 @@ class DirectoryRunner
 		std::atomic_uint_fast64_t file_count = 0;
 		std::deque<std::string> result;
 
+		bool recursive = false;
+
 		std::string bin_path;
 		std::string runner_name = "DirectoryRunner";
 
@@ -32,7 +34,7 @@ class DirectoryRunner
 		std::vector<std::string> src_files;
 
 		bool threaded = false;
-		uint32_t thread_pool_size = 16;
+		uint32_t thread_pool_size = 0;
 		Utils::ThreadPool<int> thread_pool;
 		std::mutex io_lock;
 		std::mutex stdio_lock;

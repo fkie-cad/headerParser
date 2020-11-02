@@ -40,9 +40,13 @@ HeaderData* getBasicHeaderParserInfo(const char* file, uint64_t start, uint8_t f
 int getBasicInfoA(const char* file, uint64_t start, uint8_t force, HeaderData* hd)
 {
 	uint32_t n = 0;
+	int s = 0;
 	GlobalParams gp;
-	memset(&gp, 0, sizeof(GlobalParams));
+	int errsv = 0;
 	PEParams pep;
+    char file_name[PATH_MAX];
+
+	memset(&gp, 0, sizeof(GlobalParams));
 	memset(&pep, 0, sizeof(PEParams));
 
 	gp.info_level = INFO_LEVEL_BASIC;
@@ -50,32 +54,59 @@ int getBasicInfoA(const char* file, uint64_t start, uint8_t force, HeaderData* h
     gp.start_file_offset = start;
     gp.file_size = 0;
 
-	memset(gp.block_large, 0, BLOCKSIZE_LARGE);
-	memset(gp.block_standard, 0, BLOCKSIZE);
-	memset(gp.file_name, 0, PATH_MAX);
+//	memset(gp.block_large, 0, BLOCKSIZE_LARGE);
+//	memset(gp.block_standard, 0, BLOCKSIZE);
+	memset(file_name, 0, PATH_MAX);
 
-	initHeaderData(hd, DEFAULT_CODE_REGION_CAPACITY);
-	expandFilePath(file, gp.file_name);
+	s = initHeaderData(hd, DEFAULT_CODE_REGION_CAPACITY);
+	if ( s!=0 )
+    {
+        return -5;
+    }
+	expandFilePath(file, file_name);
 
 	debug_info("abs_file_offset: %lu\n", gp.abs_file_offset);
 	debug_info("start_file_offset: %lu\n", gp.start_file_offset);
-	debug_info("file_name: %s\n", gp.file_name);
+	debug_info("file_name: %s\n", file_name);
 
-    gp.file_size = getSize(gp.file_name);
+	errno = 0;
+	gp.fp = fopen(file_name, "rb");
+	errsv = errno;
+	if ( gp.fp == NULL)
+    {
+//        printf("ERROR (0x%x): Could not open file: \"%s\"\n", errsv, gp.file_name);
+        return -1;
+    }
+
+    gp.file_size = getSizeFP(gp.fp);
 	if ( gp.file_size == 0 )
-		return -1;
+    {
+        s = -2;
+        goto exit;
+    }
 
 	if ( sanitizeArgs(gp.abs_file_offset, gp.file_size) != 0 )
-		return 0;
+    {
+	    // return no error, so not NULL initialized data is returned
+        s = 0;
+        goto exit;
+    }
 
-//	n = readLargeBlock(file_name, abs_file_offset);
-	n = readCustomBlock(gp.file_name, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
+//	n = readCustomBlock(gp.file_name, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
+	n = readFile(gp.fp, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
 	if ( !n )
-		return -3;
+    {
+        s = -3;
+        goto exit;
+    }
 
 	parseHeader(force, hd, &gp, &pep);
 
-	return 0;
+    exit:
+    if ( gp.fp != NULL )
+        fclose(gp.fp);
+
+	return s;
 }
 
 PEHeaderData* getPEHeaderData(const char* file, uint64_t start)
@@ -118,9 +149,12 @@ int getPEHeaderDataA(const char* file, uint64_t start, PEHeaderData* pehd)
 	HeaderData* hd = NULL;
 	uint32_t n = 0;
 	int s = 0;
+	int errsv = 0;
     GlobalParams gp;
-    memset(&gp, 0, sizeof(GlobalParams));
     PEParams pep;
+    char file_name[PATH_MAX];
+
+    memset(&gp, 0, sizeof(GlobalParams));
     memset(&pep, 0, sizeof(PEParams));
 
 	gp.info_level = INFO_LEVEL_FULL;
@@ -128,9 +162,9 @@ int getPEHeaderDataA(const char* file, uint64_t start, PEHeaderData* pehd)
     gp.start_file_offset = start;
     gp.file_size = 0;
 
-	memset(gp.block_large, 0, BLOCKSIZE_LARGE);
-	memset(gp.block_standard, 0, BLOCKSIZE);
-	memset(gp.file_name, 0, PATH_MAX);
+//	memset(gp.block_large, 0, BLOCKSIZE_LARGE);
+//	memset(gp.block_standard, 0, BLOCKSIZE);
+	memset(file_name, 0, PATH_MAX);
 
 	// is used in parsing
 	hd = (HeaderData*) malloc(sizeof(HeaderData));
@@ -140,37 +174,63 @@ int getPEHeaderDataA(const char* file, uint64_t start, PEHeaderData* pehd)
 	pehd->hd = hd;
 
 //	initExtendedPEHeaderData(HD, DEFAULT_CODE_REGION_CAPACITY);
-	expandFilePath(file, gp.file_name);
+	expandFilePath(file, file_name);
 
 	debug_info("abs_file_offset: %lu\n", gp.abs_file_offset);
 	debug_info("start_file_offset: %lu\n", gp.start_file_offset);
-	debug_info("file_name: %s\n", gp.file_name);
+	debug_info("file_name: %s\n", file_name);
 
-    gp.file_size = getSize(gp.file_name);
-	if ( gp.file_size == 0 )
-		return -2;
+    errno = 0;
+    gp.fp = fopen(file_name, "rb");
+    errsv = errno;
+    if ( gp.fp == NULL)
+    {
+//        printf("ERROR (0x%x): Could not open file: \"%s\"\n", errsv, gp.file_name);
+        return -2;
+    }
+
+    gp.file_size = getSizeFP(gp.fp);
+    if ( gp.file_size == 0 )
+    {
+        s = -3;
+        goto exit;
+    }
 
 	if ( sanitizeArgs(gp.abs_file_offset, gp.file_size) != 0 )
-		return 0;
+    {
+        s = -4;
+        goto exit;
+    }
 
-	n = readCustomBlock(gp.file_name, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
-//	n = readLargeBlock(file_name, abs_file_offset);
+//	n = readCustomBlock(gp.file_name, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
+	n = readFile(gp.fp, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
 	if ( !n )
-		return -3;
+    {
+        s = -5;
+        goto exit;
+    }
 
 	if ( gp.abs_file_offset + MIN_FILE_SIZE > gp.file_size )
 	{
-		header_error("ERROR: file (%zu) is too small for a start offset of %lu!\n", gp.file_size, gp.abs_file_offset);
-		return -4;
+		header_error("ERROR: filesize (%zu) is too small for a start offset of %lu!\n", gp.file_size, gp.abs_file_offset);
+		s = -6;
+        goto exit;
 	}
 
 	s = parsePEHeader(FORCE_PE, pehd, hd, &gp, &pep);
 
 	// if error or not pe sig found
 	if ( s < 0 || ( s > 0 && s < 4 ) )
-		return -5;
+    {
+        s = -7;
+        goto exit;
+    }
 
-	return 0;
+    exit:
+    if ( gp.fp != NULL )
+        fclose(gp.fp);
+
+	return s;
 }
 
 void freePEHeaderData(PEHeaderData* pehd)
@@ -192,7 +252,7 @@ int sanitizeArgs(uint64_t abs_file_offset, size_t file_size)
 {
 	if ( abs_file_offset + MIN_FILE_SIZE > file_size )
 	{
-//		header_error("ERROR: file (%u) is too small for a start offset of %lu!\n",
+//		header_error("ERROR: filesize (%u) is too small for a start offset of %lu!\n",
 //			   file_size, abs_file_offset);
 		return 1;
 	}

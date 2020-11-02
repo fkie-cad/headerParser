@@ -52,7 +52,7 @@ uint8_t PE_hasCertificate(PE64OptHeader* oh);
 int PE_getNumberOfCertificates(PE64OptHeader* oh,
 							   uint64_t start_file_offset,
 							   size_t file_size,
-							   const char* file_name,
+                               FILE* fp,
 							   unsigned char* block_s);
 
 /**
@@ -63,13 +63,13 @@ int PE_getNumberOfCertificates(PE64OptHeader* oh,
  * @param oh PE64OptHeader* an PE64OptHeader received from getPEHeaderData()
  * @return int success status
  */
-int PE_fillCertificateTable(PeAttributeCertificateTable* table,
-							uint8_t table_size,
-							PE64OptHeader* oh,
+int PE_fillCertificateTable(PE64OptHeader* oh,
 							uint64_t start_file_offset,
 							size_t file_size,
-							const char* file_name,
-							unsigned char* block_s);
+                            FILE* fp,
+							unsigned char* block_s,
+                            PeAttributeCertificateTable* table,
+                            uint8_t table_size);
 
 /**
  * Write all found certificates to file in DER format.
@@ -89,7 +89,7 @@ int PE_writeCertificatesToFile(PeAttributeCertificateTable* table,
 							   uint8_t table_size,
 							   const char* dir,
 							   size_t file_size,
-							   const char* file_name,
+                               FILE* fp,
 							   unsigned char* block_s);
 
 /**
@@ -110,7 +110,7 @@ int PE_writeCertificateToFile(PeAttributeCertificateTable* table,
 							  uint8_t id,
 							  const char* file,
 							  size_t file_size,
-							  const char* file_name,
+							  FILE* src,
 							  unsigned char* block_s);
 
 /**
@@ -126,7 +126,7 @@ void PE_parseImageImportTable(PE64OptHeader* optional_header,
                               uint64_t start_file_offset,
                               uint64_t* abs_file_offset,
                               size_t file_size,
-                              const char* file_name,
+                              FILE* fp,
                               unsigned char* block_l,
                               unsigned char* block_s);
 #ifdef __cplusplus

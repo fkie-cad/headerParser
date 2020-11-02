@@ -295,7 +295,7 @@ TEST_F(HeaderParserTest, testMainWithPE)
 
 TEST_F(HeaderParserTest, testMainWithFile)
 {
-	const vector<string> argv = { "" };
+	const vector<string> argv = { "/home/henning/bin/windows/siedler2/SAVE/MISSION.DAT" };
 	vector<string> expected = { "", "HeaderData:",
 							 "coderegions:", " (1) .text: ( 0x0000000000000400 - 0x0000000000004642 )",
 							 "headertype: PE",

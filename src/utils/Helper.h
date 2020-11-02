@@ -10,7 +10,7 @@
 
 void expandFilePath(const char* src, char* dest);
 uint8_t blockIsTooSmall(uint64_t);
-uint8_t checkBytes(const unsigned char* bytes, const uint8_t size, const unsigned char* block);
+int checkBytes(const unsigned char* bytes, const uint8_t size, const unsigned char* block);
 uint8_t countHexWidth64(uint64_t value);
 uint8_t hasFlag64(uint64_t present, uint64_t expected);
 uint8_t hasFlag32(uint32_t present, uint32_t expected);
@@ -71,7 +71,7 @@ uint8_t blockIsTooSmall(const uint64_t header_end)
  * @param block the block to search in 
  * @return 
  */
-uint8_t checkBytes(const unsigned char* bytes, const uint8_t size, const unsigned char* block)
+int checkBytes(const unsigned char* bytes, const uint8_t size, const unsigned char* block)
 {
 	uint64_t i;
 

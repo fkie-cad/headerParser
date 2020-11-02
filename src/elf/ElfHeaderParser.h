@@ -34,7 +34,7 @@ static void Elf_readProgramHeaderTable(Elf64FileHeader* file_header,
 									   size_t file_size,
 									   uint8_t info_level,
 									   uint8_t bitness,
-									   const char* file_name,
+									   FILE* fp,
 									   unsigned char* block_l);
 
 static unsigned char Elf_programHeaderOffsetsAreValid(const Elf64FileHeader* file_header,
@@ -47,7 +47,7 @@ static void Elf_readProgramHeaderTableEntries(const Elf64FileHeader* file_header
 											  size_t file_size,
 											  uint8_t info_level,
 											  uint8_t bitness,
-											  const char* file_name,
+											  FILE* fp,
 											  unsigned char* block_l);
 
 static ElfProgramHeaderOffsets Elf_getProgramHeaderOffsets(const Elf64FileHeader* file_header);
@@ -67,7 +67,7 @@ static void Elf_readSectionHeaderTable(const Elf64FileHeader* file_header,
 									   uint64_t* abs_file_offset,
 									   size_t file_size,
 									   uint8_t info_level,
-									   const char* file_name,
+									   FILE* fp,
 									   unsigned char* block_l,
 									   unsigned char* block_s,
 									   PHeaderData hd);
@@ -78,7 +78,7 @@ static uint32_t Elf_loadSectionHeaderTable(unsigned char** section,
 										   uint64_t start_file_offset,
 										   size_t file_size,
 										   unsigned char* block_s,
-										   const char* file_name);
+										   FILE* fp);
 
 static unsigned char Elf_sectionHeaderOffsetsAreValid(const Elf64FileHeader* file_header,
 												  uint64_t start_file_offset,
@@ -109,7 +109,7 @@ static void Elf_readSectionHeaderEntries(const Elf64FileHeader* fh,
 										 uint64_t* abs_file_offset,
 										 size_t file_size,
 										 uint8_t info_level,
-										 const char* file_name,
+										 FILE* fp,
 										 unsigned char* block_l,
 										 PHeaderData hd);
 
@@ -152,10 +152,10 @@ void parseELFHeader(PHeaderData hd, PGlobalParams gp)
 
 	if ( gp->info_level >= INFO_LEVEL_FULL )
 		Elf_readProgramHeaderTable(&file_header, &gp->abs_file_offset, gp->start_file_offset, gp->file_size, gp->info_level,
-                             bitness, gp->file_name, gp->block_large);
+                             bitness, gp->fp, gp->block_large);
 
 	Elf_readSectionHeaderTable(&file_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->info_level,
-                            gp->file_name, gp->block_large, gp->block_standard, hd);
+                            gp->fp, gp->block_large, gp->block_standard, hd);
 }
 
 uint8_t Elf_readFileHeader(Elf64FileHeader* file_header, unsigned char* block_l, uint64_t start_file_offset, size_t file_size)
@@ -241,7 +241,7 @@ void Elf_readProgramHeaderTable(Elf64FileHeader* file_header,
 								size_t file_size,
 								uint8_t info_level,
 								uint8_t bitness,
-								const char* file_name,
+								FILE* fp,
 								unsigned char* block_l)
 {
 	debug_info("Elf_readProgramHeaderTable.\n");
@@ -249,7 +249,7 @@ void Elf_readProgramHeaderTable(Elf64FileHeader* file_header,
 	if ( !Elf_programHeaderOffsetsAreValid(file_header, start_file_offset, file_size))
 		return;
 
-	Elf_readProgramHeaderTableEntries(file_header, abs_file_offset, start_file_offset, file_size, info_level, bitness, file_name, block_l);
+	Elf_readProgramHeaderTableEntries(file_header, abs_file_offset, start_file_offset, file_size, info_level, bitness, fp, block_l);
 }
 
 unsigned char Elf_programHeaderOffsetsAreValid(const Elf64FileHeader* file_header,
@@ -297,7 +297,7 @@ void Elf_readProgramHeaderTableEntries(const Elf64FileHeader* file_header,
 									   size_t file_size,
 									   uint8_t info_level,
 									   uint8_t bitness,
-									   const char* file_name,
+									   FILE* fp,
 									   unsigned char* block_l)
 {
 	unsigned char* ptr = NULL;
@@ -318,7 +318,7 @@ void Elf_readProgramHeaderTableEntries(const Elf64FileHeader* file_header,
 		if ( !checkFileSpace(offset, *abs_file_offset, file_header->e_phentsize, file_size) )
 			return;
 
-		if ( !checkLargeBlockSpace(&offset, abs_file_offset, file_header->e_phentsize, block_l, file_name) )
+		if ( !checkLargeBlockSpace(&offset, abs_file_offset, file_header->e_phentsize, block_l, fp) )
 			break;
 
 		ptr = &block_l[offset];
@@ -443,7 +443,7 @@ void Elf_readSectionHeaderTable(const Elf64FileHeader* file_header,
 								uint64_t* abs_file_offset,
 								size_t file_size,
 								uint8_t info_level,
-								const char* file_name,
+								FILE* fp,
 								unsigned char* block_l,
 								unsigned char* block_s,
 								PHeaderData hd)
@@ -456,7 +456,7 @@ void Elf_readSectionHeaderTable(const Elf64FileHeader* file_header,
 		return;
 
 	// read string table
-	string_table_size = Elf_loadSectionHeaderTable(&string_table, file_header->e_shstrndx, file_header, start_file_offset, file_size, block_s, file_name);
+	string_table_size = Elf_loadSectionHeaderTable(&string_table, file_header->e_shstrndx, file_header, start_file_offset, file_size, block_s, fp);
 	if ( !string_table_size )
 	{
 		header_error("ERROR: Loading String Table failed.\n");
@@ -464,7 +464,7 @@ void Elf_readSectionHeaderTable(const Elf64FileHeader* file_header,
 	}
 	string_table[string_table_size-1] = 0;
 
-	Elf_readSectionHeaderEntries(file_header, string_table, string_table_size, start_file_offset, abs_file_offset, file_size, info_level, file_name, block_l, hd);
+	Elf_readSectionHeaderEntries(file_header, string_table, string_table_size, start_file_offset, abs_file_offset, file_size, info_level, fp, block_l, hd);
 
 	free(string_table);
 }
@@ -515,7 +515,7 @@ void Elf_readSectionHeaderEntries(const Elf64FileHeader* fh,
 								  uint64_t* abs_file_offset,
 								  size_t file_size,
 								  uint8_t info_level,
-								  const char* file_name,
+								  FILE* fp,
 								  unsigned char* block_l,
 								  PHeaderData hd)
 {
@@ -531,8 +531,8 @@ void Elf_readSectionHeaderEntries(const Elf64FileHeader* fh,
 
 	// read new large block to ease up offsetting
 	table_start = start_file_offset + fh->e_shoff;
-//	size = readLargeBlock(file_name, table_start);
-	size = readCustomBlock(file_name, table_start, BLOCKSIZE_LARGE, block_l);
+//	size = readLargeBlock(fp, table_start);
+	size = readFile(fp, table_start, BLOCKSIZE_LARGE, block_l);
 	if ( size == 0 )
 		return;
 
@@ -551,7 +551,7 @@ void Elf_readSectionHeaderEntries(const Elf64FileHeader* fh,
 		if ( !checkFileSpace(offset, *abs_file_offset, fh->e_shentsize, file_size) )
 			return;
 
-		if ( !checkLargeBlockSpace(&offset, abs_file_offset, fh->e_shentsize, block_l, file_name) )
+		if ( !checkLargeBlockSpace(&offset, abs_file_offset, fh->e_shentsize, block_l, fp) )
 			break;
 
 		ptr = &block_l[offset];
@@ -601,7 +601,7 @@ uint32_t Elf_loadSectionHeaderTable(unsigned char** section,
 									uint64_t start_file_offset,
 									size_t file_size,
 									unsigned char* block_s,
-									const char* file_name)
+									FILE* fp)
 {
 	unsigned char* ptr;
 	uint32_t size = 0;
@@ -620,7 +620,7 @@ uint32_t Elf_loadSectionHeaderTable(unsigned char** section,
 		return 0;
 
 //	size = readBlock(file_name, e_offset+start_file_offset);
-	size = readCustomBlock(file_name, e_offset+start_file_offset, BLOCKSIZE, block_s);
+	size = readFile(fp, e_offset+start_file_offset, BLOCKSIZE, block_s);
 	if ( size == 0 )
 		return 0;
 
@@ -637,7 +637,8 @@ uint32_t Elf_loadSectionHeaderTable(unsigned char** section,
 	sh_offset += start_file_offset;
 	sh_end += start_file_offset;
 
-	size = readCharArrayFile(file_name, section, sh_offset, sh_end);
+//	size = readCharArrayFile(fp, section, sh_offset, sh_end);
+    size = readFileA(fp, sh_offset, sh_end, section);
 
 	return size;
 }
@@ -826,6 +827,7 @@ CodeRegionData Elf_fillCodeRegion(const Elf64SectionHeader* sh, const char* s_na
 //
 //	unsigned char* section = NULL;
 //	uint32_t size = readCharArrayFile(file_name, &section, sh->sh_offset, section_end_offset);
+//	uint32_t size = readFileA(file_name, sh->sh_offset, section_end_offset, &section);
 //	if ( size )
 //	{
 //		char section_file_name[PATH_MAX+1] = {0};

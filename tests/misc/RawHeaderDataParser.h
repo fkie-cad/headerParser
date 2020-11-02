@@ -21,11 +21,11 @@ class RawHeaderDataParser
 			uint8_t endian = 0;
 			std::string cpu_arch;
 			std::string machine;
-			std::regex e("( \\()(\\d){1,3}(\\))");
+			std::regex e("( \\()(\\d){1,10}(\\))");
 			std::smatch m;
 			int code_regions_started = 0;
 			size_t output_ln = output.size();
-			uint16_t code_region_i = 0;
+			size_t code_region_i = 0;
 			std::vector <std::tuple<char*, uint64_t, uint64_t>> regions;
 			size_t i;
 
@@ -40,7 +40,9 @@ class RawHeaderDataParser
 					continue;
 				}
 
-				if ( code_regions_started == 1 && regex_search(l, m, e))
+				string code_r_id_str = "("+to_string(code_region_i+1)+")";
+//				if ( code_regions_started == 1 && regex_search(l, m, e))
+				if ( code_regions_started == 1 && l.find(code_r_id_str) == 1)
 				{
 					if ( l.find('(') == 1 )
 					{
@@ -49,9 +51,9 @@ class RawHeaderDataParser
 							l += "\n" + output[i + 1];
 							i++;
 						}
-						uint16_t first_cpt = l.find(')');
-						uint16_t last_opt = l.rfind('(');
-						uint16_t n_s = l.rfind(':') - (first_cpt + 2);
+						size_t first_cpt = l.find(')');
+                        size_t last_opt = l.rfind('(');
+                        size_t n_s = l.rfind(':') - (first_cpt + 2);
 						std::string name = l.substr(first_cpt + 2, n_s);
 						std::vector<std::string> values;
 						Utils::StringUtil::split(l.substr(last_opt), ' ', values);
@@ -72,6 +74,7 @@ class RawHeaderDataParser
 
 						code_region_i++;
 					}
+                    continue;
 				}
 				if ( !l.compare(0, 10, "headertype") )
 				{

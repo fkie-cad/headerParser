@@ -7,10 +7,33 @@
 #include "../utils/Helper.h"
 #include "ZipHeader.h"
 
-static void ZIP_printFileEntry(const ZipFileRecord* fr, const unsigned char* ptr, uint32_t idx, uint64_t offset, uint64_t dd_offset, size_t file_size, const char* file_name, unsigned char* block_s);
-static void ZIP_printDirEntry(const ZipDirEntry* r, const unsigned char* ptr, uint32_t idx, uint64_t offset, size_t file_size, const char* file_name, unsigned char* block_s);
-static void ZIP_printEndLocator(const ZipEndLocator* r, const unsigned char* ptr, uint64_t offset, size_t file_size, const char* file_name, unsigned char* block_s);
+static void ZIP_printFileEntry(const ZipFileRecord* fr,
+                               const unsigned char* ptr,
+                               uint32_t idx,
+                               uint64_t offset,
+                               uint64_t dd_offset,
+                               size_t file_size,
+                               FILE* fp,
+                               unsigned char* block_s);
+
+static void ZIP_printDirEntry(const ZipDirEntry* r,
+                              const unsigned char* ptr,
+                              uint32_t idx,
+                              uint64_t offset,
+                              size_t file_size,
+                              FILE* fp,
+                              unsigned char* block_s);
+
+static void ZIP_printEndLocator(const ZipEndLocator* r,
+                                const unsigned char* ptr,
+                                uint64_t offset,
+                                size_t file_size,
+                                FILE* fp,
+                                unsigned char* block_s);
+
 static const char* ZIP_getCompressionString(uint16_t type);
+
+
 
 void ZIP_printFileEntry(const ZipFileRecord* fr,
                         const unsigned char* ptr,
@@ -18,7 +41,7 @@ void ZIP_printFileEntry(const ZipFileRecord* fr,
                         uint64_t offset,
                         uint64_t dd_offset,
                         size_t file_size,
-                        const char* file_name,
+                        FILE* fp,
                         unsigned char* block_s)
 {
 	uint16_t i;
@@ -64,7 +87,7 @@ void ZIP_printFileEntry(const ZipFileRecord* fr,
 	{
 		if ( !checkFileSpace(offset, 0, size_of_entry + fr->fileNameLength, file_size) )
 			return;
-		r_size = readStandardBlockIfLargeBlockIsExceeded(offset, 0, size_of_entry + fr->fileNameLength, block_s, file_name);
+		r_size = readStandardBlockIfLargeBlockIsExceeded(offset, 0, size_of_entry + fr->fileNameLength, block_s, fp);
 		if ( r_size == 0 )
 			return;
 		else if ( r_size == 2 )
@@ -109,7 +132,7 @@ void ZIP_printDirEntry(const ZipDirEntry* r,
                        uint32_t idx,
                        uint64_t offset,
                        size_t file_size,
-                       const char* file_name,
+                       FILE* fp,
                        unsigned char* block_s)
 {
 	uint16_t i;
@@ -159,7 +182,7 @@ void ZIP_printDirEntry(const ZipDirEntry* r,
 	{
 		if ( !checkFileSpace(offset, 0, size_of_entry + r->fileNameLength, file_size) )
 			return;
-		r_size = readStandardBlockIfLargeBlockIsExceeded(offset, 0, size_of_entry+r->fileNameLength, block_s, file_name);
+		r_size = readStandardBlockIfLargeBlockIsExceeded(offset, 0, size_of_entry+r->fileNameLength, block_s, fp);
 		if ( r_size == 0 )
 			return;
 		else if ( r_size == 2 )
@@ -177,7 +200,7 @@ void ZIP_printDirEntry(const ZipDirEntry* r,
 		if ( !checkFileSpace(offset, 0, size_of_entry + r->fileCommentLength, file_size) )
 			return;
 
-		r_size = readStandardBlockIfLargeBlockIsExceeded(offset, 0, size_of_entry+r->fileCommentLength, block_s, file_name);
+		r_size = readStandardBlockIfLargeBlockIsExceeded(offset, 0, size_of_entry+r->fileCommentLength, block_s, fp);
 		if ( r_size == 0 )
 			return;
 		else if ( r_size == 2 )
@@ -195,7 +218,7 @@ void ZIP_printEndLocator(const ZipEndLocator* r,
                          const unsigned char* ptr,
                          uint64_t offset,
                          size_t file_size,
-                         const char* file_name,
+                         FILE* fp,
                          unsigned char* block_s)
 {
 	uint16_t i;
@@ -217,7 +240,7 @@ void ZIP_printEndLocator(const ZipEndLocator* r,
 	{
 		if ( !checkFileSpace(offset, 0, size_of_entry + r->commentLength, file_size) )
 			return;
-		r_size = readStandardBlockIfLargeBlockIsExceeded(offset, 0, size_of_entry+r->commentLength, block_s, file_name);
+		r_size = readStandardBlockIfLargeBlockIsExceeded(offset, 0, size_of_entry+r->commentLength, block_s, fp);
 		if ( r_size == 0 )
 			return;
 		else if ( r_size == 2 )

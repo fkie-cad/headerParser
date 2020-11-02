@@ -37,25 +37,7 @@ class HeaderParserLibPETest : public testing::Test
 			return string(dir);
 		}
 
-		PEHeaderData* getInitializedPEHeaderData()
-		{
-			PEHeaderData* pehd = NULL;
-
-			pehd = (PEHeaderData*) calloc(1, sizeof(PEHeaderData));
-			if ( pehd == NULL )
-				return NULL;
-
-			pehd->image_dos_header = (PEImageDosHeader*) calloc(1, sizeof(PEImageDosHeader));
-			pehd->coff_header = (PECoffFileHeader*) calloc(1, sizeof(PECoffFileHeader));
-			pehd->opt_header = (PE64OptHeader*) calloc(1, sizeof(PE64OptHeader));
-			if ( pehd->image_dos_header == NULL || pehd->coff_header == NULL || pehd->opt_header == NULL )
-			{
-				freePEHeaderData(pehd);
-				return NULL;
-			}
-
-			return pehd;
-		}
+		PEHeaderData* getInitializedPEHeaderData();
 
 	public:
 		static void SetUpTestCase()
@@ -111,6 +93,7 @@ TEST_F(HeaderParserLibPETest, test_hasCertificate)
 	size_t start = 0;
 
 	PEHeaderData* d = getPEHeaderData(src, start);
+    ASSERT_TRUE(d!=NULL);
 	bool r = PE_hasCertificate(d->opt_header);
 
 	EXPECT_EQ(r, 0);
@@ -120,6 +103,7 @@ TEST_F(HeaderParserLibPETest, test_hasCertificate)
 	src = pe_file_with_cert;
 
 	d = getPEHeaderData(src, start);
+	ASSERT_TRUE(d!=NULL);
 	r = PE_hasCertificate(d->opt_header);
 
 	EXPECT_EQ(r, 1);
@@ -132,26 +116,34 @@ TEST_F(HeaderParserLibPETest, test_getNumberOfCertificates)
 	const char* src = pe_file;
 	size_t start = 0;
 	uint64_t start_file_offset = 0;
-	size_t file_size = getSize(src);
+    FILE* fp = fopen(src, "rb");
+    size_t file_size = getSizeFP(fp);
 
 	PEHeaderData* d = getPEHeaderData(src, start);
 	memset(block_s, 0, BLOCKSIZE);
-	uint8_t r = PE_getNumberOfCertificates(d->opt_header, start_file_offset, file_size, src, block_s);
+	uint8_t r = PE_getNumberOfCertificates(d->opt_header, start_file_offset, file_size, fp, block_s);
 
 	EXPECT_EQ(r, 0);
 
 	freePEHeaderData(d);
+    fclose(fp);
 
 
 
 	src = pe_file_with_cert;
 
+    fp = fopen(src, "rb");
+    file_size = getSizeFP(fp);
+    ASSERT_NE(file_size, 0);
+
 	d = getPEHeaderData(src, start);
+    ASSERT_TRUE(d!=NULL);
     memset(block_s, 0, BLOCKSIZE);
-	r = PE_getNumberOfCertificates(d->opt_header, start_file_offset, file_size, src, block_s);
+	r = PE_getNumberOfCertificates(d->opt_header, start_file_offset, file_size, fp, block_s);
 
 	EXPECT_EQ(r, 1);
 
+    fclose(fp);
 	freePEHeaderData(d);
 }
 
@@ -160,21 +152,25 @@ TEST_F(HeaderParserLibPETest, test_fillOfCertificateTable)
 	const char* src = pe_file_with_cert;
 	size_t start = 0;
     uint64_t start_file_offset = 0;
-    size_t file_size = getSize(src);
+    FILE* fp = fopen(src, "rb");
+    size_t file_size = getSizeFP(fp);
+    ASSERT_NE(file_size, 0);
 
 	PEHeaderData* d = getPEHeaderData(src, start);
+    ASSERT_TRUE(d!=NULL);
     memset(block_s, 0, BLOCKSIZE);
-	uint8_t n = PE_getNumberOfCertificates(d->opt_header, start_file_offset, file_size, src, block_s);
+	uint8_t n = PE_getNumberOfCertificates(d->opt_header, start_file_offset, file_size, fp, block_s);
 
 	vector<PeAttributeCertificateTable> table;
 	table.resize(n);
 
     memset(block_s, 0, BLOCKSIZE);
-	PE_fillCertificateTable(table.data(), n, d->opt_header, start_file_offset, file_size, src, block_s);
+	PE_fillCertificateTable(d->opt_header, start_file_offset, file_size, fp, block_s, table.data(), n);
 
 	EXPECT_EQ(n, 1);
 	EXPECT_EQ(table[0].wCertificateType, WIN_CERT_TYPE_PKCS_SIGNED_DATA);
 
+	fclose(fp);
 	freePEHeaderData(d);
 }
 
@@ -185,20 +181,22 @@ TEST_F(HeaderParserLibPETest, test_writeCertificatesToFile)
 	size_t start = 0;
 	int s = 0;
 	size_t cert_size;
-	size_t file_size = getSize(src);
+    FILE* fp = fopen(src, "rb");
+    size_t file_size = getSizeFP(fp);
+    ASSERT_NE(file_size, 0);
 	uint64_t start_file_offset = 0;
 
 	PEHeaderData* d = getPEHeaderData(src, start);
+    ASSERT_TRUE(d!=NULL);
     memset(block_s, 0, BLOCKSIZE);
-	uint8_t n = PE_getNumberOfCertificates(d->opt_header, start_file_offset, file_size, src, block_s);
+	uint8_t n = PE_getNumberOfCertificates(d->opt_header, start_file_offset, file_size, fp, block_s);
 
-	vector<PeAttributeCertificateTable> table;
-	table.resize(n);
+	PeAttributeCertificateTable* table = new PeAttributeCertificateTable[n];
 
     memset(block_s, 0, BLOCKSIZE);
-	PE_fillCertificateTable(table.data(), n, d->opt_header, start_file_offset, file_size, src, block_s);
+	PE_fillCertificateTable(d->opt_header, start_file_offset, file_size, fp, block_s, table, n);
     memset(block_s, 0, BLOCKSIZE);
-	s = PE_writeCertificatesToFile(table.data(), n, dir.c_str(), file_size, src, block_s);
+	s = PE_writeCertificatesToFile(table, n, dir.c_str(), file_size, fp, block_s);
 
 	string cert_name = dir+"/cert-0.der";
 	cert_size = getSize(cert_name.c_str());
@@ -208,15 +206,39 @@ TEST_F(HeaderParserLibPETest, test_writeCertificatesToFile)
 	EXPECT_EQ(s, 0);
 	EXPECT_NE(cert_size, 0);
 
+    fclose(fp);
 	freePEHeaderData(d);
 	rmdir(dir.c_str());
+	delete[] table;
 }
 
-TEST_F(HeaderParserLibPETest, test_PEcleanUp)
+TEST_F(HeaderParserLibPETest, test_freePEHeaderData)
 {
+    // function is copid from headerParserLib.c to this header
 	PEHeaderData* d = getInitializedPEHeaderData();
 
-	PE_cleanUp(d);
+	freePEHeaderData(d);
+}
+
+PEHeaderData*
+HeaderParserLibPETest::getInitializedPEHeaderData()
+{
+    PEHeaderData* pehd = NULL;
+
+    pehd = (PEHeaderData*) calloc(1, sizeof(PEHeaderData));
+    if ( pehd == NULL )
+        return NULL;
+
+    pehd->image_dos_header = (PEImageDosHeader*) calloc(1, sizeof(PEImageDosHeader));
+    pehd->coff_header = (PECoffFileHeader*) calloc(1, sizeof(PECoffFileHeader));
+    pehd->opt_header = (PE64OptHeader*) calloc(1, sizeof(PE64OptHeader));
+    if ( pehd->image_dos_header == NULL || pehd->coff_header == NULL || pehd->opt_header == NULL )
+    {
+        freePEHeaderData(pehd);
+        return NULL;
+    }
+
+    return pehd;
 }
 
 #endif

@@ -12,34 +12,43 @@ uint8_t PE_hasCertificate(PE64OptHeader* oh);
 int PE_getNumberOfCertificates(PE64OptHeader* oh,
 							   uint64_t start_file_offset,
 							   size_t file_size,
-							   const char* file_name,
+							   FILE* fp,
 							   unsigned char* block_s);
 
-int PE_fillCertificateTable(PeAttributeCertificateTable* table,
-							uint8_t table_size,
-							PE64OptHeader* oh,
+int PE_fillCertificateTable(PE64OptHeader* oh,
 							uint64_t start_file_offset,
 							size_t file_size,
-							const char* file_name,
-							unsigned char* block_s);
+							FILE* fp,
+							unsigned char* block_s,
+							PeAttributeCertificateTable* table,
+                            uint8_t max_size);
+
+int PE_iterateCertificates(PE64OptHeader* oh,
+                           uint64_t start_file_offset,
+                           size_t file_size,
+                           FILE* fp,
+                           unsigned char* block_s,
+                           PeAttributeCertificateTable* table,
+                           uint8_t max_size);
+
 int PE_writeCertificatesToFile(PeAttributeCertificateTable* table,
 							   uint8_t table_size,
 							   const char* dir,
 							   size_t file_size,
-							   const char* file_name,
+							   FILE* fp,
 							   unsigned char* block_s);
 int PE_writeCertificateToFile(PeAttributeCertificateTable* table, 
 							 uint8_t id, 
 							 const char* file,
 							 size_t file_size,
-							 const char* file_name,
+							 FILE* src,
 							 unsigned char* block_s);
 int PE_fillAttributeCertificateTableEntry(PeAttributeCertificateTable *entry, 
 										 uint32_t t_address, 
 										 uint32_t t_size,
 										 uint64_t start_file_offset,
 										 size_t file_size,
-										 const char* file_name,
+										 FILE* fp,
 										 unsigned char* block_s);
 
 /**
@@ -68,50 +77,100 @@ uint8_t PE_hasCertificate(PE64OptHeader* oh)
 int PE_getNumberOfCertificates(PE64OptHeader* oh,
 							   uint64_t start_file_offset,
 							   size_t file_size,
-							   const char* file_name,
+							   FILE* fp,
 							   unsigned char* block_s)
 {
-	uint32_t address;
-	uint32_t size;
-	uint64_t end;
-	uint8_t nr = 0;
-	PeAttributeCertificateTable entry;
-
-    if ( IMAGE_DIRECTORY_ENTRY_CERTIFICATE >= oh->NumberOfRvaAndSizes )
-        return 0;
-
-    address = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_CERTIFICATE].VirtualAddress;
-    size = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_CERTIFICATE].Size;
-
-	if ( address == 0 || size < sizeof(PeAttributeCertificateTable) )
-		return 0;
-
-	end = address + size;
-
-	while ( address < end )
-	{
-		PE_fillAttributeCertificateTableEntry(&entry, address, size, start_file_offset, file_size, file_name, block_s);
-		// add qword-aligned dwLength to get next entry
-		address += entry.dwLength + ((8u - (entry.dwLength & 7u)) & 7u);
-		nr++;
-	}
-
-	return nr;
+    return PE_iterateCertificates(oh, start_file_offset, file_size, fp, block_s, NULL, 0);
+//	uint32_t address;
+//	uint32_t size;
+//	uint64_t end;
+//	uint8_t nr = 0;
+//	PeAttributeCertificateTable entry;
+//
+//    if ( IMAGE_DIRECTORY_ENTRY_CERTIFICATE >= oh->NumberOfRvaAndSizes )
+//        return 0;
+//
+//    address = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_CERTIFICATE].VirtualAddress;
+//    size = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_CERTIFICATE].Size;
+//
+//	if ( address == 0 || size < sizeof(PeAttributeCertificateTable) )
+//		return 0;
+//
+//	end = address + size;
+//
+//	while ( address < end )
+//	{
+//		PE_fillAttributeCertificateTableEntry(&entry, address, size, start_file_offset, file_size, fp, block_s);
+//		// add qword-aligned dwLength to get next entry
+//		address += entry.dwLength + ((8u - (entry.dwLength & 7u)) & 7u);
+//		nr++;
+//	}
+//
+//	return nr;
 }
 
-int PE_fillCertificateTable(PeAttributeCertificateTable* table,
-							uint8_t max_size,
-							PE64OptHeader* oh,
+int PE_fillCertificateTable(PE64OptHeader* oh,
 							uint64_t start_file_offset,
 							size_t file_size,
-							const char* file_name,
-							unsigned char* block_s)
+							FILE* fp,
+							unsigned char* block_s,
+                            PeAttributeCertificateTable* table,
+                            uint8_t max_size)
+{
+    return PE_iterateCertificates(oh, start_file_offset, file_size, fp, block_s, table, max_size);
+//	uint32_t address;
+//	uint32_t size;
+//	uint64_t end;
+//	PeAttributeCertificateTable entry;
+//	uint8_t i = 0;
+//	int s;
+//
+//    if ( IMAGE_DIRECTORY_ENTRY_CERTIFICATE >= oh->NumberOfRvaAndSizes )
+//        return 0;
+//
+//    address = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_CERTIFICATE].VirtualAddress;
+//    size = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_CERTIFICATE].Size;
+//
+//	if ( address == 0 || size <= sizeof(PeAttributeCertificateTable) )
+//		return 0;
+//
+//	end = (uint64_t)address + size;
+//
+//	while ( address < end && i < max_size )
+//	{
+//		s = PE_fillAttributeCertificateTableEntry(&entry, address, size, start_file_offset, file_size, fp, block_s);
+//        if ( s != 0 )
+//            break;
+//        if ( entry.dwLength == 0 )
+//            break;
+//
+//		// add qword-aligned dwLength to get next entry
+//		address += entry.dwLength + ((8u - (entry.dwLength & 7u)) & 7u);
+//
+//		table[i] = entry;
+//
+//		i++;
+//	}
+//
+//	return i;
+}
+
+int PE_iterateCertificates(PE64OptHeader* oh,
+                           uint64_t start_file_offset,
+                           size_t file_size,
+                           FILE* fp,
+                           unsigned char* block_s,
+                           PeAttributeCertificateTable* table,
+                           uint8_t max_size)
 {
 	uint32_t address;
 	uint32_t size;
 	uint64_t end;
 	PeAttributeCertificateTable entry;
 	uint8_t i = 0;
+	int s;
+	if ( max_size == 0 )
+	    max_size = UINT8_MAX;
 
     if ( IMAGE_DIRECTORY_ENTRY_CERTIFICATE >= oh->NumberOfRvaAndSizes )
         return 0;
@@ -126,11 +185,17 @@ int PE_fillCertificateTable(PeAttributeCertificateTable* table,
 
 	while ( address < end && i < max_size )
 	{
-		PE_fillAttributeCertificateTableEntry(&entry, address, size, start_file_offset, file_size, file_name, block_s);
+		s = PE_fillAttributeCertificateTableEntry(&entry, address, size, start_file_offset, file_size, fp, block_s);
+        if ( s != 0 )
+            break;
+        if ( entry.dwLength == 0 )
+            break;
+
 		// add qword-aligned dwLength to get next entry
 		address += entry.dwLength + ((8u - (entry.dwLength & 7u)) & 7u);
 
-		table[i] = entry;
+		if ( table != NULL )
+		    table[i] = entry;
 
 		i++;
 	}
@@ -156,7 +221,7 @@ int PE_writeCertificatesToFile(PeAttributeCertificateTable* table,
 							   uint8_t table_size,
 							   const char* dir,
 							   size_t file_size,
-							   const char* file_name,
+							   FILE* fp,
 							   unsigned char* block_s)
 {
 	uint8_t i;
@@ -173,7 +238,7 @@ int PE_writeCertificatesToFile(PeAttributeCertificateTable* table,
         cert_file[PATH_MAX-1] = 0;
 
 		header_info(" - - file (%u/%u): %s", (i+1), table_size, cert_file);
-		s = PE_writeCertificateToFile(table, i, cert_file, file_size, file_name, block_s);
+		s = PE_writeCertificateToFile(table, i, cert_file, file_size, fp, block_s);
 		if ( s == 0 )
 		{
 			header_info(" (saved)\n");
@@ -205,7 +270,7 @@ int PE_writeCertificateToFile(PeAttributeCertificateTable* table,
 							 uint8_t id, 
 							 const char* file,
 							 size_t file_size,
-							 const char* file_name,
+							 FILE* src,
 							 unsigned char* block_s)
 {
 	uint64_t offset;
@@ -214,7 +279,6 @@ int PE_writeCertificateToFile(PeAttributeCertificateTable* table,
 	size_t read_size = BLOCKSIZE;
 	PeAttributeCertificateTable* entry = &table[id];
 
-	FILE* src = NULL;
 	FILE* dest = NULL;
 
 	offset = (uintptr_t) entry->bCertificate;
@@ -227,12 +291,12 @@ int PE_writeCertificateToFile(PeAttributeCertificateTable* table,
 	if ( !dest )
 		return -4;
 
-	src = fopen(file_name, "rb");
-	if ( !src )
-	{
-		fclose(dest);
-		return -5;
-	}
+//	src = fopen(file_name, "rb");
+//	if ( !src )
+//	{
+//		fclose(dest);
+//		return -5;
+//	}
 
 	fseek(src, offset, SEEK_SET);
 	while ( n == BLOCKSIZE )
@@ -247,7 +311,7 @@ int PE_writeCertificateToFile(PeAttributeCertificateTable* table,
 		offset += n;
 	}
 
-	fclose(src);
+//	fclose(src);
 	fclose(dest);
 
     return 0;
@@ -266,7 +330,7 @@ int PE_fillAttributeCertificateTableEntry(PeAttributeCertificateTable *entry,
 										 uint32_t t_size,
 										 uint64_t start_file_offset,
 										 size_t file_size,
-										 const char* file_name,
+										 FILE* fp,
 										 unsigned char* block_s)
 {
 	size_t size;
@@ -275,8 +339,8 @@ int PE_fillAttributeCertificateTableEntry(PeAttributeCertificateTable *entry,
 	if ( !checkFileSpace(0, t_address, sizeof(PeAttributeCertificateTable), file_size) )
 		return -1;
 
-//	size = readBlock(file_name, start_file_offset + t_address);
-	size = readCustomBlock(file_name, start_file_offset + t_address, BLOCKSIZE, block_s);
+//	size = readCustomBlock(file_name, start_file_offset + t_address, BLOCKSIZE, block_s);
+	size = readFile(fp, start_file_offset + t_address, BLOCKSIZE, block_s);
 	if ( size == 0 )
 		return -2;
 

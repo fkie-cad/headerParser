@@ -13,8 +13,9 @@ namespace fs = filesystem;
 
 DirectoryRunner::DirectoryRunner(const std::string& bin_name)
 {
-	std::filesystem::path root = std::filesystem::path(__FILE__).parent_path().parent_path().parent_path();
-	bin_path = root.string() + "/build/" + bin_name;
+    bin_path = Utils::FileUtil::getDirOfBinary() + "/" + bin_name;
+//	std::filesystem::path root = std::filesystem::path(__FILE__).parent_path().parent_path().parent_path();
+//	bin_path = root.string() + "/build/" + bin_name;
 }
 
 DirectoryRunner::~DirectoryRunner()
@@ -77,7 +78,7 @@ void DirectoryRunner::runList(const vector<string>& files)
 void DirectoryRunner::runDirectory(const string& dir)
 {
 	cout << "counting files in \"" << dir << "\" ...\n";
-	nr_of_files = FileUtil::countFiles(dir, {}, true, true);
+	nr_of_files = FileUtil::countFiles(dir, {}, true, recursive);
 	cout << "number of files : " << nr_of_files << "\n\n\n";
 
 	set<string> types = {};
@@ -88,7 +89,7 @@ void DirectoryRunner::runDirectory(const string& dir)
 	};
 
 	FileUtil::actOnFilesInDir(dir, bind(&DirectoryRunner::fillFileCallback, this, _1, _2),
-							  isWhiteListed, true);
+							  isWhiteListed, recursive);
 
 	cout << endl;
 	printf("result (%lu/%lu):\n", result.size(), nr_of_files);
@@ -100,7 +101,7 @@ void DirectoryRunner::runDirectory(const string& dir)
 void DirectoryRunner::runDirectoryT(const string& dir)
 {
 	cout << "counting files in \"" << dir << "\" ...\n";
-	nr_of_files = FileUtil::countFiles(dir, {}, true, true);
+	nr_of_files = FileUtil::countFiles(dir, {}, true, recursive);
 	cout << "number of files : " << nr_of_files << "\n\n\n";
 
 	set<string> types = {};
@@ -111,11 +112,11 @@ void DirectoryRunner::runDirectoryT(const string& dir)
 	};
 
 	thread_pool.setPoolSize(thread_pool_size);
-	thread_pool.setLaunchPolicy(launch::async);
+	thread_pool.setLaunchPolicy(launch::async|launch::deferred);
 
 
 	FileUtil::actOnFilesInDir(dir, bind(&DirectoryRunner::fillFileCallbackT, this, _1, _2),
-							  isWhiteListed, true);
+							  isWhiteListed, recursive);
 
 	thread_pool.getResults();
 
@@ -133,7 +134,7 @@ void DirectoryRunner::fillFileCallbackT(const string& file, void* params)
 
 void DirectoryRunner::printUsage()
 {
-	printf("Usage: %s [-t x] -d|-f a/dir/path|file0 file1 ...\n", runner_name.c_str());
+	printf("Usage: %s [-r] [-t x] -d|-f a/dir/path|file0 file1 ...\n", runner_name.c_str());
 }
 
 void DirectoryRunner::printHelp()
@@ -144,6 +145,7 @@ void DirectoryRunner::printHelp()
 	printf(" -d:string : One or more source directories\n");
 	printf(" -f:string : One or more source files\n");
 	printf(" -t:uint16 : Number of threads\n");
+	printf(" -r:int : recursive directory iteration: 0: no, 1: yes\n");
 	printf("\n");
 	printf("Examples:\n");
 	printf("$ %s -d a/dir/path\n", runner_name.c_str());
@@ -173,16 +175,18 @@ int DirectoryRunner::parseArgs(int argc, char** argv)
 		arg = argv[i];
 		if ( arg[0] == '-' )
 		{
-			if ( arg[1]=='t')
+			if ( arg[1]=='t' && arg[2] == 0)
 			{
-				threaded = true;
 				thread_pool_size = strtol(argv[i+1], nullptr, 0);
+				threaded = thread_pool_size > 1;
 				i++;
 			}
-			else if ( arg[1]=='d')
+			else if ( arg[1]=='d' && arg[2] == 0)
 				type = 1;
-			else if ( arg[1]=='f')
+			else if ( arg[1]=='f' && arg[2] == 0)
 				type = 2;
+			else if ( arg[1]=='r' && arg[2] == 0)
+				recursive = true;
 		}
 		else
 			break;
@@ -194,8 +198,9 @@ int DirectoryRunner::parseArgs(int argc, char** argv)
 		return 0;
 	}
 
-	printf("Threads: %d\n", threaded);
+	printf("Threads: %s\n", (threaded)?"yes":"no");
 	printf("thread_pool_size: %u\n", thread_pool_size);
+	printf("recursive: %s\n", (recursive)?"yes":"no");
 
 	if ( type == 1 )
 		src_dir = argv[start_pi];

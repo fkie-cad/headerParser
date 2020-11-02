@@ -70,7 +70,7 @@ typedef struct GlobalParams
 	// static after init
 //	struct file
 //    {
-    char file_name[PATH_MAX];
+//    char file_name[PATH_MAX];
     FILE* fp;
     size_t file_size;
     uint64_t start_file_offset;

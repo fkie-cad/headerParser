@@ -44,11 +44,13 @@ class HeaderParserDirectoryRunner : public DirectoryRunner
 	private:
 		int fillFileCallback(const string& file, void* params) override
 		{
-			printActFileInfo();
+//			printActFileInfo();
+            printFileInfo(file);
 
 //			if ( hasNeedleInOutput(file, "ELF", 1) )
 //				result.emplace_back(file);
 
+            // just check for leaks
 			PEHeaderData* pe_hd = getPEHeaderData(&file[0], 0);
 			freePEHeaderData(pe_hd);
 
@@ -194,3 +196,19 @@ int main(int argc, char** argv)
 
 	dr.run();
 }
+///home/henning/bin/malpedia/master/win.sobig/1930b268349ac0cfbf7254620a1ddab999d94853d53db4ad59e53fc90fcca39f_dump_0x00400000
+
+///home/henning/bin/malpedia/master/osx.xslcmd/1db30d5b2bb24bcc4b68d647c6a2e96d984a13a28cc5f17596b3bfe316cca342_unpacked
+///home/henning/bin/malpedia/master/osx.careto/0710be16ba8a36712c3cac21776c8846e29897300271f09ba0a41983e370e1a0
+///home/henning/bin/malpedia/master/osx.dockster/8da09fec9262d8bbeb07c4e403d1da88c04393c8fc5db408e1a3a3d86dddc552
+///home/henning/bin/malpedia/master/ios.wirelurker/b64ae37ff71523bda362ba61b43107d3b3b22702b1c1d2613548176aa7ba994c_unpacked
+///home/henning/bin/malpedia/master/ios.wirelurker/8faa03fb71638494edd93b02e327b0f48da7e1c6c8a0c724ea9c68e259d31480_unpacked
+///home/henning/bin/malpedia/master/ios.wirelurker/b64ae37ff71523bda362ba61b43107d3b3b22702b1c1d2613548176aa7ba994c
+///home/henning/bin/malpedia/master/osx.flashback/228be46149dd6efe9c57c881cc057d5dc1cfb759f9e9be8445f1d9d2d68875b3
+///home/henning/bin/malpedia/master/osx.flashback/a4ebcf695a908e6930759f87cd8da3ea3c19a230fd6e4fa095165d502b0879d3
+///home/henning/bin/malpedia/master/osx.imuler/3dd907d95584ea7b0d71244abd1092f08876b4d9f16d48f1d8f1738ddadbd7f3
+///home/henning/bin/malpedia/master/osx.imuler/27989189a16e2eeca12588c78df8932d5e22416d9b0acb89b58e5ab070c30ffc
+///home/henning/bin/malpedia/master/osx.oceanlotus/vt-2015-09-28/3d974c08c6e376f40118c3c2fa0af87fdb9a6147c877ef0e16adad12ad0ee43a_dropper
+///home/henning/bin/malpedia/master/osx.oceanlotus/vt-2015-06-22/987680637f31c3fc75c5d2796af84c852f546d654def35901675784fffc07e5d_unpacked
+///home/henning/bin/malpedia/master/osx.oceanlotus/vt-2015-09-28/3d974c08c6e376f40118c3c2fa0af87fdb9a6147c877ef0e16adad12ad0ee43a
+///home/henning/bin/malpedia/master/osx.oceanlotus/vt-2015-06-22/987680637f31c3fc75c5d2796af84c852f546d654def35901675784fffc07e5d_dropper

@@ -48,7 +48,7 @@ static uint8_t PE_checkPESignature(uint32_t e_lfanew,
 								   uint64_t file_offset,
 								   uint64_t* abs_file_offset,
 								   size_t file_size,
-								   const char* file_name,
+								   FILE* fp,
 								   unsigned char* block_s,
 								   unsigned char* block_l);
 static uint8_t PE_readCoffHeader(uint64_t offset,
@@ -56,7 +56,7 @@ static uint8_t PE_readCoffHeader(uint64_t offset,
 								 uint64_t start_file_offset,
 								 uint64_t* abs_file_offset,
 								 size_t file_size,
-								 const char* file_name,
+								 FILE* fp,
 								 unsigned char* block_l);
 static void PE_fillHeaderDataWithCoffHeader(PECoffFileHeader* ch,
 											PHeaderData hd);
@@ -67,7 +67,7 @@ static uint8_t PE_readOptionalHeader(uint64_t offset,
 									 uint64_t start_file_offset,
 									 uint64_t* abs_file_offset,
 									 size_t file_size,
-									 const char* file_name,
+									 FILE* fp,
 									 unsigned char* block_l);
 static void PE_fillHeaderDataWithOptHeader(PE64OptHeader* oh,
 										   PHeaderData hd);
@@ -77,7 +77,7 @@ static void PE_readSectionHeader(uint64_t header_start,
 								 uint64_t* abs_file_offset,
 								 size_t file_size,
 								 uint8_t info_level,
-								 const char* file_name,
+								 FILE* fp,
 								 unsigned char* block_s,
 								 unsigned char* block_l,
 								 PStringTable st,
@@ -85,7 +85,8 @@ static void PE_readSectionHeader(uint64_t header_start,
 								 SVAS** svas,
 								 PHeaderData hd);
 static void PE_fillSectionHeader(const unsigned char* ptr, PEImageSectionHeader* sh);
-static unsigned char PE_checkSectionHeader(const PEImageSectionHeader* sh,
+static int PE_isNullSectionHeader(const PEImageSectionHeader* sh);
+static int PE_checkSectionHeader(const PEImageSectionHeader* sh,
 										   uint16_t idx,
 										   const char* name,
 										   uint64_t start_file_offset,
@@ -96,21 +97,21 @@ static CodeRegionData PE_fillCodeRegion(const PEImageSectionHeader* sh,
 										PECoffFileHeader* ch,
 										uint64_t start_file_offset,
 										size_t file_size,
-										const char* file_name,
+										FILE* fp,
 										unsigned char* block_s,
 										PStringTable st);
 static uint32_t PE_calculateSectionSize(const PEImageSectionHeader* sh);
 static uint8_t PE_hasHeaderAtOffset(uint64_t offset,
 									uint64_t* abs_file_offset,
 									size_t file_size,
-									const char* file_name,
+									FILE* fp,
 									unsigned char* block_s,
 									unsigned char* block_l);
 static void PE_parseCertificates(PE64OptHeader* opt_header,
 								 uint64_t start_file_offset,
 								 size_t file_size,
 								 const char* certificate_directory,
-								 const char* file_name,
+								 FILE* fp,
 								 unsigned char* block_s);
 static void PE_cleanUp(PEHeaderData* pehd);
 
@@ -235,7 +236,7 @@ int parsePEHeader(uint8_t force,
 	}
 
 	pe_header_type = PE_checkPESignature(image_dos_header->e_lfanew, gp->start_file_offset, &gp->abs_file_offset, gp->file_size,
-                                      gp->file_name, gp->block_standard, gp->block_large);
+                                      gp->fp, gp->block_standard, gp->block_large);
 	if ( pe_header_type != 1 && !force )
 	{
 		debug_info("No valid PE00 section signature found!\n");
@@ -255,7 +256,7 @@ int parsePEHeader(uint8_t force,
 	hd->endian = ENDIAN_LITTLE;
 
 	s = PE_readCoffHeader((uint64_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE, coff_header, gp->start_file_offset,
-                       &gp->abs_file_offset, gp->file_size, gp->file_name, gp->block_large);
+                       &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large);
 	if ( s != 0 ) return 4;
 
 	if ( LIB_MODE == 0 && gp->info_level >= INFO_LEVEL_FULL )
@@ -266,7 +267,7 @@ int parsePEHeader(uint8_t force,
 
 	optional_header_offset = (uint64_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE + PE_COFF_FILE_HEADER_SIZE;
 	debug_info(" - optional_header_offset: #%lx (%lu)\n", optional_header_offset, optional_header_offset);
-	s = PE_readOptionalHeader(optional_header_offset, opt_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->file_name, gp->block_large);
+	s = PE_readOptionalHeader(optional_header_offset, opt_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large);
 	if ( s != 0 ) return 6;
 
 	if ( LIB_MODE == 0 && gp->info_level >= INFO_LEVEL_FULL )
@@ -281,40 +282,46 @@ int parsePEHeader(uint8_t force,
 	debug_info(" - section_header_offset: #%lx (%lu)\n", section_header_offset, section_header_offset);
 #endif
 	PE_readSectionHeader(section_header_offset, coff_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->info_level,
-                         gp->file_name, gp->block_standard, gp->block_large, &pehd->st, parse_svas, &pehd->svas, hd);
+                         gp->fp, gp->block_standard, gp->block_large, &pehd->st, parse_svas, &pehd->svas, hd);
 
 	if ( pep->info_level_iimp == 1 )
 		PE_parseImageImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->bitness, gp->start_file_offset,
-                                 &gp->abs_file_offset, gp->file_size, gp->file_name, gp->block_large, gp->block_standard);
+                                 &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
 
 	if ( pep->info_level_iexp == 1 )
-		PE_parseImageExportTable(opt_header, coff_header->NumberOfSections, gp->start_file_offset, gp->file_size, gp->file_name, gp->block_standard, pehd->svas);
+		PE_parseImageExportTable(opt_header, coff_header->NumberOfSections, gp->start_file_offset, gp->file_size, gp->fp, gp->block_standard, pehd->svas);
 
 	if ( pep->info_level_ires == 1 )
-		PE_parseImageResourceTable(opt_header, coff_header->NumberOfSections, gp->start_file_offset, gp->file_size, gp->file_name, gp->block_standard, pehd->svas);
+		PE_parseImageResourceTable(opt_header, coff_header->NumberOfSections, gp->start_file_offset, gp->file_size, gp->fp, gp->block_standard, pehd->svas);
 
 	if ( pep->info_level_icrt == 1 )
-		PE_parseCertificates(opt_header, gp->start_file_offset, gp->file_size, pep->certificate_directory, gp->file_name, gp->block_standard);
+		PE_parseCertificates(opt_header, gp->start_file_offset, gp->file_size, pep->certificate_directory, gp->fp, gp->block_standard);
 
 	return 0;
 }
 
 void PE_cleanUp(PEHeaderData* pehd)
 {
+    if ( pehd == NULL )
+        return;
+
 	if ( pehd->st.strings != NULL )
 	{
 		free(pehd->st.strings);
 		pehd->st.strings = NULL;
 	}
 
-	if ( pehd && pehd->opt_header->NumberOfRvaAndSizes > 0 )
+	if ( pehd->opt_header->NumberOfRvaAndSizes > 0 )
 	{
 		free(pehd->opt_header->DataDirectory);
 		pehd->opt_header->DataDirectory = NULL;
 	}
 
-	free(pehd->svas);
-	pehd->svas = NULL;
+    if ( pehd->svas != NULL )
+    {
+        free(pehd->svas);
+        pehd->svas = NULL;
+    }
 }
 
 int PE_readImageDosHeader(PEImageDosHeader* idh,
@@ -378,7 +385,7 @@ uint8_t PE_checkPESignature(const uint32_t e_lfanew,
 							uint64_t file_offset,
 							uint64_t* abs_file_offset,
 							size_t file_size,
-							const char* file_name,
+							FILE* fp,
 							unsigned char* block_s,
 							unsigned char* block_l)
 {
@@ -395,7 +402,8 @@ uint8_t PE_checkPESignature(const uint32_t e_lfanew,
 	if ( e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE > BLOCKSIZE_LARGE )
 	{
 		*abs_file_offset = file_offset + e_lfanew;
-		size = readCustomBlock(file_name, *abs_file_offset, BLOCKSIZE, block_s);
+//		size = readCustomBlock(file_name, *abs_file_offset, BLOCKSIZE, block_s);
+		size = readFile(fp, *abs_file_offset, BLOCKSIZE, block_s);
 		if ( !size )
 		{
 			header_error("Read PE Signature block failed.\n");
@@ -437,7 +445,7 @@ uint8_t PE_readCoffHeader(uint64_t offset,
 						  uint64_t start_file_offset,
 						  uint64_t* abs_file_offset,
 						  size_t file_size,
-						  const char* file_name,
+						  FILE* fp,
 						  unsigned char* block_l)
 {
 	debug_info("readCoffHeader()\n");
@@ -447,7 +455,7 @@ uint8_t PE_readCoffHeader(uint64_t offset,
 		return 1;
 
 	*abs_file_offset = start_file_offset;
-	if ( !checkLargeBlockSpace(&offset, abs_file_offset, sizeof(PECoffFileHeader), block_l, file_name) )
+	if ( !checkLargeBlockSpace(&offset, abs_file_offset, sizeof(PECoffFileHeader), block_l, fp) )
 		return 1;
 
 	ptr = &block_l[offset];
@@ -522,7 +530,7 @@ uint8_t PE_readOptionalHeader(uint64_t offset,
 							  uint64_t start_file_offset,
 							  uint64_t* abs_file_offset,
 							  size_t file_size,
-							  const char* file_name,
+							  FILE* fp,
 							  unsigned char* block_l)
 {
 	PEOptionalHeaderOffsets offsets = PEOptional64HeaderOffsets;
@@ -539,7 +547,8 @@ uint8_t PE_readOptionalHeader(uint64_t offset,
 
 	*abs_file_offset = offset + start_file_offset;
 	// read new large block, to ease up offsetting
-	size = readCustomBlock(file_name, *abs_file_offset, BLOCKSIZE_LARGE, block_l);
+//	size = readCustomBlock(file_name, *abs_file_offset, BLOCKSIZE_LARGE, block_l);
+	size = readFile(fp, *abs_file_offset, BLOCKSIZE_LARGE, block_l);
 	if ( size == 0 )
 		return 2;
 
@@ -636,7 +645,7 @@ uint8_t PE_readOptionalHeader(uint64_t offset,
 		if ( !checkFileSpace(data_entry_offset, *abs_file_offset, size_of_data_entry, file_size) )
 			break;
 
-		if ( !checkLargeBlockSpace(&data_entry_offset, abs_file_offset, size_of_data_entry, block_l, file_name) )
+		if ( !checkLargeBlockSpace(&data_entry_offset, abs_file_offset, size_of_data_entry, block_l, fp) )
 			break;
 
 		ptr = &block_l[0];
@@ -689,7 +698,7 @@ void PE_readSectionHeader(uint64_t header_start,
 						  uint64_t* abs_file_offset,
 						  size_t file_size,
 						  uint8_t info_level,
-						  const char* file_name,
+						  FILE* fp,
 						  unsigned char* block_s,
 						  unsigned char* block_l,
 						  PStringTable st,
@@ -713,7 +722,8 @@ void PE_readSectionHeader(uint64_t header_start,
 		return;
 
 	*abs_file_offset = header_start + start_file_offset;
-	size = readCustomBlock(file_name, *abs_file_offset, BLOCKSIZE_LARGE, block_l);
+//	size = readCustomBlock(file_name, *abs_file_offset, BLOCKSIZE_LARGE, block_l);
+	size = readFile(fp, *abs_file_offset, BLOCKSIZE_LARGE, block_l);
 	if ( size == 0 )
 		return;
 	offset = 0;
@@ -728,7 +738,7 @@ void PE_readSectionHeader(uint64_t header_start,
 		if ( !checkFileSpace(offset, *abs_file_offset, PE_SECTION_HEADER_SIZE, file_size) )
 			return;
 
-		if ( !checkLargeBlockSpace(&offset, abs_file_offset, PE_SECTION_HEADER_SIZE, block_l, file_name) )
+		if ( !checkLargeBlockSpace(&offset, abs_file_offset, PE_SECTION_HEADER_SIZE, block_l, fp) )
 			break;
 
 		ptr = &block_l[offset];
@@ -736,8 +746,12 @@ void PE_readSectionHeader(uint64_t header_start,
 		PE_fillSectionHeader(ptr, &s_header);
 
 		if ( LIB_MODE == 0 && info_level >= INFO_LEVEL_FULL )
-			PE_printImageSectionHeader(&s_header, i, nr_of_sections, ch, *abs_file_offset+offset, start_file_offset, file_size, file_name, block_s, st);
+			PE_printImageSectionHeader(&s_header, i, nr_of_sections, ch, *abs_file_offset+offset, start_file_offset, file_size, fp, block_s, st);
 
+		if ( PE_isNullSectionHeader(&s_header) )
+        {
+		    break;
+        }
 		if ( !PE_checkSectionHeader(&s_header, i, s_header.Name, start_file_offset, file_size) )
 		{
 //			offset += PE_SECTION_HEADER_SIZE;
@@ -745,7 +759,7 @@ void PE_readSectionHeader(uint64_t header_start,
 		}
 		if ( PE_isExecutableSectionHeader(&s_header) )
 		{
-			code_region_data = PE_fillCodeRegion(&s_header, ch, start_file_offset, file_size, file_name, block_s, st);
+			code_region_data = PE_fillCodeRegion(&s_header, ch, start_file_offset, file_size, fp, block_s, st);
 			addCodeRegionDataToHeaderData(&code_region_data, hd);
 		}
 
@@ -778,14 +792,28 @@ void PE_fillSectionHeader(const unsigned char* ptr,
 	sh->Characteristics = *((uint32_t*) &ptr[PESectionHeaderOffsets.Characteristics]);
 }
 
-unsigned char PE_checkSectionHeader(const PEImageSectionHeader* sh,
+int PE_isNullSectionHeader(const PEImageSectionHeader* sh)
+{
+    return sh->Name[0] == 0 &&
+           sh->Misc.VirtualSize == 0 &&
+           sh->VirtualAddress == 0 &&
+           sh->SizeOfRawData == 0 &&
+           sh->PointerToRawData == 0 &&
+           sh->PointerToRelocations == 0 &&
+           sh->PointerToLinenumbers == 0 &&
+           sh->NumberOfRelocations == 0 &&
+           sh->NumberOfLinenumbers == 0 &&
+           sh->Characteristics == 0;
+}
+
+int PE_checkSectionHeader(const PEImageSectionHeader* sh,
 									uint16_t idx,
 									const char* name,
 									uint64_t start_file_offset,
 									size_t file_size)
 {
 	debug_info("PE_checkSectionHeader()\n");
-	unsigned char valid = 1;
+	int valid = 1;
 	char errors[ERRORS_BUFFER_SIZE] = {0};
 	uint16_t offset = 0;
 	uint32_t section_size = PE_calculateSectionSize(sh);
@@ -842,7 +870,7 @@ CodeRegionData PE_fillCodeRegion(const PEImageSectionHeader* sh,
 								 PECoffFileHeader* ch,
 								 uint64_t start_file_offset,
 								 size_t file_size,
-								 const char* file_name,
+								 FILE* fp,
 								 unsigned char* block_s,
 								 PStringTable st)
 {
@@ -860,7 +888,7 @@ CodeRegionData PE_fillCodeRegion(const PEImageSectionHeader* sh,
 //		return (CodeRegionData) {"", 0, 0};
 //	}
 
-	PE_getRealName(sh->Name, &name, ch, start_file_offset, file_size, file_name, block_s, st);
+	PE_getRealName(sh->Name, &name, ch, start_file_offset, file_size, fp, block_s, st);
 
 	code_region_data.start = sh->PointerToRawData;
 	code_region_data.end = end_of_raw_data;
@@ -918,14 +946,15 @@ uint32_t PE_calculateSectionSize(const PEImageSectionHeader* sh)
 uint8_t PE_hasHeaderAtOffset(uint64_t offset,
 							 uint64_t* abs_file_offset,
 							 size_t file_size,
-							 const char* file_name,
+							 FILE* fp,
 							 unsigned char* block_s,
 							 unsigned char* block_l)
 {
 	PEImageDosHeader image_dos_header;
 	int s = 0;
 	uint8_t pe_header_type = 0;
-	uint32_t size = readCustomBlock(file_name, offset, BLOCKSIZE_LARGE, block_l);
+//	uint32_t size = readCustomBlock(file_name, offset, BLOCKSIZE_LARGE, block_l);
+	uint32_t size = readFile(fp, offset, BLOCKSIZE_LARGE, block_l);
 	if ( size == 0 )
 	{
 		header_error("ERROR: PE_hasHeaderAtOffset: Read large block failed.\n");
@@ -941,7 +970,7 @@ uint8_t PE_hasHeaderAtOffset(uint64_t offset,
 	if ( !checkBytes(MAGIC_DOS_STUB_BEGINNING, MAGIC_DOS_STUB_BEGINNING_LN, &block_l[PE_DOS_STUB_OFFSET]) )
 		header_info("INFO: No DOS stub found.\n");
 
-	pe_header_type = PE_checkPESignature(image_dos_header.e_lfanew, 0, abs_file_offset, file_size, file_name, block_s, block_l);
+	pe_header_type = PE_checkPESignature(image_dos_header.e_lfanew, 0, abs_file_offset, file_size, fp, block_s, block_l);
 	if ( pe_header_type != 1 )
 	{
 //		debug_info("No valid PE00 section signature found!\n");
@@ -960,7 +989,7 @@ void PE_parseCertificates(PE64OptHeader* opt_header,
                           uint64_t start_file_offset,
                           size_t file_size,
                           const char* certificate_directory,
-                          const char* file_name,
+                          FILE* fp,
                           unsigned char* block_s)
 {
 	uint8_t table_size;
@@ -969,12 +998,12 @@ void PE_parseCertificates(PE64OptHeader* opt_header,
 	//table_size = PEgetNumberOfCertificates(opt_header);
 //	printf("has certificate: %d\n", PEhasCertificate(opt_header));
 //	printf("number of certificates: %d\n", table_size);
-	table_size = PE_fillCertificateTable(table, MAX_CERT_TABLE_SIZE, opt_header, start_file_offset, file_size, file_name, block_s);
+	table_size = PE_fillCertificateTable(opt_header, start_file_offset, file_size, fp, block_s, table, MAX_CERT_TABLE_SIZE);
 
 	PE_printAttributeCertificateTable(table, table_size, start_file_offset+opt_header->DataDirectory[IMAGE_DIRECTORY_ENTRY_CERTIFICATE].VirtualAddress);
 
 	if ( certificate_directory != NULL )
-		PE_writeCertificatesToFile(table, table_size, certificate_directory, file_size, file_name, block_s);
+		PE_writeCertificatesToFile(table, table_size, certificate_directory, file_size, fp, block_s);
 }
 
 #endif

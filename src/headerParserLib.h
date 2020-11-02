@@ -46,9 +46,9 @@ const char* getHeaderDataArchitecture(uint8_t id);
 /**
  * Free a HeaderData object and its internal structures.
  *
- * @param header_data
+ * @param hd
  */
-void freeHeaderData(HeaderData* header_data);
+void freeHeaderData(HeaderData* hd);
 
 /**
  * Get header type string from type id.

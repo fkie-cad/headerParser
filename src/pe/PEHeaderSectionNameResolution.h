@@ -15,7 +15,7 @@ void PE_getRealName(const char* short_name,
                     PECoffFileHeader* coff_header,
                     uint64_t start_file_offset,
                     size_t file_size,
-                    const char* file_name,
+                    FILE* fp,
                     unsigned char* block_s,
                     PStringTable st);
 int PE_getNameOfStringTable(const char* short_name,
@@ -23,19 +23,19 @@ int PE_getNameOfStringTable(const char* short_name,
                             PECoffFileHeader* coff_header,
                             uint64_t start_file_offset,
                             size_t file_size,
-                            const char* file_name,
+                            FILE* fp,
                             unsigned char* block_s,
                             PStringTable st);
 int PE_loadStringTable(PECoffFileHeader* coff_header,
                        uint64_t start_file_offset,
                        size_t file_size,
-                       const char* file_name,
+                       FILE* fp,
                        unsigned char* block_s,
                        PStringTable st);
 uint32_t PE_getSizeOfStringTable(uint64_t ptr_to_string_table,
                                  uint64_t start_file_offset,
                                  size_t file_size,
-                                 const char* file_name,
+                                 FILE* fp,
                                  unsigned char* block_s);
 
 uint8_t PE_isStringTableOffset(const char* short_name);
@@ -56,7 +56,7 @@ void PE_getRealName(const char* short_name,
                     PECoffFileHeader* coff_header,
                     uint64_t start_file_offset,
                     size_t file_size,
-                    const char* file_name,
+                    FILE* fp,
                     unsigned char* block_s,
                     PStringTable st)
 {
@@ -68,7 +68,7 @@ void PE_getRealName(const char* short_name,
 	debug_info(" - raw name: %s\n",short_name);
 	if ( PE_isStringTableOffset(short_name) )
 	{
-		s = PE_getNameOfStringTable(short_name, real_name, coff_header, start_file_offset, file_size, file_name, block_s, st);
+		s = PE_getNameOfStringTable(short_name, real_name, coff_header, start_file_offset, file_size, fp, block_s, st);
 		if ( s == 0 ) return;
 	}
 
@@ -108,7 +108,7 @@ int PE_getNameOfStringTable(const char* short_name,
                             PECoffFileHeader* coff_header,
                             uint64_t start_file_offset,
                             size_t file_size,
-                            const char* file_name,
+                            FILE* fp,
                             unsigned char* block_s,
                             PStringTable st)
 {
@@ -120,7 +120,7 @@ int PE_getNameOfStringTable(const char* short_name,
 
 	if ( st->strings == NULL )
 	{
-		s = PE_loadStringTable(coff_header, start_file_offset, file_size, file_name, block_s, st);
+		s = PE_loadStringTable(coff_header, start_file_offset, file_size, fp, block_s, st);
 		if ( s != 0  || st->strings == NULL )
 			return 1;
 	}
@@ -150,7 +150,7 @@ int PE_getNameOfStringTable(const char* short_name,
 int PE_loadStringTable(PECoffFileHeader* coff_header,
                        uint64_t start_file_offset,
                        size_t file_size,
-                       const char* file_name,
+                       FILE* fp,
                        unsigned char* block_s,
                        PStringTable st)
 {
@@ -165,7 +165,7 @@ int PE_loadStringTable(PECoffFileHeader* coff_header,
 	if ( coff_header->PointerToSymbolTable == 0 || coff_header->NumberOfSymbols == 0 || ptr_to_string_table == 0 )
 		return 3;
 
-	st->size = PE_getSizeOfStringTable(ptr_to_string_table, start_file_offset, file_size, file_name, block_s);
+	st->size = PE_getSizeOfStringTable(ptr_to_string_table, start_file_offset, file_size, fp, block_s);
 	if ( st->size == 0 )
 		return 4;
 
@@ -178,7 +178,8 @@ int PE_loadStringTable(PECoffFileHeader* coff_header,
 	ptr_to_string_table += start_file_offset;
 	end_of_string_table += start_file_offset;
 
-	size = readCharArrayFile(file_name, &st->strings, ptr_to_string_table, end_of_string_table);
+//	size = readCharArrayFile(fp, &st->strings, ptr_to_string_table, end_of_string_table);
+	size = readFileA(fp, ptr_to_string_table, end_of_string_table, &st->strings);
 	if ( !size )
 	{
 		prog_error("Read String Table failed.\n");
@@ -188,7 +189,7 @@ int PE_loadStringTable(PECoffFileHeader* coff_header,
 	return 0;
 }
 
-uint32_t PE_getSizeOfStringTable(uint64_t ptr_to_string_table, uint64_t start_file_offset, size_t file_size, const char* file_name, unsigned char* block_s)
+uint32_t PE_getSizeOfStringTable(uint64_t ptr_to_string_table, uint64_t start_file_offset, size_t file_size, FILE* fp, unsigned char* block_s)
 {
 	uint32_t size_of_table = 0;
 	uint32_t size;
@@ -200,7 +201,8 @@ uint32_t PE_getSizeOfStringTable(uint64_t ptr_to_string_table, uint64_t start_fi
 		return 0;
 	}
 
-	size = readCustomBlock(file_name, start_file_offset + ptr_to_string_table, BLOCKSIZE, block_s);
+//	size = readCustomBlock(file_name, start_file_offset + ptr_to_string_table, BLOCKSIZE, block_s);
+	size = readFile(fp, start_file_offset + ptr_to_string_table, BLOCKSIZE, block_s);
 
 	if ( !size )
 	{

@@ -22,19 +22,19 @@ static uint8_t checkLargeBlockSpace(uint64_t* rel_offset,
 									uint64_t* abs_offset,
 									uint16_t needed,
 									unsigned char* block_l,
-									const char* file_name);
+                                    FILE* fp);
 
 static uint8_t checkStandardBlockSpace(uint64_t* rel_offset,
 									   uint64_t* abs_offset,
 									   uint16_t needed,
 									   unsigned char* block_s,
-									   const char* file_name);
+                                       FILE* fp);
 
 static uint8_t readStandardBlockIfLargeBlockIsExceeded(uint64_t rel_offset,
 													   uint64_t abs_offset,
 													   uint16_t needed,
 													   unsigned char* block_s,
-													   const char* file_name);
+													   FILE* fp);
 
 
 
@@ -75,14 +75,14 @@ uint8_t checkLargeBlockSpace(uint64_t* rel_offset,
 							 uint64_t* abs_offset,
 							 uint16_t needed,
 							 unsigned char* block_l,
-							 const char* file_name)
+							 FILE* fp)
 {
 	size_t r_size = 0;
 	if ( *rel_offset + needed > BLOCKSIZE_LARGE )
 	{
 		*abs_offset += *rel_offset;
-//		r_size = readLargeBlock(file_name, *abs_offset);
-		r_size = readCustomBlock(file_name, *abs_offset, BLOCKSIZE_LARGE, block_l);
+//		r_size = readCustomBlock(file_name, *abs_offset, BLOCKSIZE_LARGE, block_l);
+		r_size = readFile(fp, *abs_offset, BLOCKSIZE_LARGE, block_l);
 		if ( r_size == 0 )
 		{
 //			prog_error("ERROR: 1 reading block failed.\n");
@@ -113,14 +113,14 @@ uint8_t checkStandardBlockSpace(uint64_t* rel_offset,
 								uint64_t* abs_offset,
 								uint16_t needed,
 								unsigned char* block_s,
-								const char* file_name)
+                                FILE* fp)
 {
 	size_t r_size = 0;
 	if ( *rel_offset + needed > BLOCKSIZE )
 	{
 		*abs_offset += *rel_offset;
-//		r_size = readBlock(file_name, *abs_offset);
-		r_size = readCustomBlock(file_name, *abs_offset, BLOCKSIZE, block_s);
+//		r_size = readCustomBlock(file_name, *abs_offset, BLOCKSIZE, block_s);
+		r_size = readFile(fp, *abs_offset, BLOCKSIZE, block_s);
 		if ( r_size == 0 )
 		{
 //			prog_error("ERROR: 1 reading block failed.\n");
@@ -152,13 +152,13 @@ uint8_t readStandardBlockIfLargeBlockIsExceeded(uint64_t rel_offset,
 												uint64_t abs_offset,
 												uint16_t needed,
 												unsigned char* block_s,
-												const char* file_name)
+                                                FILE* fp)
 {
 	size_t r_size = 0;
 	if ( rel_offset + needed > BLOCKSIZE_LARGE )
 	{
-//		r_size = readBlock(file_name, abs_offset+rel_offset);
-		r_size = readCustomBlock(file_name, abs_offset+rel_offset, BLOCKSIZE, block_s);
+//		r_size = readCustomBlock(file_name, abs_offset+rel_offset, BLOCKSIZE, block_s);
+		r_size = readFile(fp, abs_offset+rel_offset, BLOCKSIZE, block_s);
 		if ( r_size == 0 )
 			return 0;
 		return 2;

@@ -18,7 +18,7 @@
 
 static void printUsage();
 static void printHelp();
-static uint8_t parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_t* force);
+static uint8_t parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_t* force, char* file_name);
 static void sanitizeArgs(PGlobalParams gp);
 static uint8_t isArgOfType(char* arg, char* type);
 static uint8_t hasValue(char* type, int i, int end_i);
@@ -35,15 +35,19 @@ const char* last_changed = "30.10.2020";
 int main(int argc, char** argv)
 {
 	uint32_t n = 0;
+    int errsv = 0;
+    char file_name[PATH_MAX];
 
 	HeaderData* hd = NULL;
 	uint8_t force = FORCE_NONE;
 
 	GlobalParams gp;
-    memset(&gp, 0, sizeof(GlobalParams));
 
 	PEParams pep;
+
+    memset(&gp, 0, sizeof(GlobalParams));
 	memset(&pep, 0, sizeof(PEParams));
+    memset(file_name, 0, PATH_MAX);
 
 	int s = 0;
 
@@ -53,37 +57,47 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-	if ( parseArgs(argc, argv, &gp, &pep, &force) != 0 )
+	if ( parseArgs(argc, argv, &gp, &pep, &force, file_name) != 0 )
 		return 0;
 
-	gp.file_size = getSize(gp.file_name);
-	if ( gp.file_size == 0 )
-	{
-		printf("ERROR: File \"%s\" does not exist.\n", gp.file_name);
-		s = 0;
-		goto clean;
-	}
+    errno = 0;
+    gp.fp = fopen(file_name, "rb");
+    errsv = errno;
+    if ( gp.fp == NULL)
+    {
+        printf("ERROR (0x%x): Could not open file: \"%s\"\n", errsv, file_name);
+        return -1;
+    }
+
+    gp.file_size = getSizeFP(gp.fp);
+    if ( gp.file_size == 0 )
+    {
+        printf("ERROR: File \"%s\" is zero.\n", file_name);
+        s = -2;
+        goto exit;
+    }
+
 	sanitizeArgs(&gp);
 
-	debug_info("file_name: %s\n", gp.file_name);
+	debug_info("file_name: %s\n", file_name);
 	debug_info("abs_file_offset: 0x%lx\n", gp.abs_file_offset);
 	debug_info("start_file_offset: 0x%lx\n", gp.start_file_offset);
 
-//	n = readLargeBlock(gp.file_name, gp.abs_file_offset);
-	n = readCustomBlock(gp.file_name, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
+//	n = readCustomBlock(gp.file_name, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
+	n = readFile(gp.fp, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
 	if ( !n )
 	{
 		printf("Read failed.\n");
 		s = 0;
-		goto clean;
+		goto exit;
 	}
 
 	hd = (HeaderData*) malloc(sizeof(HeaderData));
 	if ( hd == NULL )
 	{
 		printf("Malloc failed.\n");
-		s = 3;
-		goto clean;
+		s = -3;
+		goto exit;
 	}
 
 	initHeaderData(hd, DEFAULT_CODE_REGION_CAPACITY);
@@ -91,9 +105,11 @@ int main(int argc, char** argv)
 	parseHeader(force, hd, &gp, &pep);
 	printHeaderData(gp.info_level, hd, gp.block_large);
 
-	clean:
+	exit:
 	freeHeaderData(hd);
 	hd = NULL;
+	if ( gp.fp != NULL )
+	    fclose(gp.fp);
 
 	return s;
 }
@@ -129,7 +145,7 @@ void printHelp()
 	printf("$ ./%s path/to/a.file -f pe\n", BINARYNAME);
 }
 
-uint8_t parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_t* force)
+uint8_t parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_t* force, char* file_name)
 {
 	int start_i = 1;
 	int end_i = argc - 1;
@@ -147,7 +163,7 @@ uint8_t parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_
 	// if first argument is the input file
 	if ( argv[1][0] != '-' )
 	{
-		expandFilePath(argv[1], gp->file_name);
+		expandFilePath(argv[1], file_name);
 		start_i = 2;
 		end_i = argc;
 	}
@@ -216,7 +232,7 @@ uint8_t parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_
 	}
 
 	if ( start_i == 1 )
-		expandFilePath(argv[i], gp->file_name);
+		expandFilePath(argv[i], file_name);
 
 	if ( gp->info_level < 2 )
 	{
@@ -250,10 +266,10 @@ void sanitizeArgs(PGlobalParams gp)
 	if ( gp->abs_file_offset + 16 > gp->file_size )
 	{
 #if defined(_WIN32)
-		header_info("INFO: file (%zu) is too small for a start offset of %llu!\nSetting to 0!\n",
+		header_info("INFO: filesize (%zu) is too small for a start offset of %llu!\nSetting to 0!\n",
 					gp->file_size, gp->abs_file_offset);
 #else
-		header_info("INFO: file (%zu) is too small for a start offset of %lu!\nSetting to 0!\n",
+		header_info("INFO: filesize (%zu) is too small for a start offset of %lu!\nSetting to 0!\n",
 					gp->file_size, gp->abs_file_offset);
 #endif
 		gp->abs_file_offset = 0;

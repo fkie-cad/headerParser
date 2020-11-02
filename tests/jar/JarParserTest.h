@@ -69,7 +69,8 @@ TEST_F(JarParserTest, testIsJarArchive)
 
 void JarParserTest::expectJar(const char* src, bool expected_jar)
 {
-    printf("expextJar: %s : &d\n", src, expected_jar);
+    char file_name[PATH_MAX];
+    printf("expextJar: %s : %d\n", src, expected_jar);
     memset(block, 0, BLOCKSIZE_LARGE);
 	int n = readCustomBlock(src, 0, BLOCKSIZE_LARGE, block);
 	if ( !n )
@@ -78,7 +79,7 @@ void JarParserTest::expectJar(const char* src, bool expected_jar)
     gp.abs_file_offset = 0;
     gp.start_file_offset = 0;
     gp.file_size = getSize(src);
-	snprintf(gp.file_name, PATH_MAX, "%s", src);
+	snprintf(file_name, PATH_MAX, "%s", src);
 
 //	uint16_t found_needles[5] = {0};
 

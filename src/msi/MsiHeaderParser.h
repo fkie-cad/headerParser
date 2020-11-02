@@ -112,7 +112,7 @@ uint8_t MSI_searchPEs(MSIStructuredStorageHeader* ssh,
 	debug_info("searchPEs\n");
 	for ( offset = sec_size; offset < gp->file_size; offset+=sec_size)
 	{
-		if ( PE_hasHeaderAtOffset(offset, &gp->abs_file_offset, gp->file_size, gp->file_name, gp->block_standard, gp->block_large) )
+		if ( PE_hasHeaderAtOffset(offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_standard, gp->block_large) )
 		{
 			if ( pe_count == 0 )
 			{
@@ -133,7 +133,7 @@ uint8_t MSI_searchPEs(MSIStructuredStorageHeader* ssh,
         gp->start_file_offset = first_pe_offset;
 		gp->abs_file_offset = first_pe_offset;
 
-		if ( !readCustomBlock(gp->file_name, gp->abs_file_offset, BLOCKSIZE_LARGE, gp->block_large) )
+		if ( !readFile(gp->fp, gp->abs_file_offset, BLOCKSIZE_LARGE, gp->block_large) )
 		{
 			header_error("ERROR: Read failed.\n");
 			return 0;
