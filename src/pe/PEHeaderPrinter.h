@@ -52,6 +52,13 @@ void PE_printImageResourceDirectoryEntry(const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY
                                          FILE* fp,
                                          unsigned char* block_s);
 
+#define MAX_SPACES (512)
+void fillSpaces(char* buf, size_t n, uint16_t level);
+//#define MAX_DASHES (512)
+//void fillDashes(char* buf, size_t n, uint16_t level);
+
+
+
 const char* ImageDirectoryEntryNames[] = {
 	"EXPORT",
 	"IMPORT",
@@ -70,6 +77,8 @@ const char* ImageDirectoryEntryNames[] = {
 	"CLR_RUNTIME_HEADER",
 	"RESERVED",
 };
+
+
 
 void PE_printImageDosHeader(PEImageDosHeader* image_dos_header, uint64_t start_file_offset)
 {
@@ -98,7 +107,7 @@ void PE_printImageDosHeader(PEImageDosHeader* image_dos_header, uint64_t start_f
 
 void PE_printCoffFileHeader(PECoffFileHeader* ch, uint64_t offset, uint64_t start_file_offset)
 {
-	const char* dll_c_pre = " - - ";
+	const char* dll_c_pre = "   - ";
 	const char dll_c_post = '\n';
 	ArchitectureMapEntry* arch = getArchitecture(ch->Machine, pe_arch_id_mapper, pe_arch_id_mapper_size);
 	char ch_bin[17];
@@ -153,7 +162,7 @@ void PE_printOptionalHeader(PE64OptHeader* oh, uint64_t offset, uint64_t start_f
 {
 	PEOptionalHeaderOffsets offsets = (bitness == 32) ? PEOptional32HeaderOffsets : PEOptional64HeaderOffsets;
 	const char* magic_string;
-	const char* dll_c_pre = " - - ";
+	const char* dll_c_pre = "   - ";
 	const char dll_c_post = '\n';
 
 	if ( oh->Magic == PeOptionalHeaderSignature.IMAGE_NT_OPTIONAL_HDR32_MAGIC )
@@ -256,8 +265,8 @@ void PE_printDataDirectory(PE64OptHeader* oh, uint64_t offset, uint8_t bitness)
 
 	for ( i = 0; i < nr_of_rva_to_read; i++ )
 	{
-		if ( i < NUMBER_OF_RVA_AND_SIZES ) printf(" - - [%s%s]: ", ImageDirectoryEntryNames[i], fillOffset(dir_offset, offset, 0));
-		else printf(" - - [%u%s]: ", i, fillOffset(dir_offset, offset, 0));
+		if ( i < NUMBER_OF_RVA_AND_SIZES ) printf("   - [%s%s]: ", ImageDirectoryEntryNames[i], fillOffset(dir_offset, offset, 0));
+		else printf("   - [%u%s]: ", i, fillOffset(dir_offset, offset, 0));
 		printf("0x%x", oh->DataDirectory[i].VirtualAddress);
 		printf(" | 0x%x\n", oh->DataDirectory[i].Size);
 
@@ -331,18 +340,18 @@ void PE_printImageImportTableHeader(PEImageImportDescriptor* impd)
 void PE_printImageImportDescriptor(PEImageImportDescriptor* impd, uint64_t offset, const char* impd_name)
 {
 	printf(" -%s %s (0x%x)\n", fillOffset(PEImageImportDescriptorOffsets.Name, offset, 0), impd_name, impd->Name);
-	printf(" - - OriginalFirstThunk%s: 0x%x\n", fillOffset(PEImageImportDescriptorOffsets.Union, offset, 0), impd->OriginalFirstThunk);
-	printf(" - - TimeDateStamp%s: 0x%x\n", fillOffset(PEImageImportDescriptorOffsets.TimeDateStamp, offset, 0), impd->TimeDateStamp);
-	printf(" - - ForwarderChain%s: 0x%x\n", fillOffset(PEImageImportDescriptorOffsets.ForwarderChain, offset, 0), impd->ForwarderChain);
-	printf(" - - FirstThunk%s: 0x%x\n", fillOffset(PEImageImportDescriptorOffsets.FirstThunk, offset, 0), impd->FirstThunk);
+	printf("   - OriginalFirstThunk%s: 0x%x\n", fillOffset(PEImageImportDescriptorOffsets.Union, offset, 0), impd->OriginalFirstThunk);
+	printf("   - TimeDateStamp%s: 0x%x\n", fillOffset(PEImageImportDescriptorOffsets.TimeDateStamp, offset, 0), impd->TimeDateStamp);
+	printf("   - ForwarderChain%s: 0x%x\n", fillOffset(PEImageImportDescriptorOffsets.ForwarderChain, offset, 0), impd->ForwarderChain);
+	printf("   - FirstThunk%s: 0x%x\n", fillOffset(PEImageImportDescriptorOffsets.FirstThunk, offset, 0), impd->FirstThunk);
 }
 
 void PE_printHintFunctionHeader(PEImageThunkData64* td)
 {
 	if ( td->Ordinal & IMAGE_ORDINAL_FLAG32 || td->Ordinal & IMAGE_ORDINAL_FLAG64 )
-		printf(" - - - %8s\n", "Hint");
+		printf("     - %8s\n", "Hint");
 	else
-		printf(" - - - %10s | Function\n", "Hint");
+		printf("     - %10s | Function\n", "Hint");
 
 }
 
@@ -350,18 +359,18 @@ void PE_printImageThunkData(PEImageThunkData64* td, PEImageImportByName* ibn, ui
 {
 	if ( td->Ordinal & IMAGE_ORDINAL_FLAG32 )
 #if defined(_WIN32)
-		printf(" - - - %s0x%08llX\n", fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0), td->Ordinal - IMAGE_ORDINAL_FLAG32);
+		printf("   - - %s0x%08llX\n", fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0), td->Ordinal - IMAGE_ORDINAL_FLAG32);
 #else
-		printf(" - - - %s0x%08lX\n", fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0), td->Ordinal - IMAGE_ORDINAL_FLAG32);
+		printf("     - %s0x%08lX\n", fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0), td->Ordinal - IMAGE_ORDINAL_FLAG32);
 #endif
 	else if ( td->Ordinal & IMAGE_ORDINAL_FLAG64 )
 #if defined(_WIN32)
-		printf(" - - - %s0x%08llX\n", fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0), td->Ordinal - IMAGE_ORDINAL_FLAG64);
+		printf("     - %s0x%08llX\n", fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0), td->Ordinal - IMAGE_ORDINAL_FLAG64);
 #else
-		printf(" - - - %s0x%08lX\n", fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0), td->Ordinal - IMAGE_ORDINAL_FLAG64);
+		printf("     - %s0x%08lX\n", fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0), td->Ordinal - IMAGE_ORDINAL_FLAG64);
 #endif
 	else
-		printf(" - - - 0x%08X%s | %s%s\n",
+		printf("     - 0x%08X%s | %s%s\n",
 				ibn->Hint, fillOffset(PEImageImportByNameOffsets.Hint, ibn_offset, 0), 
 				ibn->Name, fillOffset(PEImageImportByNameOffsets.Name, ibn_offset, 0));
 }
@@ -410,12 +419,12 @@ void PE_printImageExportDirectoryEntry(size_t i, const char* name, int name_max,
 		nr_of_bytes = bytes_max;
 
 	printf(" - [%zu] \n", i);
-	printf(" - - name: %.*s\n", name_max, name);
-	printf(" - - ordinal: 0x%x\n", name_ordinal);
+	printf("   - name: %.*s\n", name_max, name);
+	printf("   - ordinal: 0x%x\n", name_ordinal);
 #if defined(_WIN32)
-	printf(" - - function (rva: 0x%lx, fo: 0x%llx):\n     ", rva, fo);
+	printf("   - function (rva: 0x%lx, fo: 0x%llx):\n     ", rva, fo);
 #else
-	printf(" - - function (rva: 0x%x, fo: 0x%lx):\n     ", rva, fo);
+	printf("   - function (rva: 0x%x, fo: 0x%lx):\n     ", rva, fo);
 #endif
 	for ( j = 0; j < nr_of_bytes; j++ )
 		printf("%02x ", bytes[j]);
@@ -433,10 +442,10 @@ void PE_printAttributeCertificateTable(PeAttributeCertificateTable* t, uint8_t n
 		entry = &t[i];
 
 		printf(" - %u/%u\n", i+1, n);
-		printf(" - - length%s: 0x%x\n", fillOffset(PeAttributeCertificateTableOffsets.dwLength, offset, 0), entry->dwLength);
-		printf(" - - revision%s: 0x%x\n", fillOffset(PeAttributeCertificateTableOffsets.wRevision, offset, 0), entry->wRevision);
-		printf(" - - certificateType%s: %s (0x%x)\n", fillOffset(PeAttributeCertificateTableOffsets.wCertificateType, offset, 0), PE_getCertificateTypeString(entry->wCertificateType), entry->wCertificateType);
-		printf(" - - certificate (offset)%s: %p\n", fillOffset(PeAttributeCertificateTableOffsets.bCertificate, offset, 0), (void*)entry->bCertificate);
+		printf("   - length%s: 0x%x\n", fillOffset(PeAttributeCertificateTableOffsets.dwLength, offset, 0), entry->dwLength);
+		printf("   - revision%s: 0x%x\n", fillOffset(PeAttributeCertificateTableOffsets.wRevision, offset, 0), entry->wRevision);
+		printf("   - certificateType%s: %s (0x%x)\n", fillOffset(PeAttributeCertificateTableOffsets.wCertificateType, offset, 0), PE_getCertificateTypeString(entry->wCertificateType), entry->wCertificateType);
+		printf("   - certificate (offset)%s: %p\n", fillOffset(PeAttributeCertificateTableOffsets.bCertificate, offset, 0), (void*)entry->bCertificate);
 
 		offset += entry->dwLength;
 	}
@@ -464,24 +473,39 @@ const char* PE_getCertificateTypeString(uint16_t type)
 //#define WIN_CERT_TYPE_RESERVED_1 (0x0003) //  Reserved
 //#define WIN_CERT_TYPE_TS_STACK_SIGNED (0x0004) // Terminal Server Protocol Stack Certificate signing. Not Supported
 
-char dashes[512] = {0};;
-
-void fillDashes(size_t n, uint16_t level)
+void fillSpaces(char* buf, size_t n, uint16_t level)
 {
-	memset(&dashes, 0, n);
-	size_t i;
-	dashes[0] = ' ';
-	for ( i = 0; i < n && i < level; i++ )
-	{
-		dashes[i*2+1] = '-';
-		dashes[i*2+2] = ' ';
-	}
+//	memset(&dashes, 0, n);
+	size_t min = (n-1 < level*2) ? n-1 : level*2;
+	memset(buf, ' ', min);
+    buf[min] = 0;
+//	size_t i;
+//	dashes[0] = ' ';
+//	for ( i = 0; i < n && i < level; i++ )
+//	{
+//		buf[i*2+1] = ' ';
+//		buf[i*2+2] = ' ';
+//	}
 }
+
+//void fillDashes(size_t n, uint16_t level, char* dashes)
+//{
+//	memset(&dashes, 0, n);
+//	size_t i;
+//	size_t max_i = n > 1;
+//	dashes[0] = ' ';
+//	for ( i = 0; i < max_i && i < level; i++ )
+//	{
+//		dashes[i*2+1] = '-';
+//		dashes[i*2+2] = ' ';
+//	}
+//}
 
 void PE_printImageResourceDirectory(const PE_IMAGE_RESOURCE_DIRECTORY* rd, uint64_t offset, uint16_t level)
 {
-	fillDashes(512, level);
-	
+    char dashes[MAX_SPACES];
+	fillSpaces(dashes, MAX_SPACES, level);
+
 	printf("%sResource Directory%s:\n", dashes, fillOffset(0, offset, 0));
 	printf("%s- Characteristics: 0x%x\n", dashes, rd->Characteristics);
 	printf("%s- TimeDateStamp: 0x%x\n", dashes, rd->TimeDateStamp);
@@ -493,7 +517,8 @@ void PE_printImageResourceDirectory(const PE_IMAGE_RESOURCE_DIRECTORY* rd, uint6
 
 void PE_printImageResourceDirectoryEntryHeader(int type, uint16_t n, uint16_t level)
 {
-	fillDashes(512, level);
+    char dashes[MAX_SPACES];
+    fillSpaces(dashes, MAX_SPACES, level);
 	
 	if ( type == 0 )
 		printf("%s- Named Entries (%u):\n", dashes, n);
@@ -519,9 +544,10 @@ void PE_printImageResourceDirectoryEntry(const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY
 	PE_IMAGE_RESOURCE_DIR_STRING_U_PTR name;
 	struct Pe_Image_Resource_Dir_String_U_Offsets name_offsets = PeImageResourceDirStringUOffsets;
 
-	fillDashes(512, level);
+    char dashes[MAX_SPACES];
+    fillSpaces(dashes, MAX_SPACES, level);
 	
-	printf("%s- %u/%u%s:\n", dashes, (id+1), n, fillOffset(0, offset, 0));
+	printf("%s  %u/%u%s:\n", dashes, (id+1), n, fillOffset(0, offset, 0));
 	
 	if ( re->NAME_UNION.NAME_STRUCT.NameIsString )
 	{
@@ -542,10 +568,10 @@ void PE_printImageResourceDirectoryEntry(const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY
 		if ( !checkFileSpace(name_offset, start_file_offset, 2+name_offsets.Length, file_size))
 			return;
 
-//		printf(" - - Name.Length: 0x%x\n", name.Length);
+//		printf("   - Name.Length: 0x%x\n", name.Length);
 		// ??? how to print utf16 on linux ???
 		// hack considering it ascii
-		printf("%s- - Name (%u): ", dashes, name.Length);
+		printf("%s  - Name (%u): ", dashes, name.Length);
 		for ( i = 0; i < name.Length; i++ )
 			printf("%c", name.NameString[i]);
 		printf("\n");
@@ -553,22 +579,23 @@ void PE_printImageResourceDirectoryEntry(const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY
 		// id entries have ids
 	else
 	{
-		printf("%s- - Id: 0x%x\n", dashes, re->NAME_UNION.Id);
+		printf("%s  - Id: 0x%x\n", dashes, re->NAME_UNION.Id);
 	}
-	printf("%s- - OffsetToData: 0x%x\n", dashes, re->OFFSET_UNION.OffsetToData);
-	printf("%s- - - OffsetToData.OffsetToDirectory: 0x%x\n", dashes, re->OFFSET_UNION.DATA_STRUCT.OffsetToDirectory);
-	printf("%s- - - OffsetToData.NameIsDirectory: 0x%x\n", dashes, re->OFFSET_UNION.DATA_STRUCT.DataIsDirectory);
+	printf("%s  - OffsetToData: 0x%x\n", dashes, re->OFFSET_UNION.OffsetToData);
+	printf("%s    - OffsetToData.OffsetToDirectory: 0x%x\n", dashes, re->OFFSET_UNION.DATA_STRUCT.OffsetToDirectory);
+	printf("%s    - OffsetToData.NameIsDirectory: 0x%x\n", dashes, re->OFFSET_UNION.DATA_STRUCT.DataIsDirectory);
 }
 
 void PE_printImageResourceDataEntry(const PE_IMAGE_RESOURCE_DATA_ENTRY* de, uint64_t offset, uint16_t level)
 {
-	fillDashes(512, level);
+    char dashes[MAX_SPACES];
+    fillSpaces(dashes, MAX_SPACES, level);
 	
-	printf("%s- - ResourceDataEntry%s:\n", dashes, fillOffset(0, offset, 0));
-	printf("%s- - - OffsetToData: 0x%x\n", dashes, de->OffsetToData);
-	printf("%s- - - Size: 0x%x\n", dashes, de->Size);
-	printf("%s- - - CodePage: 0x%x\n", dashes, de->CodePage);
-	printf("%s- - - Reserved: 0x%x\n", dashes, de->Reserved);
+	printf("%s  - ResourceDataEntry%s:\n", dashes, fillOffset(0, offset, 0));
+	printf("%s    - OffsetToData: 0x%x\n", dashes, de->OffsetToData);
+	printf("%s    - Size: 0x%x\n", dashes, de->Size);
+	printf("%s    - CodePage: 0x%x\n", dashes, de->CodePage);
+	printf("%s    - Reserved: 0x%x\n", dashes, de->Reserved);
 }
 
 #endif
