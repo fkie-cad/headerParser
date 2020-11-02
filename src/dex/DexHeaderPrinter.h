@@ -113,14 +113,14 @@ void DEX_printStringIdItem(DexStringIdItem* item, DexStringDataItem* di, char** 
 
 	int i;
 	printf(" - String Id Item (%u / %u):\n", idx, ln);
-	printf(" - - string_data_offset%s: 0x%x\n", fillOffset(offsets.offset, offset, 0), item->offset);
-	printf(" - - string_data:\n");
-	printf(" - - - utf16_size%s: %u\n", fillOffset(DexStringDataItemOffsets.utf16_size, item->offset, start_file_offset), di->utf16_size.val);
-	printf(" - - - data%s: ", fillOffset(DexStringDataItemOffsets.data, item->offset, start_file_offset));
+	printf("   - string_data_offset%s: 0x%x\n", fillOffset(offsets.offset, offset, 0), item->offset);
+	printf("   - string_data:\n");
+	printf("     - utf16_size%s: %u\n", fillOffset(DexStringDataItemOffsets.utf16_size, item->offset, start_file_offset), di->utf16_size.val);
+	printf("     - data%s: ", fillOffset(DexStringDataItemOffsets.data, item->offset, start_file_offset));
 	for ( i = 0; i < di->utf16_size.val; i++ )
 		printf("%c", data[i+1]);
 	printf("\n");
-	printf(" - - - strings[%u]%s: %s\n", idx, fillOffset(DexStringDataItemOffsets.data, item->offset, start_file_offset), strings[idx-1]);
+	printf("     - strings[%u]%s: %s\n", idx, fillOffset(DexStringDataItemOffsets.data, item->offset, start_file_offset), strings[idx-1]);
 }
 
 void DEX_printTypeIdItem(DexTypeIdItem* item, char** strings, uint32_t idx, uint32_t ln, uint64_t offset)
@@ -128,8 +128,8 @@ void DEX_printTypeIdItem(DexTypeIdItem* item, char** strings, uint32_t idx, uint
 	Dex_Type_Id_Item_Offsets offsets = DexTypeIdItemOffsets;
 
 	printf(" - Type Id Item (%u / %u):\n", idx, ln);
-	printf(" - - descriptor_idx%s: 0x%x\n", fillOffset(offsets.descriptor_idx, offset, 0), item->descriptor_idx);
-	printf(" - - descriptor: %s\n", strings[item->descriptor_idx]);
+	printf("   - descriptor_idx%s: 0x%x\n", fillOffset(offsets.descriptor_idx, offset, 0), item->descriptor_idx);
+	printf("   - descriptor: %s\n", strings[item->descriptor_idx]);
 }
 
 void DEX_printProtoIdItem(DexProtoIdItem* item, uint32_t idx, uint32_t ln, uint64_t offset)
@@ -137,9 +137,9 @@ void DEX_printProtoIdItem(DexProtoIdItem* item, uint32_t idx, uint32_t ln, uint6
 	Dex_Proto_Id_Item_Offsets offsets = DexProtoIdItemOffsets;
 
 	printf(" - Proto Id Item (%u / %u):\n", idx, ln);
-	printf(" - - shorty_idx%s: 0x%x\n", fillOffset(offsets.shorty_idx, offset, 0), item->shorty_idx);
-	printf(" - - return_type_idx%s: 0x%x\n", fillOffset(offsets.return_type_idx, offset, 0), item->return_type_idx);
-	printf(" - - parameters_off%s: 0x%x\n", fillOffset(offsets.parameters_off, offset, 0), item->parameters_off);
+	printf("   - shorty_idx%s: 0x%x\n", fillOffset(offsets.shorty_idx, offset, 0), item->shorty_idx);
+	printf("   - return_type_idx%s: 0x%x\n", fillOffset(offsets.return_type_idx, offset, 0), item->return_type_idx);
+	printf("   - parameters_off%s: 0x%x\n", fillOffset(offsets.parameters_off, offset, 0), item->parameters_off);
 }
 
 void DEX_printFieldIdItem(DexFieldIdItem* item, char** strings, uint32_t idx, uint32_t ln, uint64_t offset)
@@ -147,10 +147,10 @@ void DEX_printFieldIdItem(DexFieldIdItem* item, char** strings, uint32_t idx, ui
 	Dex_Field_Id_Item_Offsets offsets = DexFieldIdItemOffsets;
 
 	printf(" - Field Id Item (%u / %u):\n", idx, ln);
-	printf(" - - class_idx%s: 0x%x\n", fillOffset(offsets.class_idx, offset, 0), item->class_idx);
-	printf(" - - type_idx%s: 0x%x\n", fillOffset(offsets.type_idx, offset, 0), item->type_idx);
-	printf(" - - name_idx%s: 0x%x\n", fillOffset(offsets.name_idx, offset, 0), item->name_idx);
-	printf(" - - name: %s\n", strings[item->name_idx]);
+	printf("   - class_idx%s: 0x%x\n", fillOffset(offsets.class_idx, offset, 0), item->class_idx);
+	printf("   - type_idx%s: 0x%x\n", fillOffset(offsets.type_idx, offset, 0), item->type_idx);
+	printf("   - name_idx%s: 0x%x\n", fillOffset(offsets.name_idx, offset, 0), item->name_idx);
+	printf("   - name: %s\n", strings[item->name_idx]);
 }
 
 void DEX_printMethodIdItem(DexMethodIdItem* item, char** strings, uint32_t idx, uint32_t ln, uint64_t offset)
@@ -158,10 +158,10 @@ void DEX_printMethodIdItem(DexMethodIdItem* item, char** strings, uint32_t idx, 
 	Dex_Method_Id_Item_Offsets offsets = DexMethodIdItemOffsets;
 
 	printf(" - Method Id Item (%u / %u):\n", idx, ln);
-	printf(" - - class_idx%s: 0x%x\n", fillOffset(offsets.class_idx, offset, 0), item->class_idx);
-	printf(" - - proto_idx%s: 0x%x\n", fillOffset(offsets.proto_idx, offset, 0), item->proto_idx);
-	printf(" - - name_idx%s: 0x%x\n", fillOffset(offsets.name_idx, offset, 0), item->name_idx);
-	printf(" - - name: %s\n", strings[item->name_idx]);
+	printf("   - class_idx%s: 0x%x\n", fillOffset(offsets.class_idx, offset, 0), item->class_idx);
+	printf("   - proto_idx%s: 0x%x\n", fillOffset(offsets.proto_idx, offset, 0), item->proto_idx);
+	printf("   - name_idx%s: 0x%x\n", fillOffset(offsets.name_idx, offset, 0), item->name_idx);
+	printf("   - name: %s\n", strings[item->name_idx]);
 }
 
 void DEX_printClassDefItem(DexClassDefItem* item, char** strings, uint32_t idx, uint32_t ln, uint64_t offset)
@@ -169,8 +169,8 @@ void DEX_printClassDefItem(DexClassDefItem* item, char** strings, uint32_t idx, 
 	Dex_Class_Def_Item_Offsets offsets = DexClassDefItemOffsets;
 
 	printf(" - Class Def Item (%u / %u):\n", idx, ln);
-	printf(" - - class_idx%s: 0x%x\n", fillOffset(offsets.class_idx, offset, 0), item->class_idx);
-	printf(" - - access_flags%s: (0x%x)", fillOffset(offsets.access_flags, offset, 0), item->access_flags);
+	printf("   - class_idx%s: 0x%x\n", fillOffset(offsets.class_idx, offset, 0), item->class_idx);
+	printf("   - access_flags%s: (0x%x)", fillOffset(offsets.access_flags, offset, 0), item->access_flags);
 	printFlag32(item->access_flags, ACC_ABSTRACT, "ACC_ABSTRACT");
 	printFlag32(item->access_flags, ACC_ANNOTATION, "ACC_ANNOTATION");
 	printFlag32(item->access_flags, ACC_BRIDGE, "ACC_BRIDGE");
@@ -191,14 +191,14 @@ void DEX_printClassDefItem(DexClassDefItem* item, char** strings, uint32_t idx, 
 	printFlag32(item->access_flags, ACC_VARARGS, "ACC_VARARGS");
 	printFlag32(item->access_flags, ACC_VOLATILE, "ACC_VOLATILE");
 	printf("\n");
-	printf(" - - superclass_idx%s: 0x%x\n", fillOffset(offsets.superclass_idx, offset, 0), item->superclass_idx);
-	printf(" - - interfaces_off%s: 0x%x\n", fillOffset(offsets.interfaces_off, offset, 0), item->interfaces_off);
-	printf(" - - source_file_idx%s: 0x%x\n", fillOffset(offsets.source_file_idx, offset, 0), item->source_file_idx);
+	printf("   - superclass_idx%s: 0x%x\n", fillOffset(offsets.superclass_idx, offset, 0), item->superclass_idx);
+	printf("   - interfaces_off%s: 0x%x\n", fillOffset(offsets.interfaces_off, offset, 0), item->interfaces_off);
+	printf("   - source_file_idx%s: 0x%x\n", fillOffset(offsets.source_file_idx, offset, 0), item->source_file_idx);
 	if ( item->source_file_idx != NO_INDEX )
-		printf(" - - source_file: %s\n", strings[item->source_file_idx]);
-	printf(" - - annotations_off%s: 0x%x\n", fillOffset(offsets.annotations_off, offset, 0), item->annotations_off);
-	printf(" - - class_data_off%s: 0x%x\n", fillOffset(offsets.class_data_off, offset, 0), item->class_data_off);
-	printf(" - - static_values_off%s: 0x%x\n", fillOffset(offsets.static_values_off, offset, 0), item->static_values_off);
+		printf("   - source_file: %s\n", strings[item->source_file_idx]);
+	printf("   - annotations_off%s: 0x%x\n", fillOffset(offsets.annotations_off, offset, 0), item->annotations_off);
+	printf("   - class_data_off%s: 0x%x\n", fillOffset(offsets.class_data_off, offset, 0), item->class_data_off);
+	printf("   - static_values_off%s: 0x%x\n", fillOffset(offsets.static_values_off, offset, 0), item->static_values_off);
 }
 
 void DEX_printMapList(DexMapList* l, uint64_t offset)
@@ -214,10 +214,10 @@ void DEX_printMapItem(DexMapItem* i, uint32_t idx, uint32_t ln, uint64_t offset)
 	Dex_Map_Item_Offsets offsets = DexMapItemOffsets;
 
 	printf(" - Map Item (%u / %u):\n", idx, ln);
-	printf(" - - type%s: %s (0x%x)\n", fillOffset(offsets.type, offset, 0), getMapItemType(i->type), i->type);
-	printf(" - - unused%s: 0x%x\n", fillOffset(offsets.unused, offset, 0), i->unused);
-	printf(" - - size%s: %u\n", fillOffset(offsets.size, offset, 0), i->size);
-	printf(" - - offset%s: 0x%x\n", fillOffset(offsets.offset, offset, 0), i->offset);
+	printf("   - type%s: %s (0x%x)\n", fillOffset(offsets.type, offset, 0), getMapItemType(i->type), i->type);
+	printf("   - unused%s: 0x%x\n", fillOffset(offsets.unused, offset, 0), i->unused);
+	printf("   - size%s: %u\n", fillOffset(offsets.size, offset, 0), i->size);
+	printf("   - offset%s: 0x%x\n", fillOffset(offsets.offset, offset, 0), i->offset);
 }
 
 char* getMapItemType(uint16_t type)
