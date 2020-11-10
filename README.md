@@ -1,5 +1,5 @@
 # Header Parser #
-Parses header information of a binary executable file.  
+Parses header information of a binary (executable) file.  
 PE, ELF, DEX, MachO, ZIP (JAR, DocX) are parsed in depth.  
 Java.class, ART, .NET, NE, MS-DOS are recognized.  
 
@@ -10,7 +10,7 @@ As well as PE and ELF still have to be extended.
 
 POSIX compliant.  
 Compilable under Linux and Windows (x86/x64).  
-MacOs may work too.
+OsX may work too.
 
 
 ## Version ##
@@ -36,7 +36,8 @@ $ gcc -o build/headerParser -Ofast headerParser.c
 ```bash
 $ ./winBuild.bat [/t headerParser] [/b 32|64] [/m Release|Debug] [/h]
 ```
-The correct path to your build tools may be passed as a parameter or changed in the script [winBuild.bat](winBuild.bat) itself.
+The correct path to your build tools may be passed as a parameter or changed in the script [winBuild.bat](winBuild.bat) itself.  
+Thats the place to correct the path to your cmake installation as well.
 
  
 
@@ -48,7 +49,7 @@ $ ./headerParser [options] a/file/name
 Possible options:  
  * -h Print help.
  * -s:uint64_t Start offset in file. Default = 1.
- * -i:uint8_t Level of output info. 1 : minimal output (Default), 2 : extended output, 3 : extended output with offsets into the file.
+ * -i:uint8_t Level of output info. 1 : minimal output (Default), 2 : extended output, 3 : extended output with offset info.
  * -f:string Force parsing a specific type, skipping magic value checks. Currently only "pe" is supported.
  * PE only options:
    * -iimp: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT). (Needs -i > 1.)
@@ -90,7 +91,7 @@ The output is not yet formatted very well.
 If you think, the header starts somewhere in the file, you may pass an offset to it using the "-s" option.
 
 ### Forcing ###
-If you think it is a PE file but the MZ or PE00 magic values are changed, try the "-f pe" option.
+If you think it is a PE file but the MZ or PE00 magic values are broken, try the "-f pe" option.
 
 
 ## ALTERNATIVE USAGE ##
@@ -160,6 +161,6 @@ Published under [GNU GENERAL PUBLIC LICENSE](LICENSE).
 #### Author ####
 - Henning Braun ([henning.braun@fkie.fraunhofer.de](henning.braun@fkie.fraunhofer.de)) 
 
-#### Co-Author ####
-common_codeio.h
+#### Co-Author, Icon Art ####
+common_codeio.h, Icon.ico
 - Viviane Zwanger ([viviane.zwanger@fkie.fraunhofer.de](viviane.zwanger@fkie.fraunhofer.de))

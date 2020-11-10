@@ -32,17 +32,7 @@ GOTO :ParseParams
 		SHIFT
 		goto reParseParams
 	)
-    IF "%~1"=="/target" (
-		SET target=%2
-		SHIFT
-		goto reParseParams
-	)
     IF "%~1"=="/b" (
-		SET bitness=%~2
-		SHIFT
-		goto reParseParams
-	)
-    IF "%~1"=="/bitness" (
 		SET bitness=%~2
 		SHIFT
 		goto reParseParams
@@ -52,17 +42,7 @@ GOTO :ParseParams
 		SHIFT
 		goto reParseParams
 	)
-    IF "%~1"=="/mode" (
-		SET mode=%~2
-		SHIFT
-		goto reParseParams
-	)
     IF "%~1"=="/bt" (
-		SET buildTools=%~2
-		SHIFT
-		goto reParseParams
-	)
-    IF "%~1"=="/buildtools" (
 		SET buildTools=%~2
 		SHIFT
 		goto reParseParams
@@ -107,16 +87,16 @@ set vcvars="%buildTools:~1,-1%\VC\Auxiliary\Build\vcvars%bitness%.bat"
     exit /B 0
 
 :usage
-    @echo Usage: %prog_name% [/t %target%^|%target%_shared] [/b 32^|64] [/m Debug^|Release] [/d C:\Build\Tools\] [/mt=no|Debug|Release] [/pdb] [/h]
+    @echo Usage: %prog_name% [/t %target%^|%target%_shared] [/b 32^|64] [/m Debug^|Release] [/d C:\Build\Tools\] [/mt=no^|Debug^|Release] [/pdb] [/h]
     @echo Default: %prog_name% [/t %target% /b %bitness% /m %mode% /bt %buildTools%]
     exit /B 0
 	
 :help
     call :usage
-	@echo /t^|/target The target name to build. Default: headerParser.
-	@echo /b^|/bitness The target bitness. Default: 64.
-	@echo /m^|/mode The mode (Debug^|Release) to build in. Default: Release.
-	@echo /bt^|/buildtools Custom path to Microsoft Visual Studio BuildTools
+	@echo /t The target name to build. Default: headerParser.
+	@echo /b The target bitness. Default: 64.
+	@echo /m The mode (Debug^|Release) to build in. Default: Release.
+	@echo /bt Custom path to Microsoft Visual Studio BuildTools
     @echo /mt Statically include LIBCMT.lib. May be needed if a "VCRUNTIMExxx.dll not found Error" occurs on the target system. Default: no.
     @echo /pdb Include pdb symbols into release build.
     exit /B 0
