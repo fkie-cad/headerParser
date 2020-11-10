@@ -16,8 +16,8 @@
 	#define PATH_MAX 4096
 #endif
 
-#define BLOCKSIZE (0x400)
-#define BLOCKSIZE_LARGE (0x1000)
+#define BLOCKSIZE (0x200)
+#define BLOCKSIZE_LARGE (0x400)
 
 #define getVarName(var)  #var
 #define ERRORS_BUFFER_SIZE (512)

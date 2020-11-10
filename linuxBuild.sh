@@ -2,7 +2,7 @@
 
 name=headerParser
 def_target=${name}
-pos_targets="${def_target}|hexter_shared|clean"
+pos_targets="${def_target}|headerParser_shared|clean"
 target=${def_target}
 def_mode=Release
 mode=${def_mode}
@@ -57,7 +57,7 @@ function buildTarget() {
 		return 3
 	fi
 
-	if [[ ${mode} == "Release" || ${mode} == "release" ]]; then
+	if [[ ${mode} == "Release" || ${mode} == "release" ]] && [[ ${target} == ${name} ]]; then
 		sha256sum ${dir}/${target} | awk '{print $1}' > ${dir}/${target}.sha256
 	fi
 

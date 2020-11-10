@@ -13,7 +13,7 @@
 
 static void parseArtHeader();
 static void ARTfillVersion(uint64_t start_file_offset, size_t file_size, unsigned char* block);
-static void ARTreadFileHeader(ARTFileHeader009012 *fh, uint64_t start_file_offset, unsigned char* block);
+static void ARTreadFileHeader(ARTFileHeader009012 *fh, uint64_t start_file_offset, size_t file_size, unsigned char* block);
 
 void parseArtHeader(PHeaderData hd, PGlobalParams gp)
 {
@@ -27,7 +27,7 @@ void parseArtHeader(PHeaderData hd, PGlobalParams gp)
 	hd->Machine = art_arch_id_mapper[0].arch.name;
 	hd->bitness = 32;
 
-	ARTreadFileHeader(&file_header, gp->start_file_offset, gp->block_large);
+	ARTreadFileHeader(&file_header, gp->start_file_offset, gp->file_size, gp->block_large);
 
 	if ( gp->info_level >= INFO_LEVEL_FULL )
 		ARTprintFileHeader009012(&file_header, gp->start_file_offset);
@@ -49,12 +49,12 @@ void ARTfillVersion(uint64_t start_file_offset, size_t file_size, unsigned char*
 	architecture[27] = (char) ptr[6];
 }
 
-void ARTreadFileHeader(ARTFileHeader009012 *fh, uint64_t start_file_offset, unsigned char* block)
+void ARTreadFileHeader(ARTFileHeader009012 *fh, uint64_t start_file_offset, size_t file_size, unsigned char* block)
 {
 	unsigned char *ptr;
 	int i;
 
-	if ( !checkFileSpace(0, start_file_offset, ART_FILE_HEADER_009012_SIZE, "ART_FILE_HEADER_SIZE") )
+	if ( !checkFileSpace(0, start_file_offset, ART_FILE_HEADER_009012_SIZE, file_size) )
 		return;
 
 	ptr = &block[0];

@@ -3,8 +3,8 @@ if ( ${GTEST_FOUND} )
 	set(G_TESTS_DIR tests)
 
 	set(HEADER_PARSER_TEST_FILES
-		${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/misc/FileUtil.h
-		${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/misc/StringUtil.h
+		${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/misc/utils/FileUtil.h
+		${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/misc/utils/StringUtil.h
 
 		${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/jar/JarParserTest.h
 		${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/pe/PEParserTest.h
@@ -74,9 +74,9 @@ add_executable(
 	${G_TESTS_DIR}/HPDirectoryRunner.cpp
 	${G_TESTS_DIR}/misc/DirectoryRunner.cpp
 	${G_TESTS_DIR}/misc/DirectoryRunner.h
-	${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/misc/FileUtil.h
 	${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/misc/RawHeaderDataParser.h
-	${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/misc/StringUtil.h
+	${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/misc/utils/FileUtil.h
+	${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/misc/utils/StringUtil.h
 )
 set_target_properties(HPDirectoryRunner PROPERTIES
 	CXX_STANDARD 17

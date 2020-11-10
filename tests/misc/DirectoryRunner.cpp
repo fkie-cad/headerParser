@@ -2,7 +2,7 @@
 #include <set>
 
 #include "DirectoryRunner.h"
-#include "FileUtil.h"
+#include "utils/FileUtil.h"
 
 
 using namespace std;
@@ -77,9 +77,9 @@ void DirectoryRunner::runList(const vector<string>& files)
 
 void DirectoryRunner::runDirectory(const string& dir)
 {
-	cout << "counting files in \"" << dir << "\" ...\n";
+	cout << "counting files in \"" << dir << "\" ...";
 	nr_of_files = FileUtil::countFiles(dir, {}, true, recursive);
-	cout << "number of files : " << nr_of_files << "\n\n\n";
+	cout << "\rnumber of files : " << nr_of_files << "\n\n\n";
 
 	set<string> types = {};
 	auto isWhiteListed = [&types](const string& file) -> bool {
@@ -112,7 +112,7 @@ void DirectoryRunner::runDirectoryT(const string& dir)
 	};
 
 	thread_pool.setPoolSize(thread_pool_size);
-	thread_pool.setLaunchPolicy(launch::async|launch::deferred);
+	thread_pool.setLaunchPolicy(launch::async);
 
 
 	FileUtil::actOnFilesInDir(dir, bind(&DirectoryRunner::fillFileCallbackT, this, _1, _2),

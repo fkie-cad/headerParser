@@ -2,6 +2,7 @@ set(HEADER_PARSER headerParser)
 add_executable(
 	${HEADER_PARSER}
 	src/headerParser.c
+#	src/utils/fifo/Fifo.c
 	)
 target_sources(${HEADER_PARSER} PRIVATE
 	${HEADER_PARSER_SRC}

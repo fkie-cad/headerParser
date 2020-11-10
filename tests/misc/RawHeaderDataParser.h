@@ -8,7 +8,7 @@
 #include "../../src/stringPool.h"
 #include "../../src/HeaderData.h"
 
-#include "StringUtil.h"
+#include "utils/StringUtil.h"
 
 class RawHeaderDataParser
 {

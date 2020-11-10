@@ -48,8 +48,8 @@ namespace Utils
 			const std::vector<std::runtime_error>* getErrors() const;
 
 		private:
-			void releaseThreadsPassively();
-			void releaseThreadActively();
+			void releaseThreadsWaiting(size_t w);
+			void releaseThreadBlocking();
 	};
 }
 

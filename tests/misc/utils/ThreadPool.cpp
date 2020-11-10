@@ -106,52 +106,55 @@ namespace Utils
 	template<typename T>
 	void ThreadPool<T>::releaseThreads()
 	{
-		if ( threads.size() >= pool_size )
-			releaseThreadsPassively();
+        if ( threads.size() >= pool_size )
+            releaseThreadsWaiting(0);
 
 		if ( threads.size() >= pool_size )
-			releaseThreadActively();
+            releaseThreadBlocking();
 	}
 
-	/**
-	 * Checks all threads for being finished, collect the results and erase them from the pool.
-	 *
-	 * @tparam T
-	 */
 	template<typename T>
-	void ThreadPool<T>::releaseThreadsPassively()
-	{
-		bool error = false;
-		auto it = threads.begin();
-		while ( it != threads.end() )
-		{
-			Future<T>& f = *it;
-			auto status = f.wait_for(std::chrono::seconds(0));
+	void ThreadPool<T>::releaseThreadsWaiting(size_t w)
+    {
+        bool error = false;
+        size_t nano_max = 1000000000;
+        size_t step = 10;
+        bool s = false;
+        while ( !s && w < nano_max )
+        {
+            auto it = threads.begin();
+            while ( it != threads.end())
+            {
+                Future <T>& f = *it;
+                auto status = f.wait_for(std::chrono::nanoseconds(w));
 
-			if (status == std::future_status::ready)
-			{
-				try
-				{
-					auto r = f.get();
-					results.emplace_back(r);
-				}
-				catch ( std::runtime_error& e)
-				{
-					errors.push_back(e);
-					error = true;
-				}
-				it = threads.erase(it);
-			}
-			else
-			{
-				++it;
-			}
-		}
+                if ( status == std::future_status::ready )
+                {
+                    try
+                    {
+                        auto r = f.get();
+                        results.emplace_back(r);
+                    }
+                    catch ( std::runtime_error& e )
+                    {
+                        errors.push_back(e);
+                        error = true;
+                    }
+                    it = threads.erase(it);
+                    s = true;
+                }
+                else
+                {
+                    ++it;
+                }
+            }
+            w += step;
+        }
 
 		if ( error )
 		{
 			if ( errors.empty() )
-				throw std::runtime_error("ERROR ThreadPool::releaseThreadsPassively!");
+				throw std::runtime_error("ERROR ThreadPool::releaseThreadsWaiting!");
 			else
 				throw errors[0];
 		}
@@ -164,7 +167,7 @@ namespace Utils
 	 * @tparam T
 	 */
 	template<typename T>
-	void ThreadPool<T>::releaseThreadActively()
+	void ThreadPool<T>::releaseThreadBlocking()
 	{
 		Future<T>& f = threads.front();
 		try
@@ -177,12 +180,6 @@ namespace Utils
 		{
 			throw;
 		}
-
-//		while ( threads.size() >= pool_size )
-//		{
-//			this_thread::sleep_for(chrono::milliseconds(1));
-//			releaseThreadsPassively();
-//		}
 	}
 
 	/**

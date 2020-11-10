@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "../utils/fifo/Fifo.h"
 #include "PEHeaderPrinter.h"
 #include "PEHeader.h"
 
@@ -63,7 +64,7 @@ int PE_fillImageResourceDirectory(PE_IMAGE_RESOURCE_DIRECTORY* rd,
                                   size_t file_size,
                                   FILE* fp,
                                   unsigned char* block_s);
-int PE_iterateImageResourceDirectory(uint64_t offset,
+int PE_recurseImageResourceDirectory(uint64_t offset,
                                      uint64_t table_fo,
                                      uint16_t nr_of_named_entries,
 									 uint16_t nr_of_id_entries,
@@ -81,6 +82,8 @@ int PE_parseResourceDirectoryEntry(uint16_t id,
                                    size_t file_size,
                                    FILE* fp,
                                    unsigned char* block_s);
+//int PE_iterateImageResourceDirectory(uint64_t offset,uint64_t table_fo,uint16_t nr_of_named_entries,uint16_t nr_of_id_entries,uint16_t level,uint64_t start_file_offset,size_t file_size,FILE* fp,unsigned char* block_s);
+//int PE_parseResourceDirectoryEntryI(uint16_t id,uint64_t offset,uint64_t table_fo,uint16_t nr_of_entries,uint16_t level,uint64_t start_file_offset,size_t file_size,FILE* fp,unsigned char* block_s, PFifo fifo);
 int PE_fillImageResourceDirectoryEntry(PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
                                        uint64_t offset,
                                        uint64_t table_fo,
@@ -508,7 +511,7 @@ void PE_parseImageResourceTable(PE64OptHeader* optional_header,
 		return;
 	PE_printImageResourceDirectory(&rd, table_fo, 0);
 
-	PE_iterateImageResourceDirectory(table_fo + PE_RESOURCE_DIRECTORY_SIZE, table_fo, rd.NumberOfNamedEntries,
+	PE_recurseImageResourceDirectory(table_fo + PE_RESOURCE_DIRECTORY_SIZE, table_fo, rd.NumberOfNamedEntries,
 									rd.NumberOfIdEntries, 0, start_file_offset, file_size, fp, block_s);
 }
 
@@ -548,7 +551,7 @@ int PE_fillImageResourceDirectory(PE_IMAGE_RESOURCE_DIRECTORY* rd,
 	return 0;
 }
 
-int PE_iterateImageResourceDirectory(uint64_t offset,
+int PE_recurseImageResourceDirectory(uint64_t offset,
                                      uint64_t table_fo,
                                      uint16_t
                                      nr_of_named_entries,
@@ -561,10 +564,6 @@ int PE_iterateImageResourceDirectory(uint64_t offset,
 {
 	uint16_t i;
 	int s;
-//	PE_IMAGE_RESOURCE_DIRECTORY rd;
-//	PE_IMAGE_RESOURCE_DIRECTORY_ENTRY re;
-//	PE_IMAGE_RESOURCE_DATA_ENTRY de;
-//	uint32_t dir_offset = 0;
 
 	PE_printImageResourceDirectoryEntryHeader(0, nr_of_named_entries, level);
 	for ( i = 0; i < nr_of_named_entries; i++)
@@ -618,7 +617,7 @@ int PE_parseResourceDirectoryEntry(uint16_t id,
 		if ( s != 0 )
 			return 1;
 		PE_printImageResourceDirectory(&rd, dir_offset, level+1);
-		PE_iterateImageResourceDirectory((uint64_t)dir_offset + PE_RESOURCE_DIRECTORY_SIZE, table_fo, rd.NumberOfNamedEntries,
+		PE_recurseImageResourceDirectory((uint64_t)dir_offset + PE_RESOURCE_DIRECTORY_SIZE, table_fo, rd.NumberOfNamedEntries,
 										rd.NumberOfIdEntries, level + 1, start_file_offset, file_size, fp, block_s);
 	}
 	else
@@ -824,5 +823,126 @@ void PE_parseImageDelayImport(PE64OptHeader* optional_header,
 		printf("No Delayed Imports!\n");
 	}
 }
+
+//typedef struct RdiData
+//{
+//    uint64_t offset;
+//    uint16_t NumberOfNamedEntries;
+//    uint16_t NumberOfIdEntries;
+//    uint16_t level;
+//} RdiData, *PRdiData;
+//
+//int PE_iterateImageResourceDirectory(uint64_t offset,
+//                                     uint64_t table_fo,
+//                                     uint16_t
+//                                     nr_of_named_entries,
+//                                     uint16_t nr_of_id_entries,
+//                                     uint16_t level,
+//                                     uint64_t start_file_offset,
+//                                     size_t file_size,
+//                                     FILE* fp,
+//                                     unsigned char* block_s)
+//{
+//    uint16_t i;
+//    int s;
+//    Fifo fifo;
+//    RdiData rdid;
+//    PRdiData act;
+//    PFifoEntryData act_e;
+//
+//    Fifo_init(&fifo);
+//
+//    rdid.offset = (uint64_t)offset;
+//    rdid.NumberOfNamedEntries = nr_of_named_entries;
+//    rdid.NumberOfIdEntries = nr_of_id_entries;
+//    rdid.level = level;
+//
+//    Fifo_push(&fifo, &rdid, sizeof(RdiData));
+//
+//    while ( !Fifo_empty(&fifo) )
+//    {
+//        act_e = Fifo_front(&fifo);
+//        act = (PRdiData)act_e->bytes;
+//
+//        offset = act->offset;
+//        nr_of_named_entries = act->NumberOfNamedEntries;
+//        nr_of_id_entries = act->NumberOfIdEntries;
+//        level = act->level;
+//
+//        PE_printImageResourceDirectoryEntryHeader(0, nr_of_named_entries, level);
+//        for ( i = 0; i < nr_of_named_entries; i++ )
+//        {
+//            s = PE_parseResourceDirectoryEntryI(i, offset, table_fo, nr_of_named_entries, level, start_file_offset,
+//                                                file_size, fp, block_s, &fifo);
+//            if ( s != 0 )
+//                continue;
+//
+//            offset += PE_RESOURCE_ENTRY_SIZE;
+//        }
+//
+//        PE_printImageResourceDirectoryEntryHeader(1, nr_of_id_entries, level);
+//        for ( i = 0; i < nr_of_id_entries; i++ )
+//        {
+//            s = PE_parseResourceDirectoryEntryI(i, offset, table_fo, nr_of_id_entries, level, start_file_offset,
+//                                                file_size, fp, block_s, &fifo);
+//            if ( s != 0 )
+//                continue;
+//
+//            offset += PE_RESOURCE_ENTRY_SIZE;
+//        }
+//
+//        Fifo_pop_front(&fifo);
+//    }
+//
+//    return 0;
+//}
+//
+//int PE_parseResourceDirectoryEntryI(uint16_t id,
+//                                   uint64_t offset,
+//                                   uint64_t table_fo,
+//                                   uint16_t nr_of_entries,
+//                                   uint16_t level,
+//                                   uint64_t start_file_offset,
+//                                   size_t file_size,
+//                                   FILE* fp,
+//                                   unsigned char* block_s,
+//                                   PFifo fifo)
+//{
+//    PE_IMAGE_RESOURCE_DIRECTORY rd;
+//    PE_IMAGE_RESOURCE_DIRECTORY_ENTRY re;
+//    PE_IMAGE_RESOURCE_DATA_ENTRY de;
+//    RdiData rdid;
+//
+//    int s;
+//    uint32_t dir_offset = 0;
+//
+//    PE_fillImageResourceDirectoryEntry(&re, offset, table_fo, start_file_offset, file_size, fp, block_s);
+//    PE_printImageResourceDirectoryEntry(&re, table_fo, offset, level, id, nr_of_entries, start_file_offset, file_size, fp, block_s);
+//
+//    dir_offset = table_fo + re.OFFSET_UNION.DATA_STRUCT.OffsetToDirectory;
+//
+//    if ( re.OFFSET_UNION.DATA_STRUCT.DataIsDirectory )
+//    {
+//        s = PE_fillImageResourceDirectory(&rd, dir_offset, start_file_offset, file_size, fp, block_s);
+//        if ( s != 0 )
+//            return 1;
+//        PE_printImageResourceDirectory(&rd, dir_offset, level+1);
+////        PE_recurseImageResourceDirectory((uint64_t)dir_offset + PE_RESOURCE_DIRECTORY_SIZE, table_fo, rd.NumberOfNamedEntries,
+////                                         rd.NumberOfIdEntries, level + 1, start_file_offset, file_size, fp, block_s);
+//        rdid.offset = (uint64_t)dir_offset + PE_RESOURCE_DIRECTORY_SIZE;
+//        rdid.NumberOfNamedEntries = rd.NumberOfNamedEntries;
+//        rdid.NumberOfIdEntries = rd.NumberOfIdEntries;
+//        rdid.level = level + 1;
+//
+//        Fifo_push(fifo, &rdid, sizeof(RdiData));
+//    }
+//    else
+//    {
+//        PE_fillImageResourceDataEntry(&de, dir_offset, start_file_offset, file_size, fp, block_s);
+//        PE_printImageResourceDataEntry(&de, dir_offset, level);
+//    }
+//
+//    return 0;
+//}
 
 #endif

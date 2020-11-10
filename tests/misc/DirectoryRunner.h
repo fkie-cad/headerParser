@@ -8,7 +8,7 @@
 #include <vector>
 #include <string>
 
-#include "ThreadPool.h"
+#include "utils/ThreadPool.h"
 
 class DirectoryRunner
 {
