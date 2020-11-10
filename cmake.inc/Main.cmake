@@ -6,8 +6,12 @@ add_executable(
 	)
 target_sources(${HEADER_PARSER} PRIVATE
 	${HEADER_PARSER_SRC}
+	)
+if (WIN32)
+target_sources(${HEADER_PARSER} PRIVATE
 	res/headerParser.rc
 	)
+endif(WIN32)
 
 set(LIB_NAME headerparser)
 set(HEADER_PARSER_SO ${HEADER_PARSER}_shared)
