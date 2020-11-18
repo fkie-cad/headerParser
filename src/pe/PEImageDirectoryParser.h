@@ -364,7 +364,6 @@ void PE_parseImageExportTable(PE64OptHeader* optional_header,
 	char name[0x200];
 
 	uint32_t size;
-	FILE* fi;
 
 	size_t i;
 
@@ -385,13 +384,6 @@ void PE_parseImageExportTable(PE64OptHeader* optional_header,
 	names_offset = PE_Rva2Foa(ied.AddressOfNames, svas, nr_of_sections);
 	names_ordinal_offset = PE_Rva2Foa(ied.AddressOfNameOrdinals, svas, nr_of_sections);
 
-//	fi = fopen(file_name, "rb");
-//	if ( !fi )
-//	{
-//		printf("File %s does not exist.\n", file_name);
-//		return;
-//	}
-
 	PE_printImageExportDirectoryHeader();
 
 	// iterate through the blocks
@@ -399,22 +391,22 @@ void PE_parseImageExportTable(PE64OptHeader* optional_header,
 	{
 //		if ( functions_offset + 4 >= file_size )
 //			continue;
-		fseek(fi, functions_offset, SEEK_SET);
-		size = fread(&function_rva, 1, 4, fi);
+		fseek(fp, functions_offset, SEEK_SET);
+		size = fread(&function_rva, 1, 4, fp);
 		if ( size != 4 )
 			continue;
 
 //		if ( names_offset + 4 >= file_size )
 //			continue;
-		fseek(fi, names_offset, SEEK_SET);
-		size = fread(&name_rva, 1, 4, fi);
+		fseek(fp, names_offset, SEEK_SET);
+		size = fread(&name_rva, 1, 4, fp);
 		if ( size != 4 )
 			continue;
 
 //		if ( names_ordinal_offset + 2 >= file_size )
 //			continue;
-		fseek(fi, names_ordinal_offset, SEEK_SET);
-		size = fread(&name_ordinal, 1, 2, fi);
+		fseek(fp, names_ordinal_offset, SEEK_SET);
+		size = fread(&name_ordinal, 1, 2, fp);
 		if ( size != 2 )
 			continue;
 
@@ -442,8 +434,6 @@ void PE_parseImageExportTable(PE64OptHeader* optional_header,
 
 		PE_printImageExportDirectoryEntry(i, name, 0x200, name_ordinal, block_s, size, function_rva, function_fo);
 	}
-
-//    fclose(fi);
 }
 
 int PE_fillImageExportDirectory(PE_IMAGE_EXPORT_DIRECTORY* ied,
