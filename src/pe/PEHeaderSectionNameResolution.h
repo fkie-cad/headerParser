@@ -160,7 +160,7 @@ int PE_loadStringTable(PECoffFileHeader* coff_header,
 
 	debug_info(" - - ptr to symbol table: 0x%X\n", coff_header->PointerToSymbolTable);
 	debug_info(" - - number of symbols: %u\n", coff_header->NumberOfSymbols);
-	debug_info(" - - pointer to string table: %lu\n", ptr_to_string_table);
+	debug_info(" - - pointer to string table: %"PRIu64"\n", ptr_to_string_table);
 
 	if ( coff_header->PointerToSymbolTable == 0 || coff_header->NumberOfSymbols == 0 || ptr_to_string_table == 0 )
 		return 3;
@@ -171,7 +171,7 @@ int PE_loadStringTable(PECoffFileHeader* coff_header,
 
 	end_of_string_table = ptr_to_string_table + st->size;
 	debug_info(" - - size of string table: %u\n", st->size);
-	debug_info(" - - end_of_string_table: %lu\n", end_of_string_table);
+	debug_info(" - - end_of_string_table: %"PRIu64"\n", end_of_string_table);
 	if ( st->size == 0 )
 		return 1;
 
@@ -197,7 +197,7 @@ uint32_t PE_getSizeOfStringTable(uint64_t ptr_to_string_table, uint64_t start_fi
 
 	if ( start_file_offset + end_of_size_info > file_size )
 	{
-		header_info("INFO: Image size info (%lu) is written beyond file_size (%zu)\n", start_file_offset + end_of_size_info, file_size);
+		header_info("INFO: Image size info (%"PRIu64") is written beyond file_size (%zu)\n", start_file_offset + end_of_size_info, file_size);
 		return 0;
 	}
 

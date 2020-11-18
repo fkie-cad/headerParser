@@ -264,7 +264,7 @@ void MachO_readCommands(uint32_t ncmds,
 	for ( i = 0; i < ncmds; i++ )
 	{
 		debug_info("%u/%u:\n", i+1,ncmds);
-		debug_info(" - sc_offset: 0x%lx (%lu)\n", sc_offset, sc_offset);
+		debug_info(" - sc_offset: 0x%"PRIx64" (%"PRIu64")\n", sc_offset, sc_offset);
 
 		if ( info_level >= INFO_LEVEL_FULL )
 			printf("(%u/%u):\n", i+1, ncmds);
@@ -279,7 +279,7 @@ void MachO_readCommands(uint32_t ncmds,
 
 		debug_info(" - lc.cmd: %u\n", lc.cmd);
 		debug_info(" - lc.cmdsize: %u\n", lc.cmdsize);
-		debug_info(" - sc_offset + lc.cmdsize: %lu\n", sc_offset + lc.cmdsize);
+		debug_info(" - sc_offset + lc.cmdsize: %"PRIu64"\n", sc_offset + lc.cmdsize);
 		debug_info(" - file_size: %zu\n", file_size);
 
 		if ( !checkFileSpace(sc_offset, *abs_file_offset, lc.cmdsize, file_size) )
@@ -590,7 +590,7 @@ uint64_t MachO_readSections(SegmentCommand64* c,
 	uint32_t sect_size = (hd->bitness == 64 ) ? SIZE_OF_MACHO_O_SECTEION_HEADER_64 : SIZE_OF_MACHO_O_SECTEION_HEADER_32;
 
 	debug_info(" - MachoOreadSections\n");
-	debug_info(" - - offset: %lu\n", offset);
+	debug_info(" - - offset: %"PRIu64"\n", offset);
 
 	if ( hd->bitness == 64 )
 		offsets = MachOsectionOffsets64;
@@ -599,7 +599,7 @@ uint64_t MachO_readSections(SegmentCommand64* c,
 
 	for ( i = 0; i < c->nsects; i++ )
 	{
-		debug_info(" - offset: %lu\n", offset);
+		debug_info(" - offset: %"PRIu64"\n", offset);
 
 		if ( !checkFileSpace(offset, *abs_file_offset, sect_size, file_size) )
 			return UINT32_MAX;
@@ -636,7 +636,7 @@ void MachO_readSection(MachOSection64* sec,
 	ptr = &block_l[offset];
 	uint32_t i;
 	debug_info(" - - MachO_readSection\n");
-	debug_info(" - - - offset: %lu\n", offset);
+	debug_info(" - - - offset: %"PRIu64"\n", offset);
 
 	for ( i = 0; i < MACH_O_SEG_NAME_LN; i++ )
 	{
@@ -1124,11 +1124,11 @@ void MachO_fillBuildVersionCommand(BuildVersionCommand* c,
 
 	if ( hd->endian == ENDIAN_BIG )
 	{
-		c->platform = swapUint64(c->platform);
-		c->minos = swapUint64(c->minos);
-		c->sdk = swapUint64(c->sdk);
-		c->ntools = swapUint64(c->ntools);
-//		c->tools = swapUint64(c->tools);
+		c->platform = swapUint32(c->platform);
+		c->minos = swapUint32(c->minos);
+		c->sdk = swapUint32(c->sdk);
+		c->ntools = swapUint32(c->ntools);
+//		c->tools = swapUint32(c->tools);
 	}
 
 	if ( info_level >= INFO_LEVEL_FULL )

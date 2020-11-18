@@ -267,7 +267,7 @@ int parsePEHeader(uint8_t force,
 		return 5;
 
 	optional_header_offset = (uint64_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE + PE_COFF_FILE_HEADER_SIZE;
-	debug_info(" - optional_header_offset: #%lx (%lu)\n", optional_header_offset, optional_header_offset);
+	debug_info(" - optional_header_offset: #%"PRIx64" (%"PRIu64")\n", optional_header_offset, optional_header_offset);
 	s = PE_readOptionalHeader(optional_header_offset, opt_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large);
 	if ( s != 0 ) return 6;
 
@@ -280,7 +280,7 @@ int parsePEHeader(uint8_t force,
 //#if defined(_WIN32)
 //	debug_info(" - section_header_offset: #%llx (%llu)\n", section_header_offset, section_header_offset);
 //#else
-//	debug_info(" - section_header_offset: #%lx (%lu)\n", section_header_offset, section_header_offset);
+//	debug_info(" - section_header_offset: #%"PRIx64" (%lu)\n", section_header_offset, section_header_offset);
 //#endif
 	debug_info(" - section_header_offset: #%"PRIx64" (%"PRIu64")\n", section_header_offset, section_header_offset);
 	PE_readSectionHeader(section_header_offset, coff_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->info_level,
@@ -340,7 +340,7 @@ int PE_readImageDosHeader(PEImageDosHeader* idh,
 	unsigned char *ptr;
 
 	debug_info("readImageDosHeader()\n");
-	debug_info(" - file_offset: %lX\n", file_offset);
+	debug_info(" - file_offset: %"PRIx64"\n", file_offset);
 
 	if ( !checkFileSpace(0, file_offset, sizeof(PEImageDosHeader), file_size) )
 		return 1;
@@ -400,7 +400,7 @@ uint8_t PE_checkPESignature(const uint32_t e_lfanew,
 	unsigned char is_ne = 0;
 	unsigned char is_le = 0;
 	unsigned char is_lx = 0;
-	uint32_t size;
+	size_t size;
 
 	if ( !checkFileSpace(e_lfanew, file_offset, SIZE_OF_MAGIC_PE_SIGNATURE , file_size) )
 		return 0;
@@ -541,7 +541,7 @@ uint8_t PE_readOptionalHeader(uint64_t offset,
 {
 	PEOptionalHeaderOffsets offsets = PEOptional64HeaderOffsets;
 	unsigned char *ptr;
-	uint32_t size;
+	size_t size;
 	uint32_t i;
 	uint8_t size_of_data_entry = sizeof(PEDataDirectory);
 	uint64_t data_entry_offset;
@@ -718,7 +718,7 @@ void PE_readSectionHeader(uint64_t header_start,
 	CodeRegionData code_region_data;
 	uint16_t nr_of_sections = ch->NumberOfSections;
 	uint16_t i = 0;
-	uint32_t size;
+	size_t size;
 
 	if ( parse_svas == 1 )
 		*svas = (SVAS*) calloc(nr_of_sections, sizeof(SVAS));
@@ -960,7 +960,7 @@ uint8_t PE_hasHeaderAtOffset(uint64_t offset,
 	int s = 0;
 	uint8_t pe_header_type = 0;
 //	uint32_t size = readCustomBlock(file_name, offset, BLOCKSIZE_LARGE, block_l);
-	uint32_t size = readFile(fp, offset, BLOCKSIZE_LARGE, block_l);
+	size_t size = readFile(fp, offset, BLOCKSIZE_LARGE, block_l);
 	if ( size == 0 )
 	{
 		header_error("ERROR: PE_hasHeaderAtOffset: Read large block failed.\n");

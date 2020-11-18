@@ -159,7 +159,7 @@ uint8_t DEX_readItemIds(uint64_t offset,
 						PGlobalParams gp,
 						char** strings)
 {
-	uint32_t i;
+	size_t i;
 
 	if ( !checkFileSpace(offset, gp->start_file_offset, DEX_FILE_HEADER_SIZE, gp->file_size) )
 		return 2;
@@ -199,7 +199,7 @@ void DEX_fillStringIdItem(uint32_t offset,
 						  PGlobalParams gp,
 						  char** strings)
 {
-	uint32_t r_size;
+	size_t r_size;
 	uint32_t utf16_size;
 	uint8_t utf16_size_ln;
 	DexStringIdItem item;
@@ -331,7 +331,7 @@ uint8_t DEX_readMap(DEXFileHeader *fh,
 					size_t file_size)
 {
 	unsigned char* ptr;
-	uint32_t i;
+	size_t i;
 	uint32_t item_size = DEX_SIZE_OF_MAP_ITEM;
 	uint64_t offset = fh->map_off;
 	DexMapList l;

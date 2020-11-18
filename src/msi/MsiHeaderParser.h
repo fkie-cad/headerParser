@@ -119,16 +119,16 @@ uint8_t MSI_searchPEs(MSIStructuredStorageHeader* ssh,
 				first_pe_offset = offset;
 			}
 			pe_count++;
-			debug_info(" - found PE at %lx\n", offset);
+			debug_info(" - found PE at %"PRIx64"\n", offset);
 		}
 	}
-	debug_info(" - first_pe_offset: %lx\n", first_pe_offset);
+	debug_info(" - first_pe_offset: %"PRIx64"\n", first_pe_offset);
 
 	if ( first_pe_offset != 0 )
 	{
 		if ( gp->info_level >= INFO_LEVEL_FULL )
 		{
-			printf("PE file %u/%u at offset 0x%lx:\n", 1, pe_count, first_pe_offset);
+			printf("PE file %u/%u at offset 0x%"PRIx64":\n", 1, pe_count, first_pe_offset);
 		}
         gp->start_file_offset = first_pe_offset;
 		gp->abs_file_offset = first_pe_offset;

@@ -111,7 +111,7 @@ void DEX_printStringIdItem(DexStringIdItem* item, DexStringDataItem* di, char** 
 {
 	Dex_String_Id_Item_Offsets offsets = DexStringIdItemOffsets;
 
-	int i;
+	size_t i;
 	printf(" - String Id Item (%u / %u):\n", idx, ln);
 	printf("   - string_data_offset%s: 0x%x\n", fillOffset(offsets.offset, offset, 0), item->offset);
 	printf("   - string_data:\n");

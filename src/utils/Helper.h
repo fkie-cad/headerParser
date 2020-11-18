@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
 
 #include "../Globals.h"
 
@@ -59,7 +60,7 @@ uint8_t blockIsTooSmall(const uint64_t header_end)
 {
 	debug_info("blockIsTooSmall()\n");
 	debug_info(" - BLOCKSIZE_LARGE: %u\n", BLOCKSIZE_LARGE);
-	debug_info(" - header_end: %lu\n", header_end);
+	debug_info(" - header_end: %"PRIu64"\n", header_end);
 	return BLOCKSIZE_LARGE < header_end;
 }
 

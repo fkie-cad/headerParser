@@ -88,8 +88,8 @@ void parseZip(PHeaderData hd, PGlobalParams gp)
 			break;
 
 		debug_info("magic: %02x%02x%02x%02x\n", gp->block_large[offset], gp->block_large[offset+1], gp->block_large[offset+2], gp->block_large[offset+3]);
-		debug_info("offset: 0x%lx\n", offset);
-		debug_info("abs_file_offset: 0x%lx\n", gp->abs_file_offset);
+		debug_info("offset: 0x%"PRIx64"\n", offset);
+		debug_info("abs_file_offset: 0x%"PRIx64"\n", gp->abs_file_offset);
 
 		if ( checkBytes(MAGIC_ZIP_FILE_ENTRY_BYTES, MAGIC_ZIP_BYTES_LN, &gp->block_large[offset]) )
 		{
@@ -178,7 +178,7 @@ uint64_t ZIP_handleFileRecord(uint64_t offset,
 
 	if ( !checkFileSpace(offset, *abs_file_offset, size_of_entry, file_size) )
 		return UINT64_MAX;
-	debug_info("offset: 0x%lx\n", offset);
+	debug_info("offset: 0x%"PRIx64"\n", offset);
 	if ( !checkLargeBlockSpace(&offset, abs_file_offset, size_of_entry, block_l, fp) )
 		return UINT64_MAX;
 
@@ -192,17 +192,17 @@ uint64_t ZIP_handleFileRecord(uint64_t offset,
 	ZIP_checkNeedles(&fr, offset, found_needles, record_count, *abs_file_offset, file_size, fp, block_s, block_l);
 
 	debug_info(" - - - frDataDescr.ddCompressedSize: 0x%x (%u)\n", fr.dataDescr.ddCompressedSize, fr.dataDescr.ddCompressedSize);
-	offset += size_of_entry + fr.compressedSize + fr.fileNameLength + fr.extraFieldLength;
+	offset += fr.compressedSize + fr.fileNameLength + fr.extraFieldLength + size_of_entry;
 //	offset += size_of_entry + ((fr.compressedSize > 0) ? fr.compressedSize : fr.uncompressedSize) + fr.fileNameLength + fr.extraFieldLength;
-	debug_info(" - abs_file_offset+offset: 0x%lx + 0x%lx =  0x%lx\n", *abs_file_offset, offset, (*abs_file_offset+offset));
+	debug_info(" - abs_file_offset+offset: 0x%"PRIx64" + 0x%"PRIx64" =  0x%"PRIx64"\n", *abs_file_offset, offset, (*abs_file_offset+offset));
 	if ( ZIP_usesDataDescritpor(&fr) )
 		offset = dd_offset + SIZE_OF_ZIP_DATA_DESCRIPTION - *abs_file_offset;
 //		offset += SIZE_OF_ZIP_DATA_DESCRIPTION;
 //		if ( fr.compressedSize == 0 )
 //			offset += fr.dataDescr.ddCompressedSize;
 
-	debug_info(" - abs_file_offset+offset: 0x%lx + 0x%lx =  0x%lx\n", *abs_file_offset, offset, (*abs_file_offset+offset));
-	debug_info(" - offset += dd_offset + SIZE_OF_ZIP_DATA_DESCRIPTION - abs_file_offset: 0x%lx + 0x%x - 0x%lx =  0x%lx\n",
+	debug_info(" - abs_file_offset+offset: 0x%"PRIx64" + 0x%"PRIx64" =  0x%"PRIx64"\n", *abs_file_offset, offset, (*abs_file_offset+offset));
+	debug_info(" - offset += dd_offset + SIZE_OF_ZIP_DATA_DESCRIPTION - abs_file_offset: 0x%zx+ 0x%x - 0x%"PRIx64" =  0x%"PRIx64"\n",
 			dd_offset, SIZE_OF_ZIP_DATA_DESCRIPTION, *abs_file_offset, (dd_offset+ SIZE_OF_ZIP_DATA_DESCRIPTION- *abs_file_offset));
 
 
@@ -219,6 +219,7 @@ size_t ZIP_fillRecored(ZipFileRecord* fr,
 {
 	size_t dd_offset = 0;
 	int i;
+	size_t r_size;
 
 	for ( i = 0; i < MAGIC_ZIP_BYTES_LN; i++ )
 		fr->signature[i] = (char)ptr[ZipFileRecoredOffsets.signature + i];
@@ -243,11 +244,11 @@ size_t ZIP_fillRecored(ZipFileRecord* fr,
 		dd_offset = ZIP_findDataDescriptionOffset(offset, fr, abs_file_offset, file_size, fp, block_s);
 //		dd_offset = ZIP_findDataDescriptionOffset(offset + fr->fileNameLength + ZipFileRecoredOffsets.fileName);
 //		uint32_t r_size = readCustomBlock(file_name, dd_offset, BLOCKSIZE, block_s);
-		uint32_t r_size = readFile(fp, dd_offset, BLOCKSIZE, block_s);
+		r_size = readFile(fp, dd_offset, BLOCKSIZE, block_s);
 		if ( r_size == 0 )
 			return 0;
-		debug_info(" - - dd_offset: 0x%lx\n", dd_offset);
-		debug_info(" - - abs_file_offset +  dd_offset: 0x%lx\n", abs_file_offset + dd_offset);
+		debug_info(" - - dd_offset: 0x%zx\n", dd_offset);
+		debug_info(" - - abs_file_offset +  dd_offset: 0x%"PRIx64"\n", abs_file_offset + dd_offset);
 		if ( dd_offset < UINT64_MAX )
 		{
 			ptr = &block_s[0];
@@ -316,7 +317,7 @@ uint64_t ZIP_findDataDescriptionOffset(uint64_t offset,
 	uint64_t dd_offset;
 	uint64_t f_offset;
 	const unsigned char* ptr;
-	uint32_t r_size;
+	size_t r_size;
 	size_t bytes_searched = 0;
 
 	if ( fr->compressedSize != 0 )
@@ -324,7 +325,6 @@ uint64_t ZIP_findDataDescriptionOffset(uint64_t offset,
 		// if compressed size, dd should immediately follow ?
 		dd_offset =  abs_file_offset + offset + MIN_SIZE_OF_ZIP_RECORD + fr->compressedSize + fr->fileNameLength + fr->extraFieldLength;
 
-//		r_size = readCustomBlock(file_name, dd_offset, BLOCKSIZE, block_s);
 		r_size = readFile(fp, dd_offset, BLOCKSIZE, block_s);
 		if ( r_size == 0 )
 			return UINT64_MAX;
@@ -356,8 +356,8 @@ uint64_t ZIP_findDataDescriptionOffset(uint64_t offset,
 		return UINT64_MAX;
 	offset = 0;
 	debug_info(" - - ZIP_findDataDescriptionOffset\n");
-	debug_info(" - - - offset: 0x%lx\n", offset);
-	debug_info(" - - - f_offset: 0x%lx\n", f_offset);
+	debug_info(" - - - offset: 0x%"PRIx64"\n", offset);
+	debug_info(" - - - f_offset: 0x%"PRIx64"\n", f_offset);
 
 	while ( 1 )
 	{
@@ -377,7 +377,7 @@ uint64_t ZIP_findDataDescriptionOffset(uint64_t offset,
 			*((uint32_t*) &ptr[ZipDataDescriptionOffsets.compressedSize]) == bytes_searched
 		)
 		{
-			debug_info(" - - - - found 0x%lx\n", offset);
+			debug_info(" - - - - found 0x%"PRIx64"\n", offset);
 			return f_offset + offset;
 		}
 
@@ -385,7 +385,7 @@ uint64_t ZIP_findDataDescriptionOffset(uint64_t offset,
 		bytes_searched++;
 		if ( f_offset + SIZE_OF_ZIP_DATA_DESCRIPTION > file_size )
 		{
-			debug_info(" - - - - f_offset (%lu) + %u = (%lu) > file_size (%zu)\n", f_offset, SIZE_OF_ZIP_DATA_DESCRIPTION, f_offset+3, file_size);
+			debug_info(" - - - - f_offset (%"PRIu64") + %u = (%"PRIu64") > file_size (%zu)\n", f_offset, SIZE_OF_ZIP_DATA_DESCRIPTION, f_offset+3, file_size);
 			break;
 		}
 	}
@@ -419,7 +419,7 @@ uint64_t ZIP_handleDirEntry(uint64_t offset,
 		ZIP_printDirEntry(&de, ptr, record_count, *abs_file_offset + offset, file_size, fp, block_s);
 
 	offset += size_of_entry + de.fileNameLength + de.fileCommentLength + de.extraFieldLength;
-	debug_info(" - abs_file_offset+offset: 0x%lx (%lu)\n", *abs_file_offset+offset, *abs_file_offset+offset);
+	debug_info(" - abs_file_offset+offset: 0x%"PRIx64" (%"PRIu64")\n", *abs_file_offset+offset, *abs_file_offset+offset);
 
 	return offset;
 }
@@ -463,7 +463,7 @@ uint64_t ZIP_handleEndLocator(uint64_t offset,
 	uint8_t size_of_entry = MIN_SIZE_OF_ZIP_END_LOCATOR;
 
 	debug_info("ZIP_handleEndLocator\n");
-	debug_info("offset: %lu\n", offset);
+	debug_info("offset: %"PRIu64"\n", offset);
 
 	if ( !checkFileSpace(offset, *abs_file_offset, size_of_entry, file_size) )
 		return UINT64_MAX;
@@ -474,7 +474,7 @@ uint64_t ZIP_handleEndLocator(uint64_t offset,
 
 	ZIP_fillEndLocator(&el, ptr);
 
-	debug_info(" - abs_file_offset+offset: 0x%lx (%lu)\n", *abs_file_offset+offset, *abs_file_offset+offset);
+	debug_info(" - abs_file_offset+offset: 0x%"PRIx64" (%"PRIu64")\n", *abs_file_offset+offset, *abs_file_offset+offset);
 
 	if ( info_level >= INFO_LEVEL_FULL )
 		ZIP_printEndLocator(&el, ptr, *abs_file_offset + offset, file_size, fp, block_s);

@@ -149,7 +149,7 @@ void PE_parseImageImportTable(PE64OptHeader* optional_header,
                               unsigned char* block_l,
                               unsigned char* block_s)
 {
-    uint32_t size;
+    size_t size;
     uint64_t offset;
     
     uint64_t rva_offset;
@@ -183,8 +183,8 @@ void PE_parseImageImportTable(PE64OptHeader* optional_header,
         return;
     offset = 0;
 
-    debug_info("offset: 0x%zx\n", offset);
-    debug_info("abs_file_offset: 0x%zx\n", abs_file_offset);
+    debug_info("offset: 0x%"PRIx64"\n", offset);
+    debug_info("abs_file_offset: 0x%"PRIx64"\n", abs_file_offset);
     PE_fillImportDescriptor(&import_desciptor, &offset, abs_file_offset, file_size, fp, block_l);
 
     PE_printImageImportTableHeader(&import_desciptor);
@@ -384,7 +384,7 @@ void PE_parseImageExportTable(PE64OptHeader* optional_header,
     uint16_t name_ordinal;
     char name[0x200];
 
-    uint32_t size;
+    size_t size;
 
     size_t i;
 
@@ -766,8 +766,8 @@ int PE_parseImageBaseRelocationTable(PE64OptHeader* optional_header,
     offset = 0;
     reloc_o = 0;
 
-    debug_info("offset: 0x%zx\n", offset);
-    debug_info("abs_file_offset: 0x%zx\n", *abs_file_offset);
+    debug_info("offset: 0x%"PRIx64"\n", offset);
+    debug_info("abs_file_offset: 0x%"PRIx64"\n", *abs_file_offset);
     debug_info("reloc->Size: 0x%x\n", reloc->Size);
     debug_info("sizeof(PE_BASE_RELOCATION_BLOCK): 0x%zx\n", sizeof(PE_BASE_RELOCATION_BLOCK));
     debug_info("sizeof(PE_BASE_RELOCATION_ENTRY): 0x%zx\n", sizeof(PE_BASE_RELOCATION_ENTRY));
@@ -791,7 +791,7 @@ int PE_parseImageBaseRelocationTable(PE64OptHeader* optional_header,
         debug_info(" - VirtualAddress: 0x%x\n", block.VirtualAddress);
         debug_info(" - SizeOfBlock: 0x%x\n", block.SizeOfBlock);
         debug_info(" - nr_of_entries: 0x%x\n", nr_of_entries);
-        debug_info(" - - expected new block offset: 0x%lx\n", (offset + block.SizeOfBlock));
+        debug_info(" - - expected new block offset: 0x%"PRIx64"\n", (offset + block.SizeOfBlock));
 
         offset += sizeof(PE_BASE_RELOCATION_BLOCK);
         for ( e_i = 0; e_i < nr_of_entries; e_i++ )
@@ -811,7 +811,7 @@ int PE_parseImageBaseRelocationTable(PE64OptHeader* optional_header,
             offset += sizeof(PE_BASE_RELOCATION_ENTRY);
         }
 
-        debug_info(" - - new block offset: 0x%lx\n", offset);
+        debug_info(" - - new block offset: 0x%"PRIx64"\n", offset);
         //offset += block.SizeOfBlock;
         reloc_o += block.SizeOfBlock;
         b_i++;
@@ -841,7 +841,7 @@ void PE_parseImageDelayImport(PE64OptHeader* optional_header,
                               FILE* fp,
                               unsigned char* block_l)
 {
-    uint32_t size;
+    size_t size;
     uint64_t offset;
 
     uint32_t vaddr;

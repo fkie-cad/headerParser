@@ -215,10 +215,10 @@ void MachO_printSegmentCommand(const SegmentCommand64* c, uint64_t offset, uint8
 	MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
 	printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
 //	printf(" - segname%s: %s\n", c->segname);
-	printf(" - vmaddr%s: 0x%lx\n", fillOffset(offsets.vmaddr, offset, 0), c->vmaddr);
-	printf(" - vmsize%s: 0x%lx\n", fillOffset(offsets.vmsize, offset, 0), c->vmsize);
-	printf(" - fileoff%s: 0x%lx\n", fillOffset(offsets.fileoff, offset, 0), c->fileoff);
-	printf(" - filesize%s: 0x%lx (%lu)\n", fillOffset(offsets.filesize, offset, 0), c->filesize, c->filesize);
+	printf(" - vmaddr%s: 0x%"PRIx64"\n", fillOffset(offsets.vmaddr, offset, 0), c->vmaddr);
+	printf(" - vmsize%s: 0x%"PRIx64"\n", fillOffset(offsets.vmsize, offset, 0), c->vmsize);
+	printf(" - fileoff%s: 0x%"PRIx64"\n", fillOffset(offsets.fileoff, offset, 0), c->fileoff);
+	printf(" - filesize%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.filesize, offset, 0), c->filesize, c->filesize);
 	printf(" - maxprot%s: 0x%x\n", fillOffset(offsets.maxprot, offset, 0), c->maxprot);
 	printf(" - initprot%s: 0x%x\n", fillOffset(offsets.initprot, offset, 0), c->initprot);
 	printf(" - nsects%s: %u\n", fillOffset(offsets.nsects, offset, 0), c->nsects);
@@ -247,8 +247,8 @@ void MachO_printSection(const MachOSection64* sec, uint32_t idx, uint32_t ln, ui
 	for ( i = 0; i < MACH_O_SEG_NAME_LN; i++ )
 		printf("%c", sec->sectname[i]);
 	printf("\n");
-	printf("   - addr%s: 0x%lx\n", fillOffset(offsets.addr, offset, 0), sec->addr);
-	printf("   - size%s: 0x%lx\n", fillOffset(offsets.size, offset, 0), sec->size);
+	printf("   - addr%s: 0x%"PRIx64"\n", fillOffset(offsets.addr, offset, 0), sec->addr);
+	printf("   - size%s: 0x%"PRIx64"\n", fillOffset(offsets.size, offset, 0), sec->size);
 	printf("   - offset%s: 0x%x\n", fillOffset(offsets.offset, offset, 0), sec->offset);
 	printf("   - align%s: 0x%x\n", fillOffset(offsets.align, offset, 0), sec->align);
 	printf("   - reloff%s: %u\n", fillOffset(offsets.reloff, offset, 0), sec->reloff);
@@ -435,14 +435,14 @@ void MachO_printRoutinesCommand(RoutinesCommand64* c, uint64_t offset, uint8_t b
 	printf("Routines Command (%s)\n", type);
 	printf(" - cmd%s: 0x%x (%u)\n", fillOffset(offsets.cmd, offset, 0), c->cmd, c->cmd);
 	printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
-	printf(" - init_module%s: %lu\n", fillOffset(offsets.init_module, offset, 0), c->init_module);
-	printf(" - init_address%s: 0x%lx (%lu)\n", fillOffset(offsets.init_address, offset, 0), c->init_address, c->init_address);
-	printf(" - reserved1%s: 0x%lx\n", fillOffset(offsets.reserved1, offset, 0), c->reserved1);
-	printf(" - reserved2%s: 0x%lx\n", fillOffset(offsets.reserved2, offset, 0), c->reserved2);
-	printf(" - reserved3%s: 0x%lx\n", fillOffset(offsets.reserved3, offset, 0), c->reserved3);
-	printf(" - reserved4%s: 0x%lx\n", fillOffset(offsets.reserved4, offset, 0), c->reserved4);
-	printf(" - reserved5%s: 0x%lx\n", fillOffset(offsets.reserved5, offset, 0), c->reserved5);
-	printf(" - reserved6%s: 0x%lx\n", fillOffset(offsets.reserved6, offset, 0), c->reserved6);
+	printf(" - init_module%s: %"PRIu64"\n", fillOffset(offsets.init_module, offset, 0), c->init_module);
+	printf(" - init_address%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.init_address, offset, 0), c->init_address, c->init_address);
+	printf(" - reserved1%s: 0x%"PRIx64"\n", fillOffset(offsets.reserved1, offset, 0), c->reserved1);
+	printf(" - reserved2%s: 0x%"PRIx64"\n", fillOffset(offsets.reserved2, offset, 0), c->reserved2);
+	printf(" - reserved3%s: 0x%"PRIx64"\n", fillOffset(offsets.reserved3, offset, 0), c->reserved3);
+	printf(" - reserved4%s: 0x%"PRIx64"\n", fillOffset(offsets.reserved4, offset, 0), c->reserved4);
+	printf(" - reserved5%s: 0x%"PRIx64"\n", fillOffset(offsets.reserved5, offset, 0), c->reserved5);
+	printf(" - reserved6%s: 0x%"PRIx64"\n", fillOffset(offsets.reserved6, offset, 0), c->reserved6);
 }
 
 void MachO_printVersionMinCommand(VersionMinCommand* c, uint64_t offset)
@@ -546,7 +546,7 @@ void MachO_printSourceVersionCommand(SourceVersionCommand* c, uint64_t offset)
 	printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
 	// a24.b10.c10.d10.e10.
 	MachO_printLUhd("version", offsets.version, offset, c->version);
-//	printf(" - version%s: %u.%u.%u.%u.%u (%lx)\n", fillOffset(offsets.version, offset, 0), v_a, v_b, v_c, v_d, v_e, c->version);
+//	printf(" - version%s: %u.%u.%u.%u.%u (%"PRIx64")\n", fillOffset(offsets.version, offset, 0), v_a, v_b, v_c, v_d, v_e, c->version);
 }
 
 void MachO_printMainDylibCommand(MainDylibCommand* c, uint64_t offset)
@@ -576,7 +576,7 @@ void MachO_printBuildVersionCommand(BuildVersionCommand* c, uint64_t offset)
 
 void MachO_printLUhd(char* label, uint64_t struct_offset, uint64_t file_offset, uint64_t value)
 {
-	printf(" - %s%s: 0x%lx (%lu)\n",
+	printf(" - %s%s: 0x%"PRIx64" (%"PRIu64")\n",
 			label, fillOffset(struct_offset, file_offset, 0), value, value);
 }
 

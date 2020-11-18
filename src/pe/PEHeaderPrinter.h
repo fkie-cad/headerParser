@@ -237,10 +237,10 @@ void PE_printOptionalHeader(PE64OptHeader* oh, uint64_t offset, uint64_t start_f
             "IMAGE_DLLCHARACTERISTICS_GUARD_CF: Image supports Control Flow Guard.", dll_c_pre, dll_c_post);
     printFlag32F(oh->DLLCharacteristics, IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE,
             "IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE: Terminal Server aware.", dll_c_pre, dll_c_post);
-    printf(" - SizeOfStackReserve%s: 0x%lX (%lu)\n", fillOffset(offsets.SizeOfStackReserve, offset, start_file_offset), oh->SizeOfStackReserve, oh->SizeOfStackReserve);
-    printf(" - SizeOfStackCommit%s: 0x%lX (%lu)\n", fillOffset(offsets.SizeOfStackCommit, offset, start_file_offset), oh->SizeOfStackCommit, oh->SizeOfStackCommit);
-    printf(" - SizeOfHeapReserve%s: 0x%lX (%lu)\n", fillOffset(offsets.SizeOfHeapReserve, offset, start_file_offset), oh->SizeOfHeapReserve, oh->SizeOfHeapReserve);
-    printf(" - SizeOfHeapCommit%s: 0x%lX (%lu)\n", fillOffset(offsets.SizeOfHeapCommit, offset, start_file_offset), oh->SizeOfHeapCommit, oh->SizeOfHeapCommit);
+    printf(" - SizeOfStackReserve%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.SizeOfStackReserve, offset, start_file_offset), oh->SizeOfStackReserve, oh->SizeOfStackReserve);
+    printf(" - SizeOfStackCommit%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.SizeOfStackCommit, offset, start_file_offset), oh->SizeOfStackCommit, oh->SizeOfStackCommit);
+    printf(" - SizeOfHeapReserve%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.SizeOfHeapReserve, offset, start_file_offset), oh->SizeOfHeapReserve, oh->SizeOfHeapReserve);
+    printf(" - SizeOfHeapCommit%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.SizeOfHeapCommit, offset, start_file_offset), oh->SizeOfHeapCommit, oh->SizeOfHeapCommit);
     printf(" - NumberOfRvaAndSizes%s: 0x%X (%u)\n", fillOffset(offsets.NumberOfRvaAndSizes, offset, start_file_offset), oh->NumberOfRvaAndSizes, oh->NumberOfRvaAndSizes);
     PE_printDataDirectory(oh, offset, bitness);
     printf("\n");
@@ -438,8 +438,8 @@ void PE_printImageExportDirectoryHeader()
 
 void PE_printImageExportDirectoryEntry(size_t i, uint32_t n_fun, const char* name, int name_max, uint16_t name_ordinal, unsigned char* bytes, size_t bytes_max, uint32_t rva, uint64_t fo)
 {
-    int j;
-    int nr_of_bytes = 0x10;
+    size_t j;
+    size_t nr_of_bytes = 0x10;
     if ( nr_of_bytes > bytes_max )
         nr_of_bytes = bytes_max;
 
@@ -636,7 +636,7 @@ void PE_printImageBaseRelocationTable()
 
 void PE_printImageBaseRelocationBlockHeader(PE_BASE_RELOCATION_BLOCK* b, uint32_t i, uint64_t start_file_offset)
 {
-    printf(" - Block %zu:\n", i);
+    printf(" - Block %u:\n", i);
     printf("   - Virtual Address%s: 0x%x:\n", fillOffset(PeBaseRelocationBlockOffsets.VirtualAddress, 0, start_file_offset), b->VirtualAddress);
     printf("   - SizeOfBlock%s: 0x%x:\n", fillOffset(PeBaseRelocationBlockOffsets.SizeOfBlock, 0, start_file_offset), b->SizeOfBlock);
 }

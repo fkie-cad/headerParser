@@ -137,7 +137,7 @@ void printBinUint64(uint64_t n)
 	int c, k;
 	for ( c = 63; c >= 0; c--)
 	{
-		k = n >> c;
+		k = (int)(n >> c);
 
 		if ( k & 1 )
 			printf("1");
@@ -200,7 +200,7 @@ void uint64ToBin(uint64_t n, char* output)
 	int last_i = 63;
 	for ( c = last_i; c >= 0; c--)
 	{
-		k = n >> c;
+		k = (int)(n >> c);
 
 		if ( k & 1 )
 			output[last_i-c] = '1';
