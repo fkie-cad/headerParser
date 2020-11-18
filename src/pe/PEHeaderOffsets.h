@@ -504,4 +504,24 @@ struct Pe_Image_Resource_Data_Entry_Offsets PeImageResourceDataEntryOffsets = {
 	.Reserved = 12
 };
 
+struct PE_BASE_RELOCATION_BLOCK_Offsets {
+	uint8_t VirtualAddress;
+	uint8_t SizeOfBlock;
+};
+
+struct PE_BASE_RELOCATION_BLOCK_Offsets PeBaseRelocationBlockOffsets = {
+	.VirtualAddress = 0,
+	.SizeOfBlock = 4
+};
+
+struct Pe_Base_Relocation_Entry_Offsets {
+	uint8_t Type;
+	uint8_t Offset;
+};
+
+struct Pe_Base_Relocation_Entry_Offsets PeBaseRelocationEntryOffsets = {
+	.Type = 0,
+	.Offset = 0
+};
+
 #endif

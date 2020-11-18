@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <inttypes.h>
 
 #define VERBOSE_MODE 1
 
@@ -13,6 +14,8 @@
 #include "utils/Helper.h"
 #include "utils/common_fileio.h"
 #include "parser.h"
+
+#define DILLER 
 
 #define BINARYNAME ("headerParser")
 
@@ -31,10 +34,12 @@ const char* vs = "1.9.0";
 const char* last_changed = "10.11.2020";
 
 
-
+#ifdef DILLER
+__declspec(dllexport)
+#endif
 int main(int argc, char** argv)
 {
-	uint32_t n = 0;
+	size_t n = 0;
     int errsv = 0;
     char file_name[PATH_MAX];
 
@@ -80,8 +85,8 @@ int main(int argc, char** argv)
 	sanitizeArgs(&gp);
 
 	debug_info("file_name: %s\n", file_name);
-	debug_info("abs_file_offset: 0x%lx\n", gp.abs_file_offset);
-	debug_info("start_file_offset: 0x%lx\n", gp.start_file_offset);
+	debug_info("abs_file_offset: 0x%"PRIx64"\n", gp.abs_file_offset);
+	debug_info("start_file_offset: 0x%"PRIx64"\n", gp.start_file_offset);
 
 //	n = readCustomBlock(gp.file_name, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
 	n = readFile(gp.fp, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
@@ -133,6 +138,7 @@ void printHelp()
 			" * PE only options:\n"
 			"   * -iimp: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT) (Currently needs -i > 1).\n"
 			"   * -iexp: Print the Image Export Table (IMAGE_DIRECTORY_ENTRY_EXPORT) (Currently needs -i > 1).\n"
+			"   * -irel: Print the Image Base Relocation Table (IMAGE_DIRECTORY_ENTRY_BASE_RELOC) (Currently needs -i > 1).\n"
 			"   * -ires: Print the Image Resource Table (IMAGE_DIRECTORY_ENTRY_RESOURCE) (Currently needs -i > 1).\n"
 			"   * -icrt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE) (Currently needs -i > 1).\n"
 			"   * -cod: Directory to save found certificates in (Needs -icrt).\n"
@@ -208,9 +214,13 @@ uint8_t parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_
 		{
             pep->info_level_iexp = true;
 		}
-		else if ( isArgOfType(argv[i], "-ires") )
+		else if (isArgOfType(argv[i], "-ires"))
 		{
-            pep->info_level_ires = true;
+			pep->info_level_ires = true;
+		}
+		else if (isArgOfType(argv[i], "-irel"))
+		{
+			pep->info_level_irel = true;
 		}
 		else if ( isArgOfType(argv[i], "-icrt") )
 		{
@@ -265,13 +275,15 @@ void sanitizeArgs(PGlobalParams gp)
 {
 	if ( gp->abs_file_offset + 16 > gp->file_size )
 	{
-#if defined(_WIN32)
-		header_info("INFO: filesize (%zu) is too small for a start offset of %llu!\nSetting to 0!\n",
-					gp->file_size, gp->abs_file_offset);
-#else
-		header_info("INFO: filesize (%zu) is too small for a start offset of %lu!\nSetting to 0!\n",
-					gp->file_size, gp->abs_file_offset);
-#endif
+		header_info("INFO: filesize (%zu) is too small for a start offset of %"PRIu64"!\nSetting to 0!\n",
+			gp->file_size, gp->abs_file_offset);
+//#if defined(_WIN32)
+//		header_info("INFO: filesize (%zu) is too small for a start offset of %llu!\nSetting to 0!\n",
+//					gp->file_size, gp->abs_file_offset);
+//#else
+//		header_info("INFO: filesize (%zu) is too small for a start offset of %lu!\nSetting to 0!\n",
+//					gp->file_size, gp->abs_file_offset);
+//#endif
 		gp->abs_file_offset = 0;
 		gp->start_file_offset = gp->abs_file_offset;
 	}
@@ -310,7 +322,7 @@ uint8_t getInfoLevel(char* arg)
 	uint8_t level;
 
 	char* endptr;
-	level = strtol(arg, &endptr, 10);
+	level = (uint8_t)strtol(arg, &endptr, 10);
 
 	if ( endptr == arg )
 	{
@@ -357,7 +369,12 @@ void printHeaderData1(PHeaderData hd)
 	printf("coderegions:\n");
 	for ( i = 0; i < hd->code_regions_size; i++ )
 	{
-		printf(" (%lu) %s: ( 0x%016lx - 0x%016lx )\n",
+//#if defined(_WIN32)
+		//printf(" (%zu) %s: ( 0x%016llx - 0x%016llx )\n",
+//#else
+		//printf(" (%zu) %s: ( 0x%016lx - 0x%016lx )\n",
+//#endif
+		printf(" (%zu) %s: ( 0x%016"PRIx64" - 0x%016"PRIx64" )\n",
 			   i + 1, hd->code_regions[i].name, hd->code_regions[i].start, hd->code_regions[i].end);
 	}
 	printf("headertype: %s\n", header_type_names[hd->headertype]);

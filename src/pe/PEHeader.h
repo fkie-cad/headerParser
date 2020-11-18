@@ -51,11 +51,11 @@ typedef struct PEImageDosHeader
 	uint16_t hdrsize;
 	uint16_t minalloc;
 	uint16_t maxalloc;
-	void *ss; // 2 byte value
-	void *sp; // 2 byte value
+	uint16_t ss; // 2 byte value
+	uint16_t sp; // 2 byte value
 	uint16_t checksum;
-	void *ip; // 2 byte value
-	void *cs; // 2 byte value
+	uint16_t ip; // 2 byte value
+	uint16_t cs; // 2 byte value
 	uint16_t relocpos;
 	uint16_t noverlay;
 	uint16_t reserved1[4];
@@ -451,7 +451,42 @@ typedef struct PE_IMAGE_RESOURCE_DATA_ENTRY {
 	uint32_t Reserved;
 } PE_IMAGE_RESOURCE_DATA_ENTRY;
 
+typedef struct PE_BASE_RELOCATION_BLOCK {
+	// This field contains the starting RVA for this chunk of relocations. 
+	// The offset of each relocation that follows is added to this value to form the actual RVA where the relocation needs to be applied.
+	uint32_t VirtualAddress;
+	// The size of this structure plus all the WORD relocations that follow. 
+	// To determine the number of relocations in this block, subtract the size of an IMAGE_BASE_RELOCATION(8 bytes) from the value of this field, and then divide by 2 (the size of a WORD)
+	uint32_t SizeOfBlock;
+} PE_BASE_RELOCATION_BLOCK;
 
+typedef struct PE_BASE_RELOCATION_ENTRY {
+	union {
+		// Bit fields don't work properly => use bit shifftig. 
+		//union {
+		//	// The bottom 12 bits of each WORD are a relocation offset, 
+		//	// and need to be added to the value of the Virtual Address field from this relocation block's header.
+		//	uint16_t Offset : 12;
+		//	uint16_t Type : 4;
+		//};
+		uint16_t Data;
+	};
+} PE_BASE_RELOCATION_ENTRY;
+
+#define PE_IMAGE_REL_BASED_ABSOLUTE (0) // The base relocation is skipped. This type can be used to pad a block.
+#define PE_IMAGE_REL_BASED_HIGH (1) // The base relocation adds the high 16 bits of the difference to the 16-bit field at offset. The 16-bit field represents the high value of a 32-bit word.
+#define PE_IMAGE_REL_BASED_LOW (2) // The base relocation adds the low 16 bits of the difference to the 16-bit field at offset. The 16-bit field represents the low half of a 32-bit word.
+#define PE_IMAGE_REL_BASED_HIGHLOW (3) // The base relocation applies all 32 bits of the difference to the 32-bit field at offset.
+#define PE_IMAGE_REL_BASED_HIGHADJ (4) // The base relocation adds the high 16 bits of the difference to the 16-bit field at offset. The 16-bit field represents the high value of a 32-bit word. The low 16 bits of the 32-bit value are stored in the 16-bit word that follows this base relocation. This means that this base relocation occupies two slots.
+#define PE_IMAGE_REL_BASED_MIPS_JMPADDR (5) // The relocation interpretation is dependent on the machine type. When the machine type is MIPS, the base relocation applies to a MIPS jump instruction.
+#define PE_IMAGE_REL_BASED_ARM_MOV32 (5) // This relocation is meaningful only when the machine type is ARM or Thumb. The base relocation applies the 32-bit address of a symbol across a consecutive MOVW/MOVT instruction pair.
+#define PE_IMAGE_REL_BASED_RISCV_HIGH20 (5) // This relocation is only meaningful when the machine type is RISC-V. The base relocation applies to the high 20 bits of a 32-bit absolute address.
+#define PE_IMAGE_REL_BASED_RESERVED (6) // Reserved, must be zero.
+#define PE_IMAGE_REL_BASED_THUMB_MOV32 (7) // This relocation is meaningful only when the machine type is Thumb. The base relocation applies the 32-bit address of a symbol to a consecutive MOVW/MOVT instruction pair.
+#define PE_IMAGE_REL_BASED_RISCV_LOW12I (7) // This relocation is only meaningful when the machine type is RISC-V. The base relocation applies to the low 12 bits of a 32-bit absolute address formed in RISC-V I-type instruction format.
+#define PE_IMAGE_REL_BASED_RISCV_LOW12S (8) // This relocation is only meaningful when the machine type is RISC-V. The base relocation applies to the low 12 bits of a 32-bit absolute address formed in RISC-V S-type instruction format.
+#define PE_IMAGE_REL_BASED_MIPS_JMPADDR16 (9) // The relocation is only meaningful when the machine type is MIPS. The base relocation applies to a MIPS16 jump instruction.
+#define PE_IMAGE_REL_BASED_DIR64 (10) // The base relocation applies the difference to the 64-bit field at offset.
 
 // custom
 

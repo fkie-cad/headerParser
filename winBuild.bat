@@ -93,6 +93,8 @@ set vcvars="%buildTools:~1,-1%\VC\Auxiliary\Build\vcvars%bitness%.bat"
 	
 :help
     call :usage
+    @echo.
+    @echo Options:
 	@echo /t The target name to build. Default: headerParser.
 	@echo /b The target bitness. Default: 64.
 	@echo /m The mode (Debug^|Release) to build in. Default: Release.

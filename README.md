@@ -14,8 +14,8 @@ OsX may work too.
 
 
 ## Version ##
-1.9.0  
-Last changed: 10.11.2020
+1.9.2  
+Last changed: 18.11.2020
 
 ## REQUIREMENTS ##
 - A decent c compiler (gcc or msbuild) is required.  
@@ -55,6 +55,7 @@ Possible options:
    * -iimp: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT). (Needs -i > 1.)
    * -iexp: Print the Image Export Table (IMAGE_DIRECTORY_ENTRY_EXPORT). (Needs -i > 1.)
    * -ires: Print the Image Resource Table (IMAGE_DIRECTORY_ENTRY_RESOURCE). (Needs -i > 1.)
+   * -irel: Print the Image Base Relocation Table (IMAGE_DIRECTORY_ENTRY_BASE_RELOC). (Needs -i > 1.)
    * -icrt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE). (Needs -i > 1.)
    * -cod: Directory to save found certificates in. (Needs -icrt.)
  
