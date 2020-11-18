@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include "../ArchitectureInfo.h"
 #include "../HeaderData.h"
@@ -276,11 +277,12 @@ int parsePEHeader(uint8_t force,
 	PE_fillHeaderDataWithOptHeader(opt_header, hd);
 
 	section_header_offset = (uint64_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE + PE_COFF_FILE_HEADER_SIZE + coff_header->SizeOfOptionalHeader;
-#if defined(_WIN32)
-	debug_info(" - section_header_offset: #%llx (%llu)\n", section_header_offset, section_header_offset);
-#else
-	debug_info(" - section_header_offset: #%lx (%lu)\n", section_header_offset, section_header_offset);
-#endif
+//#if defined(_WIN32)
+//	debug_info(" - section_header_offset: #%llx (%llu)\n", section_header_offset, section_header_offset);
+//#else
+//	debug_info(" - section_header_offset: #%lx (%lu)\n", section_header_offset, section_header_offset);
+//#endif
+	debug_info(" - section_header_offset: #%"PRIx64" (%"PRIu64")\n", section_header_offset, section_header_offset);
 	PE_readSectionHeader(section_header_offset, coff_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->info_level,
                          gp->fp, gp->block_standard, gp->block_large, &pehd->st, parse_svas, &pehd->svas, hd);
 

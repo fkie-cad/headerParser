@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,13 +41,15 @@ void parseHeader(uint8_t force, PHeaderData hd, PGlobalParams gp, PPEParams pep)
 
 	if ( gp->abs_file_offset + MIN_FILE_SIZE > gp->file_size )
 	{
-#if defined(_WIN32)
-		header_error("ERROR: filesize (%zu) is too small for a start offset of %llu!\n",
-					 gp->file_size, gp->abs_file_offset);
-#else
-		header_error("ERROR: filesize (%zu) is too small for a start offset of %lu!\n",
-					 gp->file_size, gp->abs_file_offset);
-#endif
+//#if defined(_WIN32)
+//		header_error("ERROR: filesize (%zu) is too small for a start offset of %llu!\n",
+//					 gp->file_size, gp->abs_file_offset);
+//#else
+//		header_error("ERROR: filesize (%zu) is too small for a start offset of %lu!\n",
+//					 gp->file_size, gp->abs_file_offset);
+//#endif
+        header_error("ERROR: filesize (%zu) is too small for a start offset of %"PRIu64"!\n",
+                     gp->file_size, gp->abs_file_offset);
 		hd->headertype = HEADER_TYPE_NONE;
 	}
 	else if ( force == FORCE_PE )

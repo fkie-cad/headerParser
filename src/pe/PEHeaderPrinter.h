@@ -195,11 +195,12 @@ void PE_printOptionalHeader(PE64OptHeader* oh, uint64_t offset, uint64_t start_f
     printf(" - AddressOfEntryPoint%s: 0x%X (%u)\n", fillOffset(offsets.AddressOfEntryPoint, offset, start_file_offset), oh->AddressOfEntryPoint, oh->AddressOfEntryPoint);
     printf(" - BaseOfCode%s: 0x%X (%u)\n", fillOffset(offsets.BaseOfCode, offset, start_file_offset), oh->BaseOfCode, oh->BaseOfCode);
     if (bitness == 32) printf(" - BaseOfData%s: 0x%X (%u)\n", fillOffset(offsets.BaseOfData, offset, start_file_offset), oh->BaseOfData, oh->BaseOfData);
-#if defined(_WIN32)
-    printf(" - ImageBase%s: 0x%llX (%llu)\n", fillOffset(offsets.ImageBase, offset, start_file_offset), oh->ImageBase, oh->ImageBase);
-#else
-    printf(" - ImageBase%s: 0x%lX (%lu)\n", fillOffset(offsets.ImageBase, offset, start_file_offset), oh->ImageBase, oh->ImageBase);
-#endif
+//#if defined(_WIN32)
+//    printf(" - ImageBase%s: 0x%llX (%llu)\n", fillOffset(offsets.ImageBase, offset, start_file_offset), oh->ImageBase, oh->ImageBase);
+//#else
+//    printf(" - ImageBase%s: 0x%lX (%lu)\n", fillOffset(offsets.ImageBase, offset, start_file_offset), oh->ImageBase, oh->ImageBase);
+//#endif
+    printf(" - ImageBase%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.ImageBase, offset, start_file_offset), oh->ImageBase, oh->ImageBase);
     printf(" - SectionAlignment%s: 0x%X (%u)\n", fillOffset(offsets.SectionAlignment, offset, start_file_offset), oh->SectionAlignment, oh->SectionAlignment);
     printf(" - FileAlignment%s: 0x%X (%u)\n", fillOffset(offsets.FileAlignment, offset, start_file_offset), oh->FileAlignment, oh->FileAlignment);
     printf(" - MajorOSVersion%s: 0x%X (%u)\n", fillOffset(offsets.MajorOperatingSystemVersion, offset, start_file_offset), oh->MajorOSVersion, oh->MajorOSVersion);
@@ -376,11 +377,12 @@ void PE_printImageThunkData(PEImageThunkData64* td, PEImageImportByName* ibn, ui
     uint64_t flag = (bitness == 32) ? IMAGE_ORDINAL_FLAG32 : IMAGE_ORDINAL_FLAG64;
 
     if ( td->Ordinal & flag )
-#if defined(_WIN32)
-        printf("     - %s0x%08llX\n", fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0), td->Ordinal - IMAGE_ORDINAL_FLAG64);
-#else
-        printf("     - %s0x%08lX\n", fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0), td->Ordinal - IMAGE_ORDINAL_FLAG64);
-#endif
+//#if defined(_WIN32)
+//        printf("     - %s0x%08llX\n", fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0), td->Ordinal - IMAGE_ORDINAL_FLAG64);
+//#else
+//        printf("     - %s0x%08lX\n", fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0), td->Ordinal - IMAGE_ORDINAL_FLAG64);
+//#endif
+        printf("     - %s0x%08"PRIX64"\n", fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0), td->Ordinal - IMAGE_ORDINAL_FLAG64);
     else
         printf("     - 0x%08X%s | %s%s\n",
                 ibn->Hint, fillOffset(PEImageImportByNameOffsets.Hint, ibn_offset, 0), 
@@ -390,31 +392,42 @@ void PE_printImageThunkData(PEImageThunkData64* td, PEImageImportByName* ibn, ui
 void PE_printImageExportDirectoryInfo(PE_IMAGE_EXPORT_DIRECTORY* ied)
 {
     printf("IMAGE_EXPORT_DIRECTORY:\n");
-#if defined(_WIN32)
-    printf(" - Characteristics: 0x%lx\n", ied->Characteristics);
-    printf(" - TimeDateStamp: 0x%lx\n", ied->TimeDateStamp);
-    printf(" - MajorVersion: 0x%lx\n", ied->MajorVersion);
-    printf(" - MinorVersion: 0x%lx\n", ied->MinorVersion);
-    printf(" - Name: 0x%lx\n", ied->Name);
-    printf(" - Base: 0x%lx\n", ied->Base);
-    printf(" - NumberOfFunctions: 0x%lx\n", ied->NumberOfFunctions);
-    printf(" - NumberOfNames: 0x%lx\n", ied->NumberOfNames);
-    printf(" - AddressOfFunctions: 0x%lx\n", ied->AddressOfFunctions);
-    printf(" - AddressOfNames: 0x%lx\n", ied->AddressOfNames);
-    printf(" - AddressOfNameOrdinals: 0x%lx\n", ied->AddressOfNameOrdinals);
-#else
-    printf(" - Characteristics: 0x%x\n", ied->Characteristics);
-    printf(" - TimeDateStamp: 0x%x\n", ied->TimeDateStamp);
-    printf(" - MajorVersion: 0x%x\n", ied->MajorVersion);
-    printf(" - MinorVersion: 0x%x\n", ied->MinorVersion);
-    printf(" - Name: 0x%x\n", ied->Name);
-    printf(" - Base: 0x%x\n", ied->Base);
-    printf(" - NumberOfFunctions: 0x%x\n", ied->NumberOfFunctions);
-    printf(" - NumberOfNames: 0x%x\n", ied->NumberOfNames);
-    printf(" - AddressOfFunctions: 0x%x\n", ied->AddressOfFunctions);
-    printf(" - AddressOfNames: 0x%x\n", ied->AddressOfNames);
-    printf(" - AddressOfNameOrdinals: 0x%x\n", ied->AddressOfNameOrdinals);
-#endif
+//#if defined(_WIN32)
+//    printf(" - Characteristics: 0x%lx\n", ied->Characteristics);
+//    printf(" - TimeDateStamp: 0x%lx\n", ied->TimeDateStamp);
+//    printf(" - MajorVersion: 0x%lx\n", ied->MajorVersion);
+//    printf(" - MinorVersion: 0x%lx\n", ied->MinorVersion);
+//    printf(" - Name: 0x%lx\n", ied->Name);
+//    printf(" - Base: 0x%lx\n", ied->Base);
+//    printf(" - NumberOfFunctions: 0x%lx\n", ied->NumberOfFunctions);
+//    printf(" - NumberOfNames: 0x%lx\n", ied->NumberOfNames);
+//    printf(" - AddressOfFunctions: 0x%lx\n", ied->AddressOfFunctions);
+//    printf(" - AddressOfNames: 0x%lx\n", ied->AddressOfNames);
+//    printf(" - AddressOfNameOrdinals: 0x%lx\n", ied->AddressOfNameOrdinals);
+//#else
+//    printf(" - Characteristics: 0x%x\n", ied->Characteristics);
+//    printf(" - TimeDateStamp: 0x%x\n", ied->TimeDateStamp);
+//    printf(" - MajorVersion: 0x%x\n", ied->MajorVersion);
+//    printf(" - MinorVersion: 0x%x\n", ied->MinorVersion);
+//    printf(" - Name: 0x%x\n", ied->Name);
+//    printf(" - Base: 0x%x\n", ied->Base);
+//    printf(" - NumberOfFunctions: 0x%x\n", ied->NumberOfFunctions);
+//    printf(" - NumberOfNames: 0x%x\n", ied->NumberOfNames);
+//    printf(" - AddressOfFunctions: 0x%x\n", ied->AddressOfFunctions);
+//    printf(" - AddressOfNames: 0x%x\n", ied->AddressOfNames);
+//    printf(" - AddressOfNameOrdinals: 0x%x\n", ied->AddressOfNameOrdinals);
+//#endif
+    printf(" - Characteristics: 0x%"PRIx32"\n", ied->Characteristics);
+    printf(" - TimeDateStamp: 0x%"PRIx32"\n", ied->TimeDateStamp);
+    printf(" - MajorVersion: 0x%"PRIx32"\n", ied->MajorVersion);
+    printf(" - MinorVersion: 0x%"PRIx32"\n", ied->MinorVersion);
+    printf(" - Name: 0x%"PRIx32"\n", ied->Name);
+    printf(" - Base: 0x%"PRIx32"\n", ied->Base);
+    printf(" - NumberOfFunctions: 0x%"PRIx32"\n", ied->NumberOfFunctions);
+    printf(" - NumberOfNames: 0x%"PRIx32"\n", ied->NumberOfNames);
+    printf(" - AddressOfFunctions: 0x%"PRIx32"\n", ied->AddressOfFunctions);
+    printf(" - AddressOfNames: 0x%"PRIx32"\n", ied->AddressOfNames);
+    printf(" - AddressOfNameOrdinals: 0x%"PRIx32"\n", ied->AddressOfNameOrdinals);
     printf("\n");
 }
 
@@ -430,18 +443,20 @@ void PE_printImageExportDirectoryEntry(size_t i, uint32_t n_fun, const char* nam
     if ( nr_of_bytes > bytes_max )
         nr_of_bytes = bytes_max;
 
-#if defined(_WIN32)
-    printf("   [%zu/%lu] \n", (i+1), n_fun);
-#else
-    printf("   [%zu/%u] \n", (i+1), n_fun);
-#endif
+//#if defined(_WIN32)
+//    printf("   [%zu/%lu] \n", (i+1), n_fun);
+//#else
+//    printf("   [%zu/%u] \n", (i+1), n_fun);
+//#endif
+    printf("   [%zu/%"PRIu32"] \n", (i+1), n_fun);
     printf("   - name: %.*s\n", name_max, name);
     printf("   - ordinal: 0x%x\n", name_ordinal);
-#if defined(_WIN32)
-    printf("   - function (rva: 0x%lx, fo: 0x%llx):\n     ", rva, fo);
-#else
-    printf("   - function (rva: 0x%x, fo: 0x%lx):\n     ", rva, fo);
-#endif
+//#if defined(_WIN32)
+//    printf("   - function (rva: 0x%lx, fo: 0x%llx):\n     ", rva, fo);
+//#else
+//    printf("   - function (rva: 0x%x, fo: 0x%lx):\n     ", rva, fo);
+//#endif
+    printf("   - function (rva: 0x%"PRIx32", fo: 0x%"PRIx64"):\n     ", rva, fo);
     for ( j = 0; j < nr_of_bytes; j++ )
         printf("%02x ", bytes[j]);
     printf("...\n");

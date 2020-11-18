@@ -160,11 +160,12 @@ void printFlag64(uint64_t present, uint64_t expected, const char* label)
 char* fillOffset(uint64_t rel_offset, uint64_t abs_offset, uint64_t file_offset)
 {
 	if ( info_level == INFO_LEVEL_FULL_WITH_OFFSETS )
-#if defined(_WIN32)
-		sprintf(offset_buffer, " (0x%llx)", abs_offset+rel_offset+file_offset);
-#else
-		sprintf(offset_buffer, " (0x%lx)", abs_offset+rel_offset+file_offset);
-#endif
+//#if defined(_WIN32)
+//		sprintf(offset_buffer, " (0x%llx)", abs_offset+rel_offset+file_offset);
+//#else
+//		sprintf(offset_buffer, " (0x%lx)", abs_offset+rel_offset+file_offset);
+//#endif
+		sprintf(offset_buffer, " (0x%"PRIx64")", abs_offset+rel_offset+file_offset);
 	else
 		offset_buffer[0] = 0;
 
