@@ -644,7 +644,7 @@ void PE_printImageBaseRelocationBlockEntry(PE_BASE_RELOCATION_ENTRY* e)
 {
     uint16_t type = e->Data >> 12;
     uint16_t offset = e->Data & 0x0FFF;
-    char* type_str = (type <= 11) ? PeBaseRelocationTypeStrings[type] : "NONE";
+    const char* type_str = (type <= 11) ? PeBaseRelocationTypeStrings[type] : "NONE";
 
     printf("     - 0x%04x | %s (%u)\n", offset, type_str, type);
 }

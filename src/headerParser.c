@@ -15,7 +15,7 @@
 #include "utils/common_fileio.h"
 #include "parser.h"
 
-#define DILLER 
+//#define DILLER
 
 #define BINARYNAME ("headerParser")
 
