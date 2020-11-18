@@ -385,7 +385,6 @@ void PE_parseImageExportTable(PE64OptHeader* optional_header,
     char name[0x200];
 
     uint32_t size;
-    //FILE* fi;
 
     size_t i;
 
@@ -406,6 +405,7 @@ void PE_parseImageExportTable(PE64OptHeader* optional_header,
     names_ordinal_offset = PE_Rva2Foa(ied.AddressOfNameOrdinals, svas, nr_of_sections);
 
     PE_printImageExportDirectoryHeader();
+	PE_printImageExportDirectoryHeader();
 
     // iterate through the blocks
     for ( i = 0; i < ied.NumberOfFunctions; i++, functions_offset+=4,names_offset+=4,names_ordinal_offset+=2 )
@@ -430,6 +430,7 @@ void PE_parseImageExportTable(PE64OptHeader* optional_header,
         size = fread(&name_ordinal, 1, 2, fp);
         if ( size != 2 )
             continue;
+
 
         name_fo = PE_Rva2Foa(name_rva, svas, nr_of_sections);
 //		if ( name_fo == 0 )
