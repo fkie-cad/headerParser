@@ -86,6 +86,7 @@ int main(int argc, char** argv)
 
 	debug_info("file_name: %s\n", file_name);
 	debug_info("abs_file_offset: 0x%"PRIx64"\n", gp.abs_file_offset);
+	debug_info("abs_file_offset: 0x%"PRIx64"\n", gp.abs_file_offset);
 	debug_info("start_file_offset: 0x%"PRIx64"\n", gp.start_file_offset);
 
 //	n = readCustomBlock(gp.file_name, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);

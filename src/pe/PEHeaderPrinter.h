@@ -377,14 +377,9 @@ void PE_printImageThunkData(PEImageThunkData64* td, PEImageImportByName* ibn, ui
     uint64_t flag = (bitness == 32) ? IMAGE_ORDINAL_FLAG32 : IMAGE_ORDINAL_FLAG64;
 
     if ( td->Ordinal & flag )
-//#if defined(_WIN32)
-//        printf("     - %s0x%08llX\n", fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0), td->Ordinal - IMAGE_ORDINAL_FLAG64);
-//#else
-//        printf("     - %s0x%08lX\n", fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0), td->Ordinal - IMAGE_ORDINAL_FLAG64);
-//#endif
-        printf("     - %s0x%08"PRIX64"\n", fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0), td->Ordinal - IMAGE_ORDINAL_FLAG64);
+        printf("     - 0x%08x%s\n", (int)(td->Ordinal - IMAGE_ORDINAL_FLAG64), fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0));
     else
-        printf("     - 0x%08X%s | %s%s\n",
+        printf("     - 0x%08x%s | %s%s\n",
                 ibn->Hint, fillOffset(PEImageImportByNameOffsets.Hint, ibn_offset, 0), 
                 ibn->Name, fillOffset(PEImageImportByNameOffsets.Name, ibn_offset, 0));
 }
