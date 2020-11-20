@@ -291,7 +291,7 @@ typedef struct PEImageThunkData64 {
 	union {
 		uint64_t ForwarderString;  // PBYTE 
 		uint64_t Function;         // Puint64_t
-		uint64_t Ordinal;
+		uint64_t Ordinal;          // uint16_t number
 		uint64_t AddressOfData;    // RVA to PIMAGE_IMPORT_BY_NAME
 	};
 } PEImageThunkData64;
