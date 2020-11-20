@@ -368,8 +368,8 @@ void PE_printHintFunctionHeader(PEImageThunkData64* td, uint8_t bitness)
 //    if ( td->Ordinal & flag )
 //        printf("     - %8s\n", "Ordinal");
 //    else
-        printf("     - %10s | Function\n", "Ordinal");
-
+        printf("   - %s | Function\n", "Ordinal");
+        printf("     --------+-----------\n");
 }
 
 void PE_printImageThunkData(PEImageThunkData64* td, PEImageImportByName* ibn, uint64_t td_offset, uint64_t ibn_offset, uint8_t bitness)
@@ -377,9 +377,9 @@ void PE_printImageThunkData(PEImageThunkData64* td, PEImageImportByName* ibn, ui
     uint64_t flag = (bitness == 32) ? IMAGE_ORDINAL_FLAG32 : IMAGE_ORDINAL_FLAG64;
 
     if ( td->Ordinal & flag )
-        printf("     - 0x%04x%s\n", (uint16_t)(td->Ordinal - IMAGE_ORDINAL_FLAG64), fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0));
+        printf("      0x%04x%s\n", (uint16_t)(td->Ordinal - IMAGE_ORDINAL_FLAG64), fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0));
     else
-        printf("     - 0x%04x%s | %s%s\n",
+        printf("      0x%04x%s | %s%s\n",
                 ibn->Hint, fillOffset(PEImageImportByNameOffsets.Hint, ibn_offset, 0), 
                 ibn->Name, fillOffset(PEImageImportByNameOffsets.Name, ibn_offset, 0));
 }

@@ -405,7 +405,6 @@ void PE_parseImageExportTable(PE64OptHeader* optional_header,
     names_ordinal_offset = PE_Rva2Foa(ied.AddressOfNameOrdinals, svas, nr_of_sections);
 
     PE_printImageExportDirectoryHeader();
-	PE_printImageExportDirectoryHeader();
 
     // iterate through the blocks
     for ( i = 0; i < ied.NumberOfFunctions; i++, functions_offset+=4,names_offset+=4,names_ordinal_offset+=2 )
