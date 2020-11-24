@@ -38,6 +38,7 @@ enum PEHeaderSizes {
 	PE_IMPORT_DESCRIPTOR_SIZE = 20,
 	PE_RESOURCE_DIRECTORY_SIZE = 16,
 	PE_RESOURCE_DATA_ENTRY_SIZE = 16,
+	PE_DELAY_IMPORT_DESCRIPTOR_SIZE = 32,
 	PE_EXPORT_DIRECTORY_SIZE = 40,
 	PE_SECTION_HEADER_SIZE=40
 };
@@ -304,14 +305,14 @@ typedef struct PEImageImportByName {
 
 // _IMAGE_DELAY_IMPORT_DESCRIPTOR
 typedef struct PeImageDelayImportDescriptor {
-	uint32_t grAttrs;
-	uint32_t szName;
-	uint32_t phmod;
-	uint32_t pIAT;
-	uint32_t pINT;
-	uint32_t pBoundIAT;
-	uint32_t pUnloadIAT;
-	uint32_t dwTimeStamp;
+	uint32_t Attrs; // Must be zero (offical docu). 1 stands for : RVAs are used instead of pointers (bug in older version uses absolute addresses.
+	uint32_t Name; // The RVA of the name of the DLL to be loaded.The name resides in the read - only data section of the image.
+	uint32_t mod; // The RVA of the module handle(in the data section of the image) of the DLL to be delay-loaded. It is used for storage by the routine that is supplied to manage delay-loading.
+	uint32_t IAT; // The RVA of the delay-load import address table. 
+	uint32_t INT; // The RVA of the delay-load name table, which contains the names of the imports that might need to be loaded. This matches the layout of the import name table.
+	uint32_t BoundIAT; // The RVA of the bound delay-load address table, if it exists.
+	uint32_t UnloadIAT; // The RVA of the unload delay-load address table, if it exists. This is an exact copy of the delay import address table. If the caller unloads the DLL, this table should be copied back over the delay import address table so that subsequent calls to the DLL continue to use the thunking mechanism correctly.
+	uint32_t TimeStamp; // The timestamp of the DLL to which this image has been bound. 
 } PeImageDelayImportDescriptor;
 
 typedef struct PE_IMAGE_EXPORT_DIRECTORY

@@ -33,8 +33,10 @@ void PE_printImageSectionHeader(PEImageSectionHeader* sh,
 const char* PE_getSubsystemName(enum PEWinudowsSubsystem type);
 
 void PE_printImageImportTableHeader(PEImageImportDescriptor* impd);
-void PE_printImageImportDescriptor(PEImageImportDescriptor* impd, uint64_t offset, const char* impd_name);
-void PE_printHintFunctionHeader(PEImageThunkData64* td, uint8_t bitness);
+void PE_printImageImportDescriptor(PEImageImportDescriptor* impd, 
+                                   uint64_t offset, 
+                                   const char* impd_name);
+void PE_printHintFunctionHeader();
 void PE_printImageThunkData(PEImageThunkData64* td, PEImageImportByName* ibn, uint64_t td_offset, uint64_t ibn_offset, uint8_t bitness);
 
 void PE_printImageExportDirectoryInfo(PE_IMAGE_EXPORT_DIRECTORY* ied);
@@ -61,6 +63,10 @@ void PE_printImageBaseRelocationBlockHeader(PE_BASE_RELOCATION_BLOCK* b,
                                             uint64_t start_file_offset);
 void PE_printImageBaseRelocationBlockEntry(PE_BASE_RELOCATION_ENTRY* e);
 
+void PE_printImageDelayImportTableHeader(PeImageDelayImportDescriptor* did);
+void PE_printImageDelayImportDescriptor(PeImageDelayImportDescriptor* did,
+                                        uint64_t offset, 
+                                        const char* dll_name);
 
 
 #define MAX_SPACES (512)
@@ -362,14 +368,10 @@ void PE_printImageImportDescriptor(PEImageImportDescriptor* impd, uint64_t offse
     printf("   - FirstThunk%s: 0x%x\n", fillOffset(PEImageImportDescriptorOffsets.FirstThunk, offset, 0), impd->FirstThunk);
 }
 
-void PE_printHintFunctionHeader(PEImageThunkData64* td, uint8_t bitness)
+void PE_printHintFunctionHeader()
 {
-//    uint64_t flag = (bitness == 32) ? IMAGE_ORDINAL_FLAG32 : IMAGE_ORDINAL_FLAG64;
-//    if ( td->Ordinal & flag )
-//        printf("     - %8s\n", "Ordinal");
-//    else
-        printf("     - %10s | Function\n", "Ordinal");
-
+        printf("   - %s | Function\n", "Ordinal");
+        printf("     --------+-----------\n");
 }
 
 void PE_printImageThunkData(PEImageThunkData64* td, PEImageImportByName* ibn, uint64_t td_offset, uint64_t ibn_offset, uint8_t bitness)
@@ -377,9 +379,9 @@ void PE_printImageThunkData(PEImageThunkData64* td, PEImageImportByName* ibn, ui
     uint64_t flag = (bitness == 32) ? IMAGE_ORDINAL_FLAG32 : IMAGE_ORDINAL_FLAG64;
 
     if ( td->Ordinal & flag )
-        printf("     - 0x%04x%s\n", (uint16_t)(td->Ordinal - IMAGE_ORDINAL_FLAG64), fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0));
+        printf("      0x%04x%s\n", (uint16_t)(td->Ordinal - IMAGE_ORDINAL_FLAG64), fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0));
     else
-        printf("     - 0x%04x%s | %s%s\n",
+        printf("      0x%04x%s | %s%s\n",
                 ibn->Hint, fillOffset(PEImageImportByNameOffsets.Hint, ibn_offset, 0), 
                 ibn->Name, fillOffset(PEImageImportByNameOffsets.Name, ibn_offset, 0));
 }
@@ -657,6 +659,28 @@ void PE_printImageBaseRelocationBlockEntry(PE_BASE_RELOCATION_ENTRY* e)
     const char* type_str = (type <= 11) ? PeBaseRelocationTypeStrings[type] : "NONE";
 
     printf("     - 0x%04x | %s (%u)\n", offset, type_str, type);
+}
+
+
+
+void PE_printImageDelayImportTableHeader(PeImageDelayImportDescriptor* impd)
+{
+    if (impd->IAT != 0)
+        printf("Delay Image Import Table:\n");
+    else
+        printf("No Delay Image Import Table\n");
+}
+
+void PE_printImageDelayImportDescriptor(PeImageDelayImportDescriptor* did, uint64_t offset, const char* dll_name)
+{
+    printf(" -%s %s (0x%x)\n", fillOffset(PeImageDelayImportDescriptorOffsets.Name, offset, 0), dll_name, did->Name);
+    printf("   - Attributes%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayImportDescriptorOffsets.Attrs, offset, 0), did->Attrs);
+    printf("   - mod%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayImportDescriptorOffsets.mod, offset, 0), did->mod);
+    printf("   - IAT%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayImportDescriptorOffsets.IAT, offset, 0), did->IAT);
+    printf("   - INT%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayImportDescriptorOffsets.INT, offset, 0), did->INT);
+    printf("   - BoundIAT%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayImportDescriptorOffsets.BoundIAT, offset, 0), did->BoundIAT);
+    printf("   - UnloadIAT%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayImportDescriptorOffsets.UnloadIAT, offset, 0), did->UnloadIAT);
+    printf("   - TimeStamp%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayImportDescriptorOffsets.TimeStamp, offset, 0), did->TimeStamp);
 }
 
 #endif

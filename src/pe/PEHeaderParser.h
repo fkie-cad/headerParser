@@ -205,7 +205,7 @@ int parsePEHeader(uint8_t force,
 		return -1;
 	}
 
-	if ( pep->info_level_iimp || pep->info_level_iexp || pep->info_level_ires || pep->info_level_irel)
+	if ( pep->info_level_iimp || pep->info_level_iexp || pep->info_level_ires || pep->info_level_irel || pep->info_level_idimp)
 		parse_svas = 1;
 
 	debug_info("parsePEHeader\n");
@@ -302,6 +302,10 @@ int parsePEHeader(uint8_t force,
 
 	if ( pep->info_level_icrt == 1 )
 		PE_parseCertificates(opt_header, gp->start_file_offset, gp->file_size, pep->certificate_directory, gp->fp, gp->block_standard);
+
+	if (pep->info_level_idimp == 1)
+		PE_parseImageDelayImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->bitness, gp->start_file_offset,
+			&gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
 
 	return 0;
 }

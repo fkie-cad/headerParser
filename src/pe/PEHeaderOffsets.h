@@ -388,25 +388,25 @@ static const struct PE_Image_Import_By_Name_Offsets PEImageImportByNameOffsets =
 };
  
 struct Pe_Image_Delay_Import_Descriptor_Offsets {
-	uint8_t grAttrs;
-	uint8_t szName;
-	uint8_t phmod;
-	uint8_t pIAT;
-	uint8_t pINT;
-	uint8_t pBoundIAT;
-	uint8_t pUnloadIAT;
-	uint8_t dwTimeStamp;
+	uint8_t Attrs;
+	uint8_t Name;
+	uint8_t mod;
+	uint8_t IAT;
+	uint8_t INT;
+	uint8_t BoundIAT;
+	uint8_t UnloadIAT;
+	uint8_t TimeStamp;
 };
 
 static const struct Pe_Image_Delay_Import_Descriptor_Offsets PeImageDelayImportDescriptorOffsets = {
-	.grAttrs = 0,
-	.szName = 4,
-	.phmod = 8,
-	.pIAT = 12,
-	.pINT = 16,
-	.pBoundIAT = 20,
-	.pUnloadIAT = 24,
-	.dwTimeStamp = 28,
+	.Attrs = 0,
+	.Name = 4,
+	.mod = 8,
+	.IAT = 12,
+	.INT = 16,
+	.BoundIAT = 20,
+	.UnloadIAT = 24,
+	.TimeStamp = 28,
 };
 
 struct Pe_Image_Export_Directory_Offsets {

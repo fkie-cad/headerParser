@@ -143,6 +143,7 @@ void printHelp()
 			"   * -ires: Print the Image Resource Table (IMAGE_DIRECTORY_ENTRY_RESOURCE) (Currently needs -i > 1).\n"
 			"   * -icrt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE) (Currently needs -i > 1).\n"
 			"   * -cod: Directory to save found certificates in (Needs -icrt).\n"
+			"   * -idimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT) (Currently needs -i > 1).\n"
 	);
 	printf("\n");
 	printf("Examples:\n");
@@ -235,6 +236,10 @@ uint8_t parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_
 //				expandFilePath(argv[i+i], certificate_directory);
 				i++;
 			}
+		}
+		else if (isArgOfType(argv[i], "-idimp"))
+		{
+			pep->info_level_idimp = true;
 		}
 		else
 		{

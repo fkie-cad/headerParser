@@ -14,8 +14,8 @@ OsX may work too.
 
 
 ## Version ##
-1.9.2  
-Last changed: 18.11.2020
+1.9.3  
+Last changed: 23.11.2020
 
 ## REQUIREMENTS ##
 - A decent c compiler (gcc or msbuild) is required.  
@@ -58,6 +58,7 @@ Possible options:
    * -irel: Print the Image Base Relocation Table (IMAGE_DIRECTORY_ENTRY_BASE_RELOC). (Needs -i > 1.)
    * -icrt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE). (Needs -i > 1.)
    * -cod: Directory to save found certificates in. (Needs -icrt.)
+   * -idimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT). (Needs -i > 1.)
  
 ## EXAMPLE ##
 ```bash
@@ -96,7 +97,7 @@ If you think it is a PE file but the MZ or PE00 magic values are broken, try the
 
 
 ## ALTERNATIVE USAGE ##
-The HeaderParser may also be build as a shared library.  
+HeaderParser may also be build as a shared library.  
 Currently tested only on Linux.
 
 ### Build ###
@@ -137,7 +138,7 @@ freePEHeaderData(data);
 ```
 
 ### Python ###
-This is the preferred usage in python.  
+Using the library is the preferred usage in python.  
 On the python side, use [header_parser.py](src/header_parser.py).
 ```python
 
