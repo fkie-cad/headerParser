@@ -64,8 +64,8 @@ void PE_printImageBaseRelocationBlockHeader(PE_BASE_RELOCATION_BLOCK* b,
                                             uint64_t start_file_offset);
 void PE_printImageBaseRelocationBlockEntry(PE_BASE_RELOCATION_ENTRY* e);
 
-void PE_printImageDelayImportTableHeader(PeImageDelayImportDescriptor* did);
-void PE_printImageDelayImportDescriptor(PeImageDelayImportDescriptor* did,
+void PE_printImageDelayImportTableHeader(PeImageDelayLoadDescriptor* did);
+void PE_printImageDelayImportDescriptor(PeImageDelayLoadDescriptor* did,
                                         uint64_t offset, 
                                         const char* dll_name);
 
@@ -664,24 +664,24 @@ void PE_printImageBaseRelocationBlockEntry(PE_BASE_RELOCATION_ENTRY* e)
 
 
 
-void PE_printImageDelayImportTableHeader(PeImageDelayImportDescriptor* impd)
+void PE_printImageDelayImportTableHeader(PeImageDelayLoadDescriptor* impd)
 {
-    if (impd->IAT != 0)
+    if (impd->ImportAddressTableRVA != 0)
         printf("Delay Image Import Table:\n");
     else
         printf("No Delay Image Import Table\n");
 }
 
-void PE_printImageDelayImportDescriptor(PeImageDelayImportDescriptor* did, uint64_t offset, const char* dll_name)
+void PE_printImageDelayImportDescriptor(PeImageDelayLoadDescriptor* did, uint64_t offset, const char* dll_name)
 {
-    printf(" -%s %s (0x%x)\n", fillOffset(PeImageDelayImportDescriptorOffsets.Name, offset, 0), dll_name, did->Name);
-    printf("   - Attributes%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayImportDescriptorOffsets.Attrs, offset, 0), did->Attrs);
-    printf("   - mod%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayImportDescriptorOffsets.mod, offset, 0), did->mod);
-    printf("   - IAT%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayImportDescriptorOffsets.IAT, offset, 0), did->IAT);
-    printf("   - INT%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayImportDescriptorOffsets.INT, offset, 0), did->INT);
-    printf("   - BoundIAT%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayImportDescriptorOffsets.BoundIAT, offset, 0), did->BoundIAT);
-    printf("   - UnloadIAT%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayImportDescriptorOffsets.UnloadIAT, offset, 0), did->UnloadIAT);
-    printf("   - TimeStamp%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayImportDescriptorOffsets.TimeStamp, offset, 0), did->TimeStamp);
+    printf(" -%s %s (0x%x)\n", fillOffset(PeImageDelayLoadDescriptorOffsets.DllNameRVA, offset, 0), dll_name, did->DllNameRVA);
+    printf("   - Attributes%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayLoadDescriptorOffsets.Attributes, offset, 0), did->Attributes);
+    printf("   - ModuleHandleRVA%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayLoadDescriptorOffsets.ModuleHandleRVA, offset, 0), did->ModuleHandleRVA);
+    printf("   - ImportAddressTableRVA%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayLoadDescriptorOffsets.ImportAddressTableRVA, offset, 0), did->ImportAddressTableRVA);
+    printf("   - INTImportNameTableRVAs: 0x%"PRIx32"\n", fillOffset(PeImageDelayLoadDescriptorOffsets.ImportNameTableRVA, offset, 0), did->ImportNameTableRVA);
+    printf("   - BoundImportAddressTableRVA%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayLoadDescriptorOffsets.BoundImportAddressTableRVA, offset, 0), did->BoundImportAddressTableRVA);
+    printf("   - UnloadInformationTableRVA%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayLoadDescriptorOffsets.UnloadInformationTableRVA, offset, 0), did->UnloadInformationTableRVA);
+    printf("   - TimeDateStamp%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayLoadDescriptorOffsets.TimeDateStamp, offset, 0), did->TimeDateStamp);
 }
 
 #endif

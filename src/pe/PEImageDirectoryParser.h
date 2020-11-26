@@ -116,7 +116,7 @@ void PE_parseImageDelayImportTable(PE64OptHeader* optional_header,
                                    FILE* fp,
                                    unsigned char* block_l,
                                    unsigned char* block_s);
-void PE_fillDelayImportDescriptor(PeImageDelayImportDescriptor* import_desciptor,
+void PE_fillDelayImportDescriptor(PeImageDelayLoadDescriptor* import_desciptor,
                                   uint64_t* offset,
                                   uint64_t* abs_file_offset,
                                   size_t file_size,
@@ -811,7 +811,7 @@ void PE_parseImageDelayImportTable(PE64OptHeader* optional_header,
 
     char* dll_name = NULL;
 
-    PeImageDelayImportDescriptor did; // 32 + 64
+    PeImageDelayLoadDescriptor did; // 32 + 64
 
 
     table_fo = PE_getDataDirectoryEntryFileOffset(optional_header->DataDirectory, IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT,
@@ -838,10 +838,10 @@ void PE_parseImageDelayImportTable(PE64OptHeader* optional_header,
     PE_printImageDelayImportTableHeader(&did);
 
     // terminated by zero filled PEImageImportDescriptor
-    while (did.INT != 0 && did.IAT!=0)
+    while (did.ImportNameTableRVA != 0 && did.ImportAddressTableRVA !=0)
     {
         dll_name = NULL;
-        *abs_file_offset = PE_Rva2Foa(did.Name, svas, nr_of_sections);
+        *abs_file_offset = PE_Rva2Foa(did.DllNameRVA, svas, nr_of_sections);
         if (!checkFileSpace(0, *abs_file_offset, 1, file_size))
             break;
 
@@ -852,10 +852,10 @@ void PE_parseImageDelayImportTable(PE64OptHeader* optional_header,
 
         PE_printImageDelayImportDescriptor(&did, *abs_file_offset + offset, dll_name);
 
-        if (did.INT != 0)
-            thunk_data_offset = PE_Rva2Foa(did.INT, svas, nr_of_sections);
+        if (did.ImportNameTableRVA != 0)
+            thunk_data_offset = PE_Rva2Foa(did.ImportNameTableRVA, svas, nr_of_sections);
         else
-            thunk_data_offset = PE_Rva2Foa(did.IAT, svas, nr_of_sections);
+            thunk_data_offset = PE_Rva2Foa(did.ImportAddressTableRVA, svas, nr_of_sections);
 
         PE_printHintFunctionHeader();
         PE_iterateThunkData(nr_of_sections, svas, bitness, start_file_offset, file_size, fp, block_s, thunk_data_offset);
@@ -867,7 +867,7 @@ void PE_parseImageDelayImportTable(PE64OptHeader* optional_header,
     }
 }
 
-void PE_fillDelayImportDescriptor(PeImageDelayImportDescriptor* did,
+void PE_fillDelayImportDescriptor(PeImageDelayLoadDescriptor* did,
                                   uint64_t* offset,
                                   uint64_t* abs_file_offset,
                                   size_t file_size,
@@ -885,14 +885,14 @@ void PE_fillDelayImportDescriptor(PeImageDelayImportDescriptor* did,
         return;
 
     ptr = &block_l[*offset];
-    did->Attrs = *((uint32_t*)&ptr[PeImageDelayImportDescriptorOffsets.Attrs]);
-    did->Name = *((uint32_t*)&ptr[PeImageDelayImportDescriptorOffsets.Name]);
-    did->mod = *((uint32_t*)&ptr[PeImageDelayImportDescriptorOffsets.mod]);
-    did->IAT = *((uint32_t*)&ptr[PeImageDelayImportDescriptorOffsets.IAT]);
-    did->INT = *((uint32_t*)&ptr[PeImageDelayImportDescriptorOffsets.INT]);
-    did->BoundIAT = *((uint32_t*)&ptr[PeImageDelayImportDescriptorOffsets.BoundIAT]);
-    did->UnloadIAT = *((uint32_t*)&ptr[PeImageDelayImportDescriptorOffsets.UnloadIAT]);
-    did->TimeStamp = *((uint32_t*)&ptr[PeImageDelayImportDescriptorOffsets.TimeStamp]);
+    did->Attributes.AllAttributes = *((uint32_t*)&ptr[PeImageDelayLoadDescriptorOffsets.Attributes]);
+    did->DllNameRVA = *((uint32_t*)&ptr[PeImageDelayLoadDescriptorOffsets.DllNameRVA]);
+    did->ModuleHandleRVA = *((uint32_t*)&ptr[PeImageDelayLoadDescriptorOffsets.ModuleHandleRVA]);
+    did->ImportAddressTableRVA = *((uint32_t*)&ptr[PeImageDelayLoadDescriptorOffsets.ImportAddressTableRVA]);
+    did->ImportNameTableRVA = *((uint32_t*)&ptr[PeImageDelayLoadDescriptorOffsets.ImportNameTableRVA]);
+    did->BoundImportAddressTableRVA = *((uint32_t*)&ptr[PeImageDelayLoadDescriptorOffsets.BoundImportAddressTableRVA]);
+    did->UnloadInformationTableRVA = *((uint32_t*)&ptr[PeImageDelayLoadDescriptorOffsets.UnloadInformationTableRVA]);
+    did->TimeDateStamp = *((uint32_t*)&ptr[PeImageDelayLoadDescriptorOffsets.TimeDateStamp]);
 }
 
 int PE_iterateThunkData(uint16_t nr_of_sections,

@@ -303,17 +303,34 @@ typedef struct PEImageImportByName {
 //	char Name[1];
 } PEImageImportByName;
 
+
 // _IMAGE_DELAY_IMPORT_DESCRIPTOR
-typedef struct PeImageDelayImportDescriptor {
-	uint32_t Attrs; // Must be zero (offical docu). 1 stands for : RVAs are used instead of pointers (bug in older version uses absolute addresses.
-	uint32_t Name; // The RVA of the name of the DLL to be loaded.The name resides in the read - only data section of the image.
-	uint32_t mod; // The RVA of the module handle(in the data section of the image) of the DLL to be delay-loaded. It is used for storage by the routine that is supplied to manage delay-loading.
-	uint32_t IAT; // The RVA of the delay-load import address table. 
-	uint32_t INT; // The RVA of the delay-load name table, which contains the names of the imports that might need to be loaded. This matches the layout of the import name table.
-	uint32_t BoundIAT; // The RVA of the bound delay-load address table, if it exists.
-	uint32_t UnloadIAT; // The RVA of the unload delay-load address table, if it exists. This is an exact copy of the delay import address table. If the caller unloads the DLL, this table should be copied back over the delay import address table so that subsequent calls to the DLL continue to use the thunking mechanism correctly.
-	uint32_t TimeStamp; // The timestamp of the DLL to which this image has been bound. 
-} PeImageDelayImportDescriptor;
+typedef struct PeImageDelayLoadDescriptor {
+	//uint32_t Attributes; // Must be zero (offical docu). 1 stands for : RVAs are used instead of pointers (bug in older version uses absolute addresses.
+	//uint32_t DllNameRVA; // The RVA of the name of the DLL to be loaded.The name resides in the read - only data section of the image.
+	//uint32_t ModuleHandleRVA; // The RVA of the module handle(in the data section of the image) of the DLL to be delay-loaded. It is used for storage by the routine that is supplied to manage delay-loading.
+	//uint32_t ImportAddressTableRVA; // The RVA of the delay-load import address table. 
+	//uint32_t ImportNameTableRVA; // The RVA of the delay-load name table, which contains the names of the imports that might need to be loaded. This matches the layout of the import name table.
+	//uint32_t BoundImportAddressTableRVA; // The RVA of the bound delay-load address table, if it exists.
+	//uint32_t UnloadInformationTableRVA; // The RVA of the unload delay-load address table, if it exists. 
+	//uint32_t TimeDateStamp; // The timestamp of the DLL to which this image has been bound. 
+
+	union {
+		uint32_t AllAttributes;
+		struct {
+			uint32_t RvaBased : 1;             // Delay load version 2
+			uint32_t ReservedAttributes : 31;
+		} DUMMYSTRUCTNAME;
+	} Attributes;
+
+	uint32_t DllNameRVA;                       // RVA to the name of the target library (NULL-terminate ASCII string). The name resides in the read - only data section of the image.
+	uint32_t ModuleHandleRVA;                  // RVA to the HMODULE caching location (PHMODULE). (In the data section of the image) of the DLL to be delay-loaded. It is used for storage by the routine that is supplied to manage delay-loading.
+	uint32_t ImportAddressTableRVA;            // RVA to the start of the IAT (PIMAGE_THUNK_DATA)
+	uint32_t ImportNameTableRVA;               // RVA to the start of the name table (PIMAGE_THUNK_DATA::AddressOfData). This matches the layout of the import name table.
+	uint32_t BoundImportAddressTableRVA;       // RVA to an optional bound IAT.
+	uint32_t UnloadInformationTableRVA;        // RVA to an optional unload info table. This is an exact copy of the delay import address table. If the caller unloads the DLL, this table should be copied back over the delay import address table so that subsequent calls to the DLL continue to use the thunking mechanism correctly.
+	uint32_t TimeDateStamp;                    // 0 if not bound, Otherwise, date/time of the target DLL.
+} PeImageDelayLoadDescriptor;
 
 typedef struct PE_IMAGE_EXPORT_DIRECTORY
 {
@@ -465,11 +482,12 @@ typedef struct PE_BASE_RELOCATION_ENTRY {
 	union {
 		// Bit fields don't work properly => use bit shifftig. 
 		//union {
-		//	// The bottom 12 bits of each WORD are a relocation offset, 
-		//	// and need to be added to the value of the Virtual Address field from this relocation block's header.
-		//	uint16_t Offset : 12;
-		//	uint16_t Type : 4;
-		//};
+		//	uint16_t AllData;
+		//	struct {
+		//		uint16_t Offset : 12;
+		//		uint16_t Type : 4;
+		//	} DATA_STRUCT;
+		//} Data;
 		uint16_t Data;
 	};
 } PE_BASE_RELOCATION_ENTRY;
