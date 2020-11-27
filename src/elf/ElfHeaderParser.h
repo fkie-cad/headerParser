@@ -226,7 +226,8 @@ void Elf_fillHeaderDataWithFileHeader(const Elf64FileHeader* file_header, PHeade
 	ArchitectureMapEntry* arch = getArchitecture(file_header->e_machine, elf_arch_id_mapper, elf_arch_id_mapper_size);
 
 	if ( file_header->EI_CLASS == ELFCLASS32 ) hd->bitness = 32;
-	else hd->bitness = 64;
+	else if ( file_header->EI_CLASS == ELFCLASS64 ) hd->bitness = 64;
+	else hd->bitness = arch->bitness;
 	hd->endian = file_header->EI_DATA;
 	hd->CPU_arch = arch->arch_id;
 	hd->Machine = arch->arch.name;
