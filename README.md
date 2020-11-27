@@ -29,7 +29,8 @@ $ ./linuxBuild.sh [-t headerParser] [-m Release|Debug] [-h]
 
 ### GCC & Linux commandline ###
 ```bash
-$ gcc -o build/headerParser -Ofast headerParser.c  
+$ mkdir build
+$ gcc -o build/headerParser -Wl,-z,relro,-z,now -D_FILE_OFFSET_BITS=64 -Ofast src/headerParser.c  
 ```
 
 ### MsBuild & Windows & cmake ###
