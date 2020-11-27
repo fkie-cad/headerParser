@@ -407,7 +407,29 @@ static const struct Pe_Image_Delay_Load_Descriptor_Offsets PeImageDelayLoadDescr
 	.BoundImportAddressTableRVA = 20,
 	.UnloadInformationTableRVA = 24,
 	.TimeDateStamp = 28,
-}; ;
+};
+
+struct PE_IMAGE_BOUND_IMPORT_DESCRIPTOR_OFFSETS {
+	uint8_t TimeDateStamp;
+	uint8_t OffsetModuleName;
+	uint8_t NumberOfModuleForwarderRefs;
+};
+static const struct PE_IMAGE_BOUND_IMPORT_DESCRIPTOR_OFFSETS PeImageBoundDescriptorOffsets = {
+	.TimeDateStamp = 0,
+	.OffsetModuleName = 4,
+	.NumberOfModuleForwarderRefs = 6
+};
+
+struct PE_IMAGE_BOUND_FORWARDER_REF_OFFSETS {
+	uint8_t TimeDateStamp;
+	uint8_t OffsetModuleName;
+	uint8_t Reserved;
+};
+static const struct PE_IMAGE_BOUND_FORWARDER_REF_OFFSETS PeImageBoundForwarderRefOffsets = {
+	.TimeDateStamp = 0,
+	.OffsetModuleName = 4,
+	.Reserved = 6
+};
 
 struct Pe_Image_Export_Directory_Offsets {
 	uint8_t Characteristics;
@@ -522,6 +544,35 @@ struct Pe_Base_Relocation_Entry_Offsets {
 struct Pe_Base_Relocation_Entry_Offsets PeBaseRelocationEntryOffsets = {
 	.Type = 0,
 	.Offset = 0
+};
+
+
+
+struct PE_IMAGE_TLS_DIRECTORY_OFSETS {
+	uint8_t StartAddressOfRawData;
+	uint8_t EndAddressOfRawData;
+	uint8_t AddressOfIndex;
+	uint8_t AddressOfCallBacks;
+	uint8_t SizeOfZeroFill;
+	uint8_t Characteristics;
+};
+
+struct PE_IMAGE_TLS_DIRECTORY_OFSETS PeImageTlsDirectoryOfsets32 = {
+	.StartAddressOfRawData = 0,
+	.EndAddressOfRawData = 4,
+	.AddressOfIndex = 8,
+	.AddressOfCallBacks = 12,
+	.SizeOfZeroFill = 16,
+	.Characteristics = 20
+};
+
+struct PE_IMAGE_TLS_DIRECTORY_OFSETS PeImageTlsDirectoryOfsets64 = {
+	.StartAddressOfRawData = 0,
+	.EndAddressOfRawData = 8,
+	.AddressOfIndex = 16,
+	.AddressOfCallBacks = 24,
+	.SizeOfZeroFill = 32,
+	.Characteristics = 36
 };
 
 #endif

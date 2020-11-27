@@ -67,7 +67,7 @@ ArchitectureMapEntry pe_arch_id_mapper[] = {
 	{ {IMAGE_FILE_MACHINE_TRICORE, "Infineon Tricore"}, ARCH_INFINEON, 32 },
 	{ {IMAGE_FILE_MACHINE_WCEMIPSV2, "MIPS little-endian WCE v2"}, ARCH_MIPS, 32 },
 };
-const uint8_t pe_arch_id_mapper_size = (sizeof(pe_arch_id_mapper)/sizeof(ArchitectureMapEntry));
+const size_t pe_arch_id_mapper_size = (sizeof(pe_arch_id_mapper)/sizeof(ArchitectureMapEntry));
 
 //{elfId, archId, bitness}
 ArchitectureMapEntry elf_arch_id_mapper[] = {
@@ -81,6 +81,9 @@ ArchitectureMapEntry elf_arch_id_mapper[] = {
 	{ {EM_MIPS, "MIPS I Architecture"}, ARCH_MIPS, 0 },
 	{ {EM_S370, "IBM System/370 Processor"}, ARCH_IBM, 0 },
 	{ {EM_MIPS_RS3_LE, "MIPS RS3000 Little-endian"}, ARCH_MIPS, 0 },
+	// 11 - 14,
+	{ {EM_PARISC, "Hewlett-Packard PA-RISC"}, ARCH_RISC, 0 },
+	// 16,
 	{ {EM_VPP500, "Fujitsu VPP500"}, ARCH_FUJITSU, 0 },
 	{ {EM_SPARC32PLUS, "Enhanced instruction set SPARC"}, ARCH_SPARC, 32 },
 	{ {EM_960, "Intel 80960"}, ARCH_INTEL, 33 },
@@ -253,7 +256,7 @@ ArchitectureMapEntry elf_arch_id_mapper[] = {
 	{ {EM_AMDGPU, "AMD GPU architecture"}, ARCH_INTEL, 0 },
 	{ {EM_RISCV, "RISC-V"}, ARCH_RISC_V, 0 },
 };
-const uint8_t elf_arch_id_mapper_size = (sizeof(elf_arch_id_mapper)/sizeof(ArchitectureMapEntry));
+const size_t elf_arch_id_mapper_size = (sizeof(elf_arch_id_mapper)/sizeof(ArchitectureMapEntry));
 
 //{machOId, archId, bitness}
 ArchitectureMapEntry mach_o_arch_id_mapper[] = {
@@ -267,26 +270,26 @@ ArchitectureMapEntry mach_o_arch_id_mapper[] = {
 	{ {CPU_TYPE_POWERPC, "PowerPC compatible CPUs"}, ARCH_PPC, 32 },
 	{ {CPU_TYPE_POWERPC64, "PowerPC64 compatible CPUs\""}, ARCH_PPC, 64 },
 };
-const uint8_t mach_o_arch_id_mapper_size = (sizeof(mach_o_arch_id_mapper)/sizeof(ArchitectureMapEntry));
+const size_t mach_o_arch_id_mapper_size = (sizeof(mach_o_arch_id_mapper)/sizeof(ArchitectureMapEntry));
 
 //{dexId, archId, bitness}
 ArchitectureMapEntry dex_arch_id_mapper[] = {
 	{ {0, "Dalvik dex file version xxx"}, ARCH_ANDROID, 32 },
 };
-const uint8_t dex_arch_id_mapper_size = (sizeof(dex_arch_id_mapper)/sizeof(ArchitectureMapEntry));
+const size_t dex_arch_id_mapper_size = (sizeof(dex_arch_id_mapper)/sizeof(ArchitectureMapEntry));
 
 //{artId, archId, bitness}
 ArchitectureMapEntry art_arch_id_mapper[] = {
 	{ {0, "Android ART file version xxx"}, ARCH_ANDROID, 32 },
 };
-const uint8_t art_arch_id_mapper_size = (sizeof(art_arch_id_mapper)/sizeof(ArchitectureMapEntry));
+const size_t art_arch_id_mapper_size = (sizeof(art_arch_id_mapper)/sizeof(ArchitectureMapEntry));
 
 
 
-ArchitectureMapEntry* getArchitecture(const uint32_t e_machine, ArchitectureMapEntry* map, const int size)
+ArchitectureMapEntry* getArchitecture(const uint32_t e_machine, ArchitectureMapEntry* map, const size_t size)
 {
 	ArchitectureMapEntry* entry;
-	int i = 0;
+	size_t i = 0;
 	for ( i = 0; i < size; i++ )
 	{
 		entry = &map[i];

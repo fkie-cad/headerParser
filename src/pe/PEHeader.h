@@ -39,6 +39,8 @@ enum PEHeaderSizes {
 	PE_RESOURCE_DIRECTORY_SIZE = 16,
 	PE_RESOURCE_DATA_ENTRY_SIZE = 16,
 	PE_DELAY_IMPORT_DESCRIPTOR_SIZE = 32,
+	PE_BOUND_IMPORT_DESCRIPTOR_SIZE = 8,
+	PE_BOUND_FORWARDER_REF_SIZE = 8,
 	PE_EXPORT_DIRECTORY_SIZE = 40,
 	PE_SECTION_HEADER_SIZE=40
 };
@@ -265,6 +267,9 @@ typedef struct PEImageSectionHeader
 	uint32_t Characteristics;
 } PEImageSectionHeader;
 
+
+
+
 typedef struct PEImageImportDescriptor {
 	union {
 		uint32_t Characteristics;            // 0 for terminating null import descriptor
@@ -304,6 +309,9 @@ typedef struct PEImageImportByName {
 } PEImageImportByName;
 
 
+
+
+
 // _IMAGE_DELAY_IMPORT_DESCRIPTOR
 typedef struct PeImageDelayLoadDescriptor {
 	//uint32_t Attributes; // Must be zero (offical docu). 1 stands for : RVAs are used instead of pointers (bug in older version uses absolute addresses.
@@ -327,10 +335,29 @@ typedef struct PeImageDelayLoadDescriptor {
 	uint32_t ModuleHandleRVA;                  // RVA to the HMODULE caching location (PHMODULE). (In the data section of the image) of the DLL to be delay-loaded. It is used for storage by the routine that is supplied to manage delay-loading.
 	uint32_t ImportAddressTableRVA;            // RVA to the start of the IAT (PIMAGE_THUNK_DATA)
 	uint32_t ImportNameTableRVA;               // RVA to the start of the name table (PIMAGE_THUNK_DATA::AddressOfData). This matches the layout of the import name table.
-	uint32_t BoundImportAddressTableRVA;       // RVA to an optional bound IAT.
+	uint32_t BoundImportAddressTableRVA;       // RVA to an optional bound IAT. The default linker behavior is to create a bindable import address table for the delay-loaded DLL. If the DLL is bound, the helper function will attempt to use the bound information instead of calling GetProcAddress on each of the referenced imports. If either the timestamp or the preferred address do not match those of the loaded DLL, the helper function will assume the bound import address table is out of date and will proceed as if it does not exist
 	uint32_t UnloadInformationTableRVA;        // RVA to an optional unload info table. This is an exact copy of the delay import address table. If the caller unloads the DLL, this table should be copied back over the delay import address table so that subsequent calls to the DLL continue to use the thunking mechanism correctly.
 	uint32_t TimeDateStamp;                    // 0 if not bound, Otherwise, date/time of the target DLL.
 } PeImageDelayLoadDescriptor;
+
+
+
+
+typedef struct PE_IMAGE_BOUND_IMPORT_DESCRIPTOR {
+	uint32_t TimeDateStamp;
+	uint16_t OffsetModuleName;
+	uint16_t NumberOfModuleForwarderRefs;
+	// Array of zero or more IMAGE_BOUND_FORWARDER_REF follows
+} PE_IMAGE_BOUND_IMPORT_DESCRIPTOR, * PPE_IMAGE_BOUND_IMPORT_DESCRIPTOR;
+
+typedef struct PE_IMAGE_BOUND_FORWARDER_REF {
+	uint32_t TimeDateStamp;
+	uint16_t OffsetModuleName;
+	uint16_t Reserved;
+} PE_IMAGE_BOUND_FORWARDER_REF, * PPE_IMAGE_BOUND_FORWARDER_REF;
+
+
+
 
 typedef struct PE_IMAGE_EXPORT_DIRECTORY
 {
@@ -372,6 +399,10 @@ typedef struct PE_IMAGE_EXPORT_DIRECTORY
 // There are three of these arrays (AddressOfFunctions, AddressOfNames, AddressOfNameOrdinals),
 // and they are all parallel to one another.
 
+
+
+
+
 typedef struct PeAttributeCertificateTable {
 	uint32_t dwLength; // Specifies the length of the attribute certificate entry.
 	uint16_t wRevision; // Contains the certificate version number. For details, see the following text.
@@ -392,6 +423,20 @@ typedef struct PeAttributeCertificateTable {
 #define WIN_CERT_TYPE_PKCS_SIGNED_DATA (0x0002) // bCertificate contains a PKCS#7 SignedData structure
 #define WIN_CERT_TYPE_RESERVED_1 (0x0003) //  Reserved
 #define WIN_CERT_TYPE_TS_STACK_SIGNED (0x0004) // Terminal Server Protocol Stack Certificate signing. Not Supported
+
+
+
+
+// Resources Layout
+// Resource Directory Tables(and Resource Directory Entries)
+// A series of tables, one for each group of nodes in the tree.All top - level(Type) nodes are listed in the first table.Entries in this table point to second - level tables.Each second - level tree has the same Type ID but different Name IDs.Third - level trees have the same Type and Name IDs but different Language IDs.
+// Each individual table is immediately followed by directory entries, in which each entry has a name or numeric identifier and a pointer to a data description or a table at the next lower level.
+// Resource Directory Strings
+// Two - byte - aligned Unicode strings, which serve as string data that is pointed to by directory entries.
+// Resource Data Description
+// An array of records, pointed to by tables, that describe the actual sizeand location of the resource data.These records are the leaves in the resource - description tree.
+// Resource Data
+// Raw data of the resource section.The size and location information in the Resource Data Descriptions field delimit the individual regions of resource data.
 
 typedef struct PE_IMAGE_RESOURCE_DIRECTORY_ENTRY {
 //	This field contains either an integer ID or a pointer to a structure that contains a string name.
@@ -469,6 +514,10 @@ typedef struct PE_IMAGE_RESOURCE_DATA_ENTRY {
 	uint32_t Reserved;
 } PE_IMAGE_RESOURCE_DATA_ENTRY;
 
+
+
+
+
 typedef struct PE_BASE_RELOCATION_BLOCK {
 	// This field contains the starting RVA for this chunk of relocations. 
 	// The offset of each relocation that follows is added to this value to form the actual RVA where the relocation needs to be applied.
@@ -506,6 +555,52 @@ typedef struct PE_BASE_RELOCATION_ENTRY {
 #define PE_IMAGE_REL_BASED_RISCV_LOW12S (8) // This relocation is only meaningful when the machine type is RISC-V. The base relocation applies to the low 12 bits of a 32-bit absolute address formed in RISC-V S-type instruction format.
 #define PE_IMAGE_REL_BASED_MIPS_JMPADDR16 (9) // The relocation is only meaningful when the machine type is MIPS. The base relocation applies to a MIPS16 jump instruction.
 #define PE_IMAGE_REL_BASED_DIR64 (10) // The base relocation applies the difference to the 64-bit field at offset.
+
+
+
+
+
+typedef struct PE_IMAGE_TLS_DIRECTORY32 {
+	uint32_t StartAddressOfRawData;
+	uint32_t EndAddressOfRawData;
+	uint32_t AddressOfIndex;             // PDWORD
+	uint32_t AddressOfCallBacks;         // PIMAGE_TLS_CALLBACK *
+	uint32_t SizeOfZeroFill;
+	union {
+		uint32_t Characteristics;
+		struct {
+			uint32_t Reserved0 : 20;
+			uint32_t Alignment : 4;
+			uint32_t Reserved1 : 8;
+		} DUMMYSTRUCTNAME;
+	} DUMMYUNIONNAME;
+} PE_IMAGE_TLS_DIRECTORY32, * PPE_IMAGE_TLS_DIRECTORY32;
+
+typedef struct PE_IMAGE_TLS_DIRECTORY64 {
+	uint64_t StartAddressOfRawData; // The starting address of the TLS template. The template is a block of data that is used to initialize TLS data. The system copies all of this data each time a thread is created, so it must not be corrupted. Note that this address is not an RVA; it is an address for which there should be a base relocation in the .reloc section.
+	uint64_t EndAddressOfRawData; // The address of the last byte of the TLS, except for the zero fill. As with the Raw Data Start VA field, this is a VA, not an RVA.
+	uint64_t AddressOfIndex; // PDWORD The location to receive the TLS index, which the loader assigns. This location is in an ordinary data section, so it can be given a symbolic name that is accessible to the program.
+	uint64_t AddressOfCallBacks; // PIMAGE_TLS_CALLBACK *; The pointer to an array of TLS callback functions. The array is null-terminated, so if no callback function is supported, this field points to 4 bytes set to zero. For 
+	uint32_t SizeOfZeroFill; // The size in bytes of the template, beyond the initialized data delimited by the Raw Data Start VA and Raw Data End VA fields. The total template size should be the same as the total size of TLS data in the image file. The zero fill is the amount of data that comes after the initialized nonzero data.
+	union {
+		uint32_t Characteristics; // The four bits [23:20] describe alignment info. Possible values are those defined as IMAGE_SCN_ALIGN_*, which are also used to describe alignment of section in object files. The other 28 bits are reserved for future use.
+		struct {
+			uint32_t Reserved0 : 20;
+			uint32_t Alignment : 4;
+			uint32_t Reserved1 : 8;
+		} DUMMYSTRUCTNAME;
+	} DUMMYUNIONNAME;
+} PE_IMAGE_TLS_DIRECTORY64, * PPE_IMAGE_TLS_DIRECTORY64;
+
+//typedef VOID
+//(NTAPI* PIMAGE_TLS_CALLBACK) (
+//	PVOID DllHandle,
+//	DWORD Reason,
+//	PVOID Reserved
+//	);
+
+
+
 
 // custom
 
