@@ -29,7 +29,7 @@ static const char* header_type_names[HEADER_TYPES_SIZE] = {
 	"ZIP-Archive",
 };
 
-#define ARCHITECTURE_NAMES_SIZE (96)
+#define ARCHITECTURE_NAMES_SIZE (97)
 static const char* architecture_names[ARCHITECTURE_NAMES_SIZE] = {
 	"unsupported",
 	"Alpha",
@@ -97,6 +97,7 @@ static const char* architecture_names[ARCHITECTURE_NAMES_SIZE] = {
 	"Microchip-Technology",
 	"NEC",
 	"OsX",
+	"PA-RISC",
 	"Paneve",
 	"picoJava",
 	"PKU",

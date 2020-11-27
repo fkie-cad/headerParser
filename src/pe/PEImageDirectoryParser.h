@@ -580,7 +580,7 @@ void PE_parseImageBoundImportTable(PE64OptHeader* optional_header,
             if ( readFile(fp, *abs_file_offset, BLOCKSIZE, block_s) )
                 dll_name = (char*)block_s;
 
-            PE_printImageBoundForwarderRef(&bid, *abs_file_offset + offset, dll_name, ri+1, bid.NumberOfModuleForwarderRefs);
+            PE_printImageBoundForwarderRef(&bfr, *abs_file_offset + offset, dll_name, ri+1, bid.NumberOfModuleForwarderRefs);
 
             offset += PE_BOUND_FORWARDER_REF_SIZE ;
         }

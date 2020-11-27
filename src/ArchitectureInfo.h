@@ -82,7 +82,7 @@ ArchitectureMapEntry elf_arch_id_mapper[] = {
 	{ {EM_S370, "IBM System/370 Processor"}, ARCH_IBM, 0 },
 	{ {EM_MIPS_RS3_LE, "MIPS RS3000 Little-endian"}, ARCH_MIPS, 0 },
 	// 11 - 14,
-	{ {EM_PARISC, "Hewlett-Packard PA-RISC"}, ARCH_RISC, 0 },
+	{ {EM_PARISC, "Hewlett-Packard PA-RISC"}, ARCH_PA_RISC, 0 },
 	// 16,
 	{ {EM_VPP500, "Fujitsu VPP500"}, ARCH_FUJITSU, 0 },
 	{ {EM_SPARC32PLUS, "Enhanced instruction set SPARC"}, ARCH_SPARC, 32 },
