@@ -246,7 +246,16 @@ typedef enum ElfInstructionSetArchitecture {
 	reserved240 = 240, // Reserved for future use
 	reserved241 = 241, // Reserved for future use
 	reserved242 = 242, // Reserved for future use
-	EM_RISCV = 243 // RISC-V
+	EM_RISCV = 243, // RISC-V
+
+	// not mapped to ArchitectureInfo yet
+    EM_BPF = 247,	// Linux BPF - in-kernel virtual machine
+    EM_CSKY = 252,	// C-SKY
+    EM_FRV = 0x5441,	// Fujitsu FR-V
+    EM_ALPHA_OLD = 0x9026, // This is an interim value that we will use until the committee comes up with a final number.
+    EM_CYGNUS_M32R = 0x9041, // Bogus old m32r magic number, used by old tools.
+    EM_S390_OLD = 0xA390, // This is the old interim value for S/390 architecture
+    EM_CYGNUS_MN10300 = 0xbeef // Also Panasonic/MEI MN10300, AM33
 } ElfInstructionSetArchitecture;
 
 #endif
