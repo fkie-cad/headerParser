@@ -73,7 +73,7 @@ class HeaderParserDirectoryRunner : public DirectoryRunner
 
 			if ( raw_data->headertype != data->headertype ) equal = false;
 			else if ( raw_data->endian != data->endian ) equal = false;
-			else if ( raw_data->bitness != data->bitness ) equal = false;
+			else if ( raw_data->h_bitness != data->h_bitness ) equal = false;
 			else if ( raw_data->CPU_arch != data->CPU_arch ) equal = false;
 			else if ( strcmp(raw_data->Machine, data->Machine) != 0 ) equal = false;
 			else if ( raw_data->code_regions_size != data->code_regions_size ) equal = false;
@@ -119,10 +119,10 @@ class HeaderParserDirectoryRunner : public DirectoryRunner
 			cout << " raw | lib "<<endl;
 			cout << " - headertype: " << +raw_data->headertype << " : " << +data->headertype << " :: "
 				 << (raw_data->headertype == data->headertype) << endl;
-			cout << " - bitness: " << +raw_data->bitness << " : " << +data->bitness << " :: "
-				 << (raw_data->endian == data->endian) << endl;
+			cout << " - bitness: " << +raw_data->h_bitness << " : " << +data->h_bitness << " :: "
+                 << (raw_data->endian == data->endian) << endl;
 			cout << " - endian: " << +raw_data->endian << " : " << +data->endian << " :: "
-				 << (raw_data->bitness == data->bitness) << endl;
+                 << (raw_data->h_bitness == data->h_bitness) << endl;
 			cout << " - cpu_arch: " << +raw_data->CPU_arch << " : " << +data->CPU_arch << " :: "
 				 << (raw_data->CPU_arch == data->CPU_arch) << endl;
 			cout << " - machine: " << raw_data->Machine << " : " << data->Machine << " :: "

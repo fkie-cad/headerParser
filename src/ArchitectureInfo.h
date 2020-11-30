@@ -72,24 +72,24 @@ const size_t pe_arch_id_mapper_size = (sizeof(pe_arch_id_mapper)/sizeof(Architec
 //{elfId, archId, bitness}
 ArchitectureMapEntry elf_arch_id_mapper[] = {
 	{ {EM_M32, "AT&T WE 32100"}, ARCH_ATT, 32 },
-	{ {EM_SPARC, "SPARC"}, ARCH_SPARC, 0 },
+	{ {EM_SPARC, "SPARC"}, ARCH_SPARC, 64 }, // 32 ??
 	{ {EM_386, "Intel 80386"}, ARCH_INTEL, 32 },
 	{ {EM_68K, "Motorola 68000"}, ARCH_MOTOROLA, 32 },
 	{ {EM_88K, "Motorola 88000"}, ARCH_MOTOROLA, 32 },
 	{ {EM_IAMCU, "Intel MCU"}, ARCH_INTEL, 32 },
 	{ {EM_860, "Intel 80860"}, ARCH_INTEL, 32 },  // ?? 64
-	{ {EM_MIPS, "MIPS I Architecture"}, ARCH_MIPS, 0 },
-	{ {EM_S370, "IBM System/370 Processor"}, ARCH_IBM, 0 },
-	{ {EM_MIPS_RS3_LE, "MIPS RS3000 Little-endian"}, ARCH_MIPS, 0 },
+	{ {EM_MIPS, "MIPS RS3000 Big-endian"}, ARCH_MIPS, 32 },
+	{ {EM_S370, "IBM System/370 Processor"}, ARCH_IBM, 31 },
+	{ {EM_MIPS_RS3_LE, "MIPS RS3000 Little-endian"}, ARCH_MIPS, 32 },
 	// 11 - 14,
-	{ {EM_PARISC, "Hewlett-Packard PA-RISC"}, ARCH_PA_RISC, 0 },
+	{ {EM_PARISC, "Hewlett-Packard PA-RISC"}, ARCH_PA_RISC, 32 },
 	// 16,
 	{ {EM_VPP500, "Fujitsu VPP500"}, ARCH_FUJITSU, 0 },
 	{ {EM_SPARC32PLUS, "Enhanced instruction set SPARC"}, ARCH_SPARC, 32 },
 	{ {EM_960, "Intel 80960"}, ARCH_INTEL, 33 },
 	{ {EM_PPC, "PowerPC"}, ARCH_PPC, 32 },
 	{ {EM_PPC64, "64-bit PowerPC"}, ARCH_PPC, 64 },
-	{ {EM_S390, "IBM System/390 Processor"}, ARCH_IBM, 64 }, // ?? 32
+	{ {EM_S390, "IBM System/390 Processor"}, ARCH_IBM, 31 }, // ?? 32
 	{ {EM_SPU, "IBM SPU/SPC"}, ARCH_IBM, 0 },
 	{ {EM_V800, "NEC V800"}, ARCH_NEC, 0 },
 	{ {EM_FR20, "Fujitsu FR20"}, ARCH_FUJITSU, 0 },

@@ -25,7 +25,7 @@ int initHeaderData(HeaderData* header_data, size_t code_regions_capacity)
 		return -1;
 	header_data->code_regions_size = 0;
 	header_data->headertype = 0;
-	header_data->bitness = 0;
+	header_data->h_bitness = 0;
 	header_data->endian = 0;
 	header_data->CPU_arch = 0;
 	header_data->Machine = MACHINE_NONE;

@@ -146,7 +146,8 @@ typedef struct CodeRegionData
 typedef struct HeaderData
 {
 	uint8_t headertype;
-	uint8_t bitness;
+	uint8_t h_bitness;
+	uint8_t i_bitness;
 	uint8_t endian;
 	uint8_t CPU_arch;
 	const char* Machine;
