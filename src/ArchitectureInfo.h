@@ -74,8 +74,8 @@ ArchitectureMapEntry elf_arch_id_mapper[] = {
 	{ {EM_M32, "AT&T WE 32100"}, ARCH_ATT, 32 },
 	{ {EM_SPARC, "SPARC"}, ARCH_SPARC, 64 }, // 32 ??
 	{ {EM_386, "Intel 80386"}, ARCH_INTEL, 32 },
-	{ {EM_68K, "Motorola 68000"}, ARCH_MOTOROLA, 32 },
-	{ {EM_88K, "Motorola 88000"}, ARCH_MOTOROLA, 32 },
+	{ {EM_68K, "Motorola 68000"}, ARCH_MOTOROLA_68K, 32 },
+	{ {EM_88K, "Motorola 88000"}, ARCH_MOTOROLA_88K, 32 },
 	{ {EM_IAMCU, "Intel MCU"}, ARCH_INTEL, 32 },
 	{ {EM_860, "Intel 80860"}, ARCH_INTEL, 32 },  // ?? 64
 	{ {EM_MIPS, "MIPS RS3000"}, ARCH_MIPS, 32 },
@@ -211,28 +211,28 @@ ArchitectureMapEntry elf_arch_id_mapper[] = {
 	{ {EM_CR16, "National Semiconductor CompactRISC CR16 16-bit microprocessor"}, ARCH_NS, 16 },
 	{ {EM_ETPU, "Freescale Extended Time Processing Unit"}, ARCH_FREESCALE, 0 },
 	{ {EM_SLE9X, "Infineon Technologies SLE9X core"}, ARCH_INFINEON, 16 },
-	{ {EM_L10M, "Intel L10M"}, ARCH_INTEL, 0 },
+	{ {EM_L10M, "Intel L10M"}, ARCH_INTEL, 0 }, // 32 ??
 	{ {EM_K10M, "Intel K10M"}, ARCH_INTEL, 0 },
 	{ {EM_AARCH64, "ARM 64-bit architecture (AARCH64)"}, ARCH_ARM, 64 },
-	{ {EM_AVR32, "Atmel Corporation 32-bit microprocessor family"}, ARCH_ATMEL, 64 },
+	{ {EM_AVR32, "Atmel Corporation 32-bit microprocessor family"}, ARCH_ATMEL, 32 },  // RISC
 	{ {EM_STM8, "STMicroeletronics STM8 8-bit microcontroller"}, ARCH_STM, 8 },
-	{ {EM_TILE64, "Tilera TILE64 multicore architecture family"}, ARCH_TILERA, 0 },
-	{ {EM_TILEPRO, "Tilera TILEPro multicore architecture family"}, ARCH_TILERA, 0 },
+	{ {EM_TILE64, "Tilera TILE64 multicore architecture family"}, ARCH_TILERA, 0 }, // MIPS VLWI
+	{ {EM_TILEPRO, "Tilera TILEPro multicore architecture family"}, ARCH_TILERA, 0 }, // 64 ??
 	{ {EM_MICROBLAZE, "Xilinx MicroBlaze 32-bit RISC soft processor core"}, ARCH_RISC, 32 },
 	{ {EM_CUDA, "NVIDIA CUDA architecture"}, ARCH_CUDA, 0 },
-	{ {EM_TILEGX, "Tilera TILE-Gx multicore architecture family"}, ARCH_TILERA, 0 },
+	{ {EM_TILEGX, "Tilera TILE-Gx multicore architecture family"}, ARCH_TILERA, 0 }, // 64 ??
 	{ {EM_CLOUDSHIELD, "CloudShield architecture family"}, ARCH_CLOUD_SHIELD, 0 },
-	{ {EM_COREA_1ST, "KIPO-KAIST Core-A 1st generation processor family"}, ARCH_KIPO, 0 },
-	{ {EM_COREA_2ND, "KIPO-KAIST Core-A 2nd generation processor family"}, ARCH_KIPO, 0 },
-	{ {EM_ARC_COMPACT2, "Synopsys ARCompact V2"}, ARCH_ARC, 0 },
+	{ {EM_COREA_1ST, "KIPO-KAIST Core-A 1st generation processor family"}, ARCH_KIPO, 0 }, // ?? 32
+	{ {EM_COREA_2ND, "KIPO-KAIST Core-A 2nd generation processor family"}, ARCH_KIPO, 0 }, // ?? 32
+	{ {EM_ARC_COMPACT2, "Synopsys ARCompact V2"}, ARCH_ARC, 32 }, // 16/32
 	{ {EM_OPEN8, "Open8 8-bit RISC soft processor core"}, ARCH_RISC, 8 },
 	{ {EM_RL78, "Renesas RL78 family"}, ARCH_RENESAS, 16 }, // 8/16
-	{ {EM_VIDEOCORE5, "Broadcom VideoCore V processor"}, ARCH_BROADCOM, 0 },
+	{ {EM_VIDEOCORE5, "Broadcom VideoCore V processor"}, ARCH_BROADCOM, 32 }, // ??  BCM7251
 	{ {EM_78KOR, "Renesas 78KOR family"}, ARCH_RENESAS, 16 },
-	{ {EM_56800EX, "Freescale 56800EX Digital Signal Controller (DSC)"}, ARCH_FREESCALE, 0 },
-	{ {EM_BA1, "Beyond BA1 CPU architecture"}, ARCH_BEYOND, 0 },
-	{ {EM_BA2, "Beyond BA2 CPU architecture"}, ARCH_BEYOND, 0 },
-	{ {EM_XCORE, "XMOS xCORE processor family"}, ARCH_XMOS, 0 },
+	{ {EM_56800EX, "Freescale 56800EX Digital Signal Controller (DSC)"}, ARCH_FREESCALE, 32 },
+	{ {EM_BA1, "Beyond BA1 CPU architecture"}, ARCH_BEYOND, 32 }, // beyondsemi.com
+	{ {EM_BA2, "Beyond BA2 CPU architecture"}, ARCH_BEYOND, 32 },
+	{ {EM_XCORE, "XMOS xCORE processor family"}, ARCH_XMOS, 32 },
 	{ {EM_MCHP_PIC, "Microchip 8-bit PIC(r) family"}, ARCH_MT, 8 },
 	{ {EM_INTEL205, "Reserved by Intel"}, ARCH_INTEL, 0 },
 	{ {EM_INTEL206, "Reserved by Intel"}, ARCH_INTEL, 0 },
@@ -243,7 +243,7 @@ ArchitectureMapEntry elf_arch_id_mapper[] = {
 	{ {EM_KMX32, "KM211 KMX32 32-bit processor"}, ARCH_KM, 32 },
 	{ {EM_KMX16, "KM211 KMX16 16-bit processor"}, ARCH_KM, 16 },
 	{ {EM_KMX8, "KM211 KMX8 8-bit processor"}, ARCH_KM, 8 },
-	{ {EM_KVARC, "KM211 KVARC processor"}, ARCH_KM, 0 },
+	{ {EM_KVARC, "KM211 KVARC processor"}, ARCH_KM, 32 },
 	{ {EM_CDP, "Paneve CDP architecture family"}, ARCH_PANEVE, 0 },
 	{ {EM_COGE, "Cognitive Smart Memory Processor"}, ARCH_CSMP, 0 },
 	{ {EM_COOL, "Bluechip Systems CoolEngine"}, ARCH_BLUECHIP, 0 },
@@ -253,18 +253,18 @@ ArchitectureMapEntry elf_arch_id_mapper[] = {
 	{ {EM_VISIUM, "Controls and Data Services VISIUMcore processor"}, ARCH_VISUM, 0 },
 	{ {EM_FT32, "FTDI Chip FT32 high performance 32-bit RISC architecture"}, ARCH_RISC, 32 },
 	{ {EM_MOXIE, "Moxie processor family"}, ARCH_MOXIE, 0 }, // 32|48:16+32
-	{ {EM_AMDGPU, "AMD GPU architecture"}, ARCH_INTEL, 0 },
+	{ {EM_AMDGPU, "AMD GPU architecture"}, ARCH_AMD, 0 },
 	{ {EM_RISCV, "RISC-V"}, ARCH_RISC_V, 0 },
 };
 const size_t elf_arch_id_mapper_size = (sizeof(elf_arch_id_mapper)/sizeof(ArchitectureMapEntry));
 
 //{machOId, archId, bitness}
 ArchitectureMapEntry mach_o_arch_id_mapper[] = {
-	{ {CPU_TYPE_MC680X0, "m68k compatible CPUs"}, ARCH_MOTOROLA, 64 },
+	{ {CPU_TYPE_MC680X0, "m68k compatible CPUs"}, ARCH_MOTOROLA_68K, 32 },
 	{ {CPU_TYPE_I386, "i386 and later compatible CPUs"}, ARCH_INTEL, 32},
 	{ {CPU_TYPE_X86_64, "x86_64 (AMD64) compatible CPUs"}, ARCH_INTEL, 64 },
-	{ {CPU_TYPE_ARM, "32-bit ARM compatible CPU"}, ARCH_ARM, 64 },
-	{ {CPU_TYPE_MC88000, "m88k compatible CPUs"}, ARCH_MOTOROLA, 64 },
+	{ {CPU_TYPE_ARM, "32-bit ARM compatible CPU"}, ARCH_ARM, 32 },
+	{ {CPU_TYPE_MC88000, "m88k compatible CPUs"}, ARCH_MOTOROLA_88K, 32 },
 	{ {CPU_TYPE_ARM64, "64-bit ARM compatible CPUs"}, ARCH_ARM, 64 },
 	{ {CPU_TYPE_ARM64_32, "64-bit ARM compatible CPUs (running in 32-bit mode?)"}, ARCH_ARM, 64 },
 	{ {CPU_TYPE_POWERPC, "PowerPC compatible CPUs"}, ARCH_PPC, 32 },

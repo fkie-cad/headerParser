@@ -166,6 +166,7 @@ void parseMachOHeader(PHeaderData hd, PGlobalParams gp)
 	arch = getArchitecture(mach_header.cputype, mach_o_arch_id_mapper, mach_o_arch_id_mapper_size);
 	hd->Machine = arch->arch.name;
 	hd->CPU_arch = arch->arch_id;
+    hd->i_bitness = arch->bitness;
 
 	MachO_readCommands(mach_header.ncmds, &gp->abs_file_offset, gp->file_size, gp->info_level, hd, gp->fp, gp->block_large);
 }
@@ -178,25 +179,21 @@ void MachO_fillHeaderDataWithMagic(PHeaderData hd,
 	if ( checkBytes(MAGIC_MACH_O_BYTES_32, MAGIC_MACH_O_BYTES_LN, block_l))
 	{
 		hd->h_bitness = 32;
-		hd->i_bitness = 32;
 		hd->endian = ENDIAN_BIG;
 	}
 	else if ( checkBytes(MAGIC_MACH_O_BYTES_64, MAGIC_MACH_O_BYTES_LN, block_l))
 	{
 		hd->h_bitness = 64;
-		hd->i_bitness = 64;
 		hd->endian = ENDIAN_BIG;
 	}
 	else if ( checkBytes(MAGIC_MACH_O_BYTES_32_RV, MAGIC_MACH_O_BYTES_LN, block_l))
 	{
 		hd->h_bitness = 32;
-		hd->i_bitness = 32;
 		hd->endian = ENDIAN_LITTLE;
 	}
 	else if ( checkBytes(MAGIC_MACH_O_BYTES_64_RV, MAGIC_MACH_O_BYTES_LN, block_l))
 	{
 		hd->h_bitness = 64;
-		hd->i_bitness = 64;
 		hd->endian = ENDIAN_LITTLE;
 	}
 }
