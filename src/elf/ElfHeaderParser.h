@@ -225,12 +225,13 @@ void Elf_fillHeaderDataWithFileHeader(const Elf64FileHeader* file_header, PHeade
 {
 	ArchitectureMapEntry* arch = getArchitecture(file_header->e_machine, elf_arch_id_mapper, elf_arch_id_mapper_size);
 
-	if ( file_header->EI_CLASS == ELFCLASS32 ) hd->bitness = 32;
-	else if ( file_header->EI_CLASS == ELFCLASS64 ) hd->bitness = 64;
-	else hd->bitness = arch->bitness;
+	if ( file_header->EI_CLASS == ELFCLASS32 ) hd->h_bitness = 32;
+	else if ( file_header->EI_CLASS == ELFCLASS64 ) hd->h_bitness = 64;
+	else hd->h_bitness = 0;
 	hd->endian = file_header->EI_DATA;
 	hd->CPU_arch = arch->arch_id;
 	hd->Machine = arch->arch.name;
+	hd->i_bitness = arch->bitness;
 }
 
 /**
@@ -402,12 +403,12 @@ unsigned char Elf_checkProgramHeaderTableEntry(Elf64ProgramHeader* ph,
 //		offset += strlen(errors);
 //		valid = 0;
 //	}
-	if ( ph->p_filesz == 0 )
-	{
-		snprintf(&errors[offset], ERRORS_BUFFER_SIZE-offset, " - p_filesz is 0\n");
-		offset += strlen(errors);
-		valid = 0;
-	}
+//	if ( ph->p_filesz == 0 )
+//	{
+//		snprintf(&errors[offset], ERRORS_BUFFER_SIZE-offset, " - p_filesz is 0\n");
+//		offset += strlen(errors);
+//		valid = 0;
+//	}
 	if ( start_file_offset + ph->p_offset > file_size )
 	{
 		snprintf(&errors[offset], ERRORS_BUFFER_SIZE-offset, " - p_offset (%"PRIu64") is > file_size (%zu)\n",
@@ -562,7 +563,7 @@ void Elf_readSectionHeaderEntries(const Elf64FileHeader* fh,
 		s_name = ( sht_entry.sh_name < string_table_size-1 ) ? (char*) &string_table[sht_entry.sh_name] : "";
 
 		if ( info_level >= INFO_LEVEL_FULL )
-			Elf_printSectionHeaderTableEntry(&sht_entry, i, fh->e_shnum, s_name, *abs_file_offset+offset, hd->bitness);
+			Elf_printSectionHeaderTableEntry(&sht_entry, i, fh->e_shnum, s_name, *abs_file_offset+offset, hd->h_bitness);
 
 		if ( !Elf_checkSectionHeaderTableEntry(&sht_entry, i, s_name, start_file_offset, file_size) )
 		{

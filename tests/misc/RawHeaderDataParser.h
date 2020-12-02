@@ -113,7 +113,7 @@ class RawHeaderDataParser
 
 			HeaderData* data = new HeaderData;
 			data->headertype = findHeaderTypeId(&headertype[0]);
-			data->bitness = bitness;
+			data->h_bitness = bitness;
 			data->endian = endian;
 			data->CPU_arch = findCPUArchId(&cpu_arch[0]);
 			data->Machine = machine_c;

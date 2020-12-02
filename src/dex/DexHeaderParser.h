@@ -56,7 +56,8 @@ void parseDexHeader(PHeaderData hd, PGlobalParams gp)
 	hd->endian = ( file_header.endian_tag == DEX_ENDIAN_CONSTANT ) ? ENDIAN_LITTLE : ENDIAN_BIG;
 	hd->CPU_arch = ARCH_ANDROID;
 	hd->Machine = dex_arch_id_mapper[0].arch.name;
-	hd->bitness = 32;
+	hd->h_bitness = 32;
+	hd->i_bitness = 32;
 
 	if ( gp->info_level >= INFO_LEVEL_FULL )
 		DEX_printFileHeader(&file_header, hd->endian, gp->start_file_offset);

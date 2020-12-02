@@ -32,6 +32,7 @@ enum ARCHITECTURE_IDS {
 	ARCH_ALC,
 	ARCH_ALTERA,
 	ARCH_ALTIUM,
+	ARCH_AMD,
 	ARCH_ANDES,
 	ARCH_ANDROID,
 	ARCH_ARC,
@@ -88,6 +89,8 @@ enum ARCHITECTURE_IDS {
 	ARCH_MIPS,
 	ARCH_MITSUBISHI,
 	ARCH_MOTOROLA,
+	ARCH_MOTOROLA_68K,
+	ARCH_MOTOROLA_88K,
 	ARCH_MOXIE,
 	ARCH_MT,
 	ARCH_NEC,
@@ -146,7 +149,8 @@ typedef struct CodeRegionData
 typedef struct HeaderData
 {
 	uint8_t headertype;
-	uint8_t bitness;
+	uint8_t h_bitness;
+	uint8_t i_bitness;
 	uint8_t endian;
 	uint8_t CPU_arch;
 	const char* Machine;

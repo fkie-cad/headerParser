@@ -157,15 +157,16 @@ void parseMachOHeader(PHeaderData hd, PGlobalParams gp)
 
 	MachO_fillHeaderDataWithMagic(hd, gp->block_large);
 
-	s = MachO_fillMachHeader(&mach_header,gp->start_file_offset, gp->file_size, hd->bitness, hd->endian, gp->block_large);
+	s = MachO_fillMachHeader(&mach_header, gp->start_file_offset, gp->file_size, hd->h_bitness, hd->endian, gp->block_large);
 	if ( s != 0 ) return;
 
 	if ( gp->info_level >= INFO_LEVEL_FULL )
-		MachO_printFileHeader(&mach_header, hd->bitness, hd->endian, gp->start_file_offset);
+		MachO_printFileHeader(&mach_header, hd->h_bitness, hd->endian, gp->start_file_offset);
 
 	arch = getArchitecture(mach_header.cputype, mach_o_arch_id_mapper, mach_o_arch_id_mapper_size);
 	hd->Machine = arch->arch.name;
 	hd->CPU_arch = arch->arch_id;
+    hd->i_bitness = arch->bitness;
 
 	MachO_readCommands(mach_header.ncmds, &gp->abs_file_offset, gp->file_size, gp->info_level, hd, gp->fp, gp->block_large);
 }
@@ -177,22 +178,22 @@ void MachO_fillHeaderDataWithMagic(PHeaderData hd,
 	hd->CPU_arch = ARCH_OS_X;
 	if ( checkBytes(MAGIC_MACH_O_BYTES_32, MAGIC_MACH_O_BYTES_LN, block_l))
 	{
-		hd->bitness = 32;
+		hd->h_bitness = 32;
 		hd->endian = ENDIAN_BIG;
 	}
 	else if ( checkBytes(MAGIC_MACH_O_BYTES_64, MAGIC_MACH_O_BYTES_LN, block_l))
 	{
-		hd->bitness = 64;
+		hd->h_bitness = 64;
 		hd->endian = ENDIAN_BIG;
 	}
 	else if ( checkBytes(MAGIC_MACH_O_BYTES_32_RV, MAGIC_MACH_O_BYTES_LN, block_l))
 	{
-		hd->bitness = 32;
+		hd->h_bitness = 32;
 		hd->endian = ENDIAN_LITTLE;
 	}
 	else if ( checkBytes(MAGIC_MACH_O_BYTES_64_RV, MAGIC_MACH_O_BYTES_LN, block_l))
 	{
-		hd->bitness = 64;
+		hd->h_bitness = 64;
 		hd->endian = ENDIAN_LITTLE;
 	}
 }
@@ -247,7 +248,7 @@ void MachO_readCommands(uint32_t ncmds,
 	LoadCommand lc;
 	uint64_t sc_offset;
 
-	if ( hd->bitness == 64 )
+	if ( hd->h_bitness == 64 )
 	{
 		sc_offset = SIZE_OF_MACHO_O_HEADER_64;
 		seg_offsets = SegmentCommandOffsets64;
@@ -528,7 +529,7 @@ uint64_t MachO_fillSegmentCommand(uint64_t sc_offset,
 		sc->segname[i] = (char)ptr[offsets.segname + i];
 	}
 
-	if ( hd->bitness == 64 )
+	if ( hd->h_bitness == 64 )
 	{
 		sc->vmaddr = *((uint64_t*) &ptr[offsets.vmaddr]);
 		sc->vmsize = *((uint64_t*) &ptr[offsets.vmsize]);
@@ -559,13 +560,13 @@ uint64_t MachO_fillSegmentCommand(uint64_t sc_offset,
 		sc->flags = swapUint32(sc->flags);
 	}
 
-	sec_offset = ( hd->bitness == 64 ) ? sc_offset + SIZE_OF_MACHO_O_SEGMENT_HEADER_64 : sc_offset + SIZE_OF_MACHO_O_SEGMENT_HEADER_32;
+	sec_offset = (hd->h_bitness == 64 ) ? sc_offset + SIZE_OF_MACHO_O_SEGMENT_HEADER_64 : sc_offset + SIZE_OF_MACHO_O_SEGMENT_HEADER_32;
 	debug_info("MachoOfillSegmentCommand\n");
 	debug_info(" -  sec_offset: %u\n", sec_offset);
 	debug_info(" -  sc->nsects: %u\n", sc->nsects);
 
 	if ( info_level >= INFO_LEVEL_FULL )
-		MachO_printSegmentCommand(sc, *abs_file_offset+sc_offset, hd->bitness);
+		MachO_printSegmentCommand(sc, *abs_file_offset+sc_offset, hd->h_bitness);
 
 	sc_offset = MachO_readSections(sc, sec_offset, abs_file_offset, file_size, info_level, hd, fp, block_l);
 
@@ -587,12 +588,12 @@ uint64_t MachO_readSections(SegmentCommand64* c,
 	MachOSection64 sec;
 	MachO_Section_Offsets offsets;
 	CodeRegionData code_region_data;
-	uint32_t sect_size = (hd->bitness == 64 ) ? SIZE_OF_MACHO_O_SECTEION_HEADER_64 : SIZE_OF_MACHO_O_SECTEION_HEADER_32;
+	uint32_t sect_size = (hd->h_bitness == 64 ) ? SIZE_OF_MACHO_O_SECTEION_HEADER_64 : SIZE_OF_MACHO_O_SECTEION_HEADER_32;
 
 	debug_info(" - MachoOreadSections\n");
 	debug_info(" - - offset: %"PRIu64"\n", offset);
 
-	if ( hd->bitness == 64 )
+	if ( hd->h_bitness == 64 )
 		offsets = MachOsectionOffsets64;
 	else
 		offsets = MachOsectionOffsets32;
@@ -607,7 +608,7 @@ uint64_t MachO_readSections(SegmentCommand64* c,
 		if ( !checkLargeBlockSpace(&offset, abs_file_offset, sect_size, block_l, fp) )
 			return UINT32_MAX;
 
-		MachO_readSection(&sec, offset, offsets, hd->bitness, hd->endian, block_l);
+		MachO_readSection(&sec, offset, offsets, hd->h_bitness, hd->endian, block_l);
 
 		if ( MachO_isExecutableSection(&sec) )
 		{
@@ -617,7 +618,7 @@ uint64_t MachO_readSections(SegmentCommand64* c,
 		}
 
 		if ( info_level >= INFO_LEVEL_FULL )
-			MachO_printSection(&sec, i + 1, c->nsects, *abs_file_offset+offset, hd->bitness);
+			MachO_printSection(&sec, i + 1, c->nsects, *abs_file_offset+offset, hd->h_bitness);
 
 		offset += sect_size;
 	}
@@ -909,9 +910,9 @@ void MachO_fillRoutinesCommand(RoutinesCommand64* c,
 {
 	unsigned char *ptr;
 	ptr = &block_l[offset];
-	struct routines_command_offsets offsets = ( hd->bitness == 32 ) ? RoutinesCommandOffsets : RoutinesCommand64Offsets;
+	struct routines_command_offsets offsets = (hd->h_bitness == 32 ) ? RoutinesCommandOffsets : RoutinesCommand64Offsets;
 
-	if ( hd->bitness == 32 )
+	if ( hd->h_bitness == 32 )
 	{
 		c->init_address = *( (uint32_t*) &ptr[offsets.init_address]);
 		c->init_module = *( (uint32_t*) &ptr[offsets.init_module]);
@@ -947,7 +948,7 @@ void MachO_fillRoutinesCommand(RoutinesCommand64* c,
 	}
 
 	if ( info_level >= INFO_LEVEL_FULL )
-		MachO_printRoutinesCommand(c, abs_file_offset+offset, hd->bitness);
+		MachO_printRoutinesCommand(c, abs_file_offset+offset, hd->h_bitness);
 }
 
 void MachO_fillVersionMinCommand(VersionMinCommand* c,

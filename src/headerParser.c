@@ -30,8 +30,8 @@ static void printHeaderData(uint8_t, PHeaderData hd, unsigned char* block);
 static void printHeaderData1(PHeaderData hd);
 static uint8_t getForceOption(const char* arg);
 
-const char* vs = "1.9.5";
-const char* last_changed = "27.11.2020";
+const char* vs = "1.9.8";
+const char* last_changed = "02.12.2020";
 
 
 #ifdef DILLER
@@ -384,7 +384,7 @@ void printHeaderData1(PHeaderData hd)
 			   i + 1, hd->code_regions[i].name, hd->code_regions[i].start, hd->code_regions[i].end);
 	}
 	printf("headertype: %s\n", header_type_names[hd->headertype]);
-	printf("bitness: %d-bit\n", hd->bitness);
+	printf("bitness: %d-bit\n", hd->i_bitness);
 	printf("endian: %s\n", endian_type_names[hd->endian]);
 	printf("CPU_arch: %s\n", architecture_names[hd->CPU_arch]);
 	printf("Machine: %s\n", hd->Machine);

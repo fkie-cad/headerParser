@@ -272,7 +272,7 @@ int parsePEHeader(uint8_t force,
 	if ( s != 0 ) return 6;
 
 	if ( LIB_MODE == 0 && gp->info_level >= INFO_LEVEL_FULL )
-		PE_printOptionalHeader(opt_header, optional_header_offset, gp->start_file_offset, hd->bitness);
+		PE_printOptionalHeader(opt_header, optional_header_offset, gp->start_file_offset, hd->h_bitness);
 
 	PE_fillHeaderDataWithOptHeader(opt_header, hd);
 
@@ -287,7 +287,7 @@ int parsePEHeader(uint8_t force,
                          gp->fp, gp->block_standard, gp->block_large, &pehd->st, parse_svas, &pehd->svas, hd);
 
 	if ( pep->info_level_iimp == 1 )
-		PE_parseImageImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->bitness, gp->start_file_offset,
+		PE_parseImageImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
                                  &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
 
 	if ( pep->info_level_iexp == 1 )
@@ -297,15 +297,15 @@ int parsePEHeader(uint8_t force,
 		PE_parseImageResourceTable(opt_header, coff_header->NumberOfSections, gp->start_file_offset, gp->file_size, gp->fp, gp->block_standard, pehd->svas);
 
 	if (pep->info_level_irel == 1)
-		PE_parseImageBaseRelocationTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->bitness, gp->start_file_offset,
-			&gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
+		PE_parseImageBaseRelocationTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
+                                         &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
 
 	if ( pep->info_level_icrt == 1 )
 		PE_parseCertificates(opt_header, gp->start_file_offset, gp->file_size, pep->certificate_directory, gp->fp, gp->block_standard);
 
 	if (pep->info_level_idimp == 1)
-		PE_parseImageDelayImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->bitness, gp->start_file_offset,
-			&gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
+		PE_parseImageDelayImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
+                                      &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
 
 	return 0;
 }
@@ -487,7 +487,7 @@ void PE_fillHeaderDataWithCoffHeader(PECoffFileHeader* ch,
 	ArchitectureMapEntry* arch = getArchitecture(ch->Machine, pe_arch_id_mapper, pe_arch_id_mapper_size);
 	hd->CPU_arch = arch->arch_id;
 	hd->Machine = arch->arch.name;
-	hd->bitness = arch->bitness;
+	hd->i_bitness = arch->bitness;
 }
 
 unsigned char PE_checkCoffHeader(const PECoffFileHeader *ch,
@@ -678,9 +678,9 @@ void PE_fillHeaderDataWithOptHeader(PE64OptHeader* oh,
 									PHeaderData hd)
 {
 	if ( oh->Magic == PeOptionalHeaderSignature.IMAGE_NT_OPTIONAL_HDR32_MAGIC )
-		hd->bitness = 32;
+		hd->h_bitness = 32;
 	else if ( oh->Magic == PeOptionalHeaderSignature.IMAGE_NT_OPTIONAL_HDR64_MAGIC )
-		hd->bitness = 64;
+		hd->h_bitness = 64;
 	else if ( oh->Magic == PeOptionalHeaderSignature.IMAGE_ROM_OPTIONAL_HDR_MAGIC )
 		header_info("INFO: ROM file.\n");
 	else

@@ -128,7 +128,7 @@ void printHeaderData(HeaderData* data)
 			   i+1, data->code_regions[i].name, data->code_regions[i].start, data->code_regions[i].end);
 	}
 	printf("headertype: %s\n", getHeaderDataHeaderType(data->headertype));
-	printf("bitness: %d-bit\n", data->bitness);
+	printf("bitness: %d-bit\n", data->h_bitness);
 	printf("endian: %s\n", endian_type_names[data->endian]);
 	printf("CPU_arch: %s\n", getHeaderDataArchitecture(data->CPU_arch));
 	printf("Machine: %s\n", data->Machine);
