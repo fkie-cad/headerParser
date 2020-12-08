@@ -13,7 +13,7 @@ static const char* header_type_names[HEADER_TYPES_SIZE] = {
 	"unsupported",
 	"APK",
 	"ART",
-	"CFBFF",
+	"CFBFF", // Compound File Binary Format
 	"MS-DOS",
 	"PE",
 	"NE",
@@ -29,7 +29,7 @@ static const char* header_type_names[HEADER_TYPES_SIZE] = {
 	"ZIP-Archive",
 };
 
-#define ARCHITECTURE_NAMES_SIZE (97)
+#define ARCHITECTURE_NAMES_SIZE (100)
 static const char* architecture_names[ARCHITECTURE_NAMES_SIZE] = {
 	"unsupported",
 	"Alpha",
