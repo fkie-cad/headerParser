@@ -77,7 +77,7 @@ typedef struct GlobalParams
     uint64_t abs_file_offset;
 //    } file;
 
-	uint8_t info_level; // may be global.
+	uint8_t info_level; // may be global. TODO: delete this or the global one
 } GlobalParams, *PGlobalParams;
 
 typedef struct PEParams
