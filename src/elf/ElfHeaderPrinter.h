@@ -46,9 +46,9 @@ void Elf_printFileHeader(Elf64FileHeader* fh, uint64_t start_file_offset)
 	printf(" - e_machine%s: %s (0x%02X)\n", fillOffset(offsets.e_machine, 0, start_file_offset), arch->arch.name, fh->e_machine);
 	printf(" - e_version%s: %u\n", fillOffset(offsets.e_version, 0, start_file_offset), fh->e_version);
 	printf(" - e_entry%s: 0x%"PRIx64"\n", fillOffset(offsets.e_entry, 0, start_file_offset), fh->e_entry);
-	printf(" - e_phoff%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.e_phoff, 0, start_file_offset), fh->e_phoff, fh->e_phoff);
-	printf(" - e_shoff%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.e_shoff, 0, start_file_offset), fh->e_shoff, fh->e_shoff);
-	printf(" - e_flags%s: %u\n", fillOffset(offsets.e_flags, 0, start_file_offset), fh->e_flags);
+	printf(" - e_phoff%s: 0x%"PRIx64"\n", fillOffset(offsets.e_phoff, 0, start_file_offset), fh->e_phoff);
+	printf(" - e_shoff%s: 0x%"PRIx64"\n", fillOffset(offsets.e_shoff, 0, start_file_offset), fh->e_shoff);
+	printf(" - e_flags%s: 0x%"PRIx32" (%"PRIu32")\n", fillOffset(offsets.e_flags, 0, start_file_offset), fh->e_flags, fh->e_flags);
 	printf(" - e_ehsize%s: %u\n", fillOffset(offsets.e_ehsize, 0, start_file_offset), fh->e_ehsize);
 	printf(" - e_phentsize%s: %u\n", fillOffset(offsets.e_phentsize, 0, start_file_offset), fh->e_phentsize);
 	printf(" - e_phnum%s: %u\n", fillOffset(offsets.e_phnum, 0, start_file_offset), fh->e_phnum);
@@ -114,9 +114,9 @@ void Elf_printProgramHeaderTableEntry(Elf64ProgramHeader* ph, uint16_t idx, uint
 	printf("%u / %u\n", (idx+1), e_phnum);
 	printf(" - p_type%s: %s (0x%x)\n", fillOffset(offsets.p_type, offset, 0), Elf_getPHTypeString(ph->p_type), ph->p_type);
 	if (bitness == 64 ) printf(" - p_flags%s: 0x%x (%u)\n", fillOffset(offsets.p_flags, offset, 0), ph->p_flags, ph->p_flags);
-	printf(" - p_offset%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.p_offset, offset, 0), ph->p_offset, ph->p_offset);
-	printf(" - p_vaddr%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.p_vaddr, offset, 0), ph->p_vaddr, ph->p_vaddr);
-	printf(" - p_paddr%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.p_paddr, offset, 0), ph->p_paddr, ph->p_paddr);
+	printf(" - p_offset%s: 0x%"PRIx64"\n", fillOffset(offsets.p_offset, offset, 0), ph->p_offset);
+	printf(" - p_vaddr%s: 0x%"PRIx64"\n", fillOffset(offsets.p_vaddr, offset, 0), ph->p_vaddr);
+	printf(" - p_paddr%s: 0x%"PRIx64"\n", fillOffset(offsets.p_paddr, offset, 0), ph->p_paddr);
 	printf(" - p_filesz%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.p_filesz, offset, 0), ph->p_filesz, ph->p_filesz);
 	printf(" - p_memsz%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.p_memsz, offset, 0), ph->p_memsz, ph->p_memsz);
 	if (bitness == 32 ) printf(" - p_flags%s: 0x%"PRIx32" (%"PRIu32")\n", fillOffset(offsets.p_flags, offset, 0), ph->p_flags, ph->p_flags);
@@ -128,6 +128,7 @@ void Elf_printProgramHeaderTableEntry(Elf64ProgramHeader* ph, uint16_t idx, uint
 	printFlag32(ph->p_flags, ProgramHeaderFlags.PF_R, "READ");
 	printFlag32(ph->p_flags, ProgramHeaderFlags.PF_MASKOS, "PF_MASKOS: Unspecified");
 	printFlag32(ph->p_flags, ProgramHeaderFlags.PF_MASKPROC, "PF_MASKPROC: Unspecified");
+    printf(" (0x%"PRIx32")\n", ph->p_flags);
 	printf("\n");
 }
 
@@ -157,8 +158,8 @@ Elf_printSectionHeaderTableEntry(Elf64SectionHeader* sh, uint16_t idx, uint16_t 
 	printf(" - sh_name%s: %s (%u)\n", fillOffset(offsets.sh_name, offset, 0), name, sh->sh_name);
 	printf(" - sh_type%s: %s (0x%x)\n", fillOffset(offsets.sh_type, offset, 0), Elf_getSHTypeString(sh->sh_type), sh->sh_type);
 	printf(" - sh_flags%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.sh_flags, offset, 0), sh->sh_flags, sh->sh_flags);
-	printf(" - sh_addr%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.sh_addr, offset, 0), sh->sh_addr, sh->sh_addr);
-	printf(" - sh_offset%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.sh_offset, offset, 0), sh->sh_offset, sh->sh_offset);
+	printf(" - sh_addr%s: 0x%"PRIx64"\n", fillOffset(offsets.sh_addr, offset, 0), sh->sh_addr);
+	printf(" - sh_offset%s: 0x%"PRIx64"\n", fillOffset(offsets.sh_offset, offset, 0), sh->sh_offset);
 	printf(" - sh_size%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.sh_size, offset, 0), sh->sh_size, sh->sh_size);
 	printf(" - sh_link%s: 0x%x (%u)\n", fillOffset(offsets.sh_link, offset, 0), sh->sh_link, sh->sh_link);
 	printf(" - sh_info%s: 0x%x (%u)\n", fillOffset(offsets.sh_info, offset, 0), sh->sh_info, sh->sh_info);
@@ -179,6 +180,7 @@ Elf_printSectionHeaderTableEntry(Elf64SectionHeader* sh, uint16_t idx, uint16_t 
 	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_COMPRESSED, "COMPRESSED");
 	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_MASKOS, "MASKOS");
 	printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_MASKPROC, "MASKPROC");
+    printf(" (0x%"PRIx64")\n", sh->sh_flags);
 	printf("\n");
 }
 

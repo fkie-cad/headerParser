@@ -388,7 +388,7 @@ void printHeaderData1(PHeaderData hd)
 		printf(" (%zu) %s: ( 0x%016"PRIx64" - 0x%016"PRIx64" )\n",
 			   i + 1, hd->code_regions[i].name, hd->code_regions[i].start, hd->code_regions[i].end);
 	}
-	printf("headertype: %s\n", header_type_names[hd->headertype]);
+	printf("headertype: %s (%d)\n", header_type_names[hd->headertype], hd->h_bitness);
 	printf("bitness: %d-bit\n", hd->i_bitness);
 	printf("endian: %s\n", endian_type_names[hd->endian]);
 	printf("CPU_arch: %s\n", architecture_names[hd->CPU_arch]);

@@ -9,6 +9,7 @@
 #include "../HeaderData.h"
 #include "../utils/Converter.h"
 #include "../Globals.h"
+#include "ElfEFlags.h"
 #include "ElfFileHeader.h"
 #include "ElfHeaderOffsets.h"
 #include "ElfHeaderPrinter.h"
@@ -199,6 +200,8 @@ uint8_t Elf_readFileHeader(Elf64FileHeader* file_header, unsigned char* block_l,
 	file_header->e_shnum = *((uint16_t*) &ptr[fh_offsets.e_shnum]);
 	file_header->e_shstrndx = *((uint16_t*) &ptr[fh_offsets.e_shstrndx]);
 
+	printf("flags: 0x%x\n", file_header->e_flags);
+
 	if ( file_header->EI_DATA == ELFDATA2MSB )
 	{
 		Elf_swapFileHeaderEntries(file_header);
@@ -209,29 +212,38 @@ uint8_t Elf_readFileHeader(Elf64FileHeader* file_header, unsigned char* block_l,
 
 void Elf_swapFileHeaderEntries(Elf64FileHeader* file_header)
 {
-	file_header->e_type = swapUint16(file_header->e_type);
-	file_header->e_machine = swapUint16(file_header->e_machine);
-	file_header->e_version = swapUint32(file_header->e_version);
-	file_header->e_flags = swapUint32(file_header->e_flags);
-	file_header->e_ehsize = swapUint16(file_header->e_ehsize);
-	file_header->e_phentsize = swapUint16(file_header->e_phentsize);
-	file_header->e_phnum = swapUint16(file_header->e_phnum);
-	file_header->e_shentsize = swapUint16(file_header->e_shentsize);
-	file_header->e_shnum = swapUint16(file_header->e_shnum);
-	file_header->e_shstrndx = swapUint16(file_header->e_shstrndx);
+    file_header->e_type = swapUint16(file_header->e_type);
+    file_header->e_machine = swapUint16(file_header->e_machine);
+    file_header->e_version = swapUint32(file_header->e_version);
+    file_header->e_flags = swapUint32(file_header->e_flags);
+    file_header->e_ehsize = swapUint16(file_header->e_ehsize);
+    file_header->e_phentsize = swapUint16(file_header->e_phentsize);
+    file_header->e_phnum = swapUint16(file_header->e_phnum);
+    file_header->e_shentsize = swapUint16(file_header->e_shentsize);
+    file_header->e_shnum = swapUint16(file_header->e_shnum);
+    file_header->e_shstrndx = swapUint16(file_header->e_shstrndx);
 }
 
 void Elf_fillHeaderDataWithFileHeader(const Elf64FileHeader* file_header, PHeaderData hd)
 {
-	ArchitectureMapEntry* arch = getArchitecture(file_header->e_machine, elf_arch_id_mapper, elf_arch_id_mapper_size);
+    ArchitectureMapEntry* arch = getArchitecture(file_header->e_machine, elf_arch_id_mapper, elf_arch_id_mapper_size);
 
-	if ( file_header->EI_CLASS == ELFCLASS32 ) hd->h_bitness = 32;
-	else if ( file_header->EI_CLASS == ELFCLASS64 ) hd->h_bitness = 64;
-	else hd->h_bitness = 0;
-	hd->endian = file_header->EI_DATA;
-	hd->CPU_arch = arch->arch_id;
-	hd->Machine = arch->arch.name;
-	hd->i_bitness = arch->bitness;
+    if ( file_header->EI_CLASS == ELFCLASS32 ) hd->h_bitness = 32;
+    else if ( file_header->EI_CLASS == ELFCLASS64 ) hd->h_bitness = 64;
+    else hd->h_bitness = 0;
+    hd->endian = file_header->EI_DATA;
+    hd->CPU_arch = arch->arch_id;
+    hd->Machine = arch->arch.name;
+    hd->i_bitness = arch->bitness;
+
+    if ( file_header->e_machine == EM_IA_64)
+    {
+        if ( !(file_header->e_flags & EF_IA_64_ABI64) )
+        {
+            hd->i_bitness = 32;
+        }
+    }
+//  The 32-bit Intel Architecture defines no flags so e_flags is 0
 }
 
 /**

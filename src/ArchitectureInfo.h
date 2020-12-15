@@ -89,7 +89,7 @@ ArchitectureMapEntry elf_arch_id_mapper[] = {
 	{ {EM_960, "Intel 80960"}, ARCH_INTEL, 33 },
 	{ {EM_PPC, "PowerPC"}, ARCH_PPC, 32 },
 	{ {EM_PPC64, "64-bit PowerPC"}, ARCH_PPC, 64 },
-	{ {EM_S390, "IBM System/390 Processor"}, ARCH_IBM, 31 }, // ?? 31/32/64
+	{ {EM_S390, "IBM System/390 Processor"}, ARCH_IBM, 31 }, // 31/32/64
 	{ {EM_SPU, "IBM SPU/SPC"}, ARCH_IBM, 128 },
 	{ {EM_V800, "NEC V800"}, ARCH_NEC, 32 },
 	{ {EM_FR20, "Fujitsu FR20"}, ARCH_FUJITSU, 32 },
