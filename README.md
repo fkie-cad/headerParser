@@ -14,8 +14,8 @@ OsX may work too.
 
 
 ## Version ##
-1.9.8  
-Last changed: 02.12.2020
+1.10.0  
+Last changed: 15.12.2020
 
 ## REQUIREMENTS ##
 - A decent c compiler (gcc or msbuild) is required.  
@@ -60,6 +60,7 @@ Possible options:
    * -icrt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE). (Needs -i > 1.)
    * -cod: Directory to save found certificates in. (Needs -icrt.)
    * -idimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT). (Needs -i > 1.)
+   * -ilcfg: Print the Image Load Config Table (IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG) (Needs -i > 1.)
  
 ## EXAMPLE ##
 ```bash
@@ -70,10 +71,10 @@ coderegions:
  (1) .text: ( 0x0000000000000400 - 0x000000000000fc00 )
  (2) .init ...
  (3) ...
-headertype: PE/ELF/...
-bitness: 64-bit/32-bit
-endian: little/big
-CPU_arch: Intel/Arm/...
+headertype: PE|ELF|... (32|64)
+bitness: 64-bit|32-bit|x-bit
+endian: little|big
+CPU_arch: Intel|Arm|...
 Machine: ...
 ```
 

@@ -88,6 +88,8 @@ typedef struct PEParams
 	bool info_level_irel;
 	bool info_level_icrt;
 	bool info_level_idimp;
+	bool info_level_ibimp;
+	bool info_level_ilcfg;
 
 	const char* certificate_directory;
 } PEParams, *PPEParams;

@@ -442,7 +442,7 @@ typedef struct PE_IMAGE_RESOURCE_DIRECTORY_ENTRY {
 //	This field contains either an integer ID or a pointer to a structure that contains a string name.
 //	If the high bit (0x80000000) is zero, this field is interpreted as an integer ID.
 //	If the high bit is nonzero, the lower 31 bits are an offset (relative to the start of the resources) to an IMAGE_RESOURCE_DIR_STRING_U structure.
-//	This structure contains a WORD character count, followed by a UNICODE string with the resource name.
+//	This structure contains a uint16_t character count, followed by a UNICODE string with the resource name.
 	union {
 		struct {
 			uint32_t NameOffset:31;
@@ -522,8 +522,8 @@ typedef struct PE_BASE_RELOCATION_BLOCK {
 	// This field contains the starting RVA for this chunk of relocations. 
 	// The offset of each relocation that follows is added to this value to form the actual RVA where the relocation needs to be applied.
 	uint32_t VirtualAddress;
-	// The size of this structure plus all the WORD relocations that follow. 
-	// To determine the number of relocations in this block, subtract the size of an IMAGE_BASE_RELOCATION(8 bytes) from the value of this field, and then divide by 2 (the size of a WORD)
+	// The size of this structure plus all the uint16_t relocations that follow. 
+	// To determine the number of relocations in this block, subtract the size of an IMAGE_BASE_RELOCATION(8 bytes) from the value of this field, and then divide by 2 (the size of a uint16_t)
 	uint32_t SizeOfBlock;
 } PE_BASE_RELOCATION_BLOCK;
 
@@ -595,9 +595,144 @@ typedef struct PE_IMAGE_TLS_DIRECTORY64 {
 //typedef VOID
 //(NTAPI* PIMAGE_TLS_CALLBACK) (
 //	PVOID DllHandle,
-//	DWORD Reason,
+//	uint32_t Reason,
 //	PVOID Reserved
 //	);
+
+
+// Load Configuration Layout
+typedef struct PE_IMAGE_LOAD_CONFIG_CODE_INTEGRITY {
+	uint16_t Flags;          // Flags to indicate if CI information is available, etc.
+	uint16_t Catalog;        // 0xFFFF means not available
+	uint32_t CatalogOffset;
+	uint32_t Reserved;       // Additional bitmask to be defined later
+} PE_IMAGE_LOAD_CONFIG_CODE_INTEGRITY, * PPE_IMAGE_LOAD_CONFIG_CODE_INTEGRITY;
+
+typedef struct PE_IMAGE_LOAD_CONFIG_DIRECTORY32 {
+	uint32_t Size; // (Flags that indicate attributes of the file, currently unused.)
+	uint32_t TimeDateStamp; // Date and time stamp value.The value is represented in the number of seconds that have elapsed since midnight(00:00 : 00), January 1, 1970, Universal Coordinated Time, according to the system clock.The time stamp can be printed by using the C runtime(CRT) time function.
+	uint16_t MajorVersion; // Major version number.
+	uint16_t MinorVersion; // Minor version number.
+	uint32_t GlobalFlagsClear; // The global loader flags to clear for this process as the loader starts the process.
+	uint32_t GlobalFlagsSet; // The global loader flags to set for this process as the loader starts the process.
+	uint32_t CriticalSectionDefaultTimeout; // The default timeout value to use for this process's critical sections that are abandoned.
+	uint32_t DeCommitFreeBlockThreshold; // Memory that must be freed before it is returned to the system, in bytes.
+	uint32_t DeCommitTotalFreeThreshold; // Total amount of free memory, in bytes.
+	uint32_t LockPrefixTable;                // VA [x86 only] The VA of a list of addresses where the LOCK prefix is used so that they can be replaced with NOP on single processor machines.
+	uint32_t MaximumAllocationSize; // Maximum allocation size, in bytes.
+	uint32_t VirtualMemoryThreshold; // Maximum virtual memory size, in bytes.
+	uint32_t ProcessHeapFlags; // Process heap flags that correspond to the first argument of the HeapCreate function.These flags apply to the process heap that is created during process startup.
+	uint32_t ProcessAffinityMask; // Setting this field to a non - zero value is equivalent to calling SetProcessAffinityMask with this value during process startup(.exe only)
+	uint16_t CSDVersion; // The service pack version identifier.
+	uint16_t DependentLoadFlags; // 
+	uint32_t EditList;                       // VA Reserved for use by the system.
+	uint32_t SecurityCookie;                 // VA A pointer to a cookie that is used by Visual C++ or GS implementation.
+	uint32_t SEHandlerTable;                 // VA [x86 only] The VA of the sorted table of RVAs of each valid, unique SE handler in the image.
+	uint32_t SEHandlerCount;					// [x86 only] The count of unique handlers in the table.
+	uint32_t GuardCFCheckFunctionPointer;    // The VA where Control Flow Guard check - function pointer is stored.
+	uint32_t GuardCFDispatchFunctionPointer; // The VA where Control Flow Guard dispatch - function pointer is stored.
+	uint32_t GuardCFFunctionTable;           // The VA of the sorted table of RVAs of each Control Flow Guard function in the image.
+	uint32_t GuardCFFunctionCount; // The count of unique RVAs in the above table.
+	uint32_t GuardFlags; // Control Flow Guard related flags.
+	PE_IMAGE_LOAD_CONFIG_CODE_INTEGRITY CodeIntegrity; // Code integrity information.
+	uint32_t GuardAddressTakenIatEntryTable; // The VA where Control Flow Guard address taken IAT table is stored.
+	uint32_t GuardAddressTakenIatEntryCount; // The count of unique RVAs in the above table.
+	uint32_t GuardLongJumpTargetTable;       // VA
+	uint32_t GuardLongJumpTargetCount; // 
+	uint32_t DynamicValueRelocTable;         // VA
+	uint32_t CHPEMetadataPointer; // 
+	uint32_t GuardRFFailureRoutine;          // VA
+	uint32_t GuardRFFailureRoutineFunctionPointer; // VA
+	uint32_t DynamicValueRelocTableOffset; // 
+	uint16_t DynamicValueRelocTableSection; // 
+	uint16_t Reserved2; // 
+	uint32_t GuardRFVerifyStackPointerFunctionPointer; // VA
+	uint32_t HotPatchTableOffset; // 
+	uint32_t Reserved3; // 
+	uint32_t EnclaveConfigurationPointer;    // VA
+	uint32_t VolatileMetadataPointer;        // 
+	uint32_t GuardEHContinuationTable;       // VA VA where Control Flow Guard long jump target table is stored.
+	uint32_t GuardEHContinuationCount; // The count of unique RVAs in the above table.
+} PE_IMAGE_LOAD_CONFIG_DIRECTORY32, * PPE_IMAGE_LOAD_CONFIG_DIRECTORY32;
+#define PE_IMAGE_LOAD_CONFIG_DIRECTORY32_SIZE (sizeof(PE_IMAGE_LOAD_CONFIG_DIRECTORY32))
+
+
+typedef struct PE_IMAGE_LOAD_CONFIG_DIRECTORY64 {
+	uint32_t Size;
+	uint32_t TimeDateStamp;
+	uint16_t MajorVersion;
+	uint16_t MinorVersion;
+	uint32_t GlobalFlagsClear;
+	uint32_t GlobalFlagsSet;
+	uint32_t CriticalSectionDefaultTimeout;
+	uint64_t DeCommitFreeBlockThreshold;
+	uint64_t DeCommitTotalFreeThreshold;
+	uint64_t LockPrefixTable;                // VA
+	uint64_t MaximumAllocationSize;
+	uint64_t VirtualMemoryThreshold;
+	uint64_t ProcessAffinityMask;
+	uint32_t ProcessHeapFlags;
+	uint16_t CSDVersion;
+	uint16_t DependentLoadFlags;
+	uint64_t EditList;                       // VA
+	uint64_t SecurityCookie;                 // VA
+	uint64_t SEHandlerTable;                 // VA
+	uint64_t SEHandlerCount;
+	uint64_t GuardCFCheckFunctionPointer;    // VA
+	uint64_t GuardCFDispatchFunctionPointer; // VA
+	uint64_t GuardCFFunctionTable;           // VA
+	uint64_t GuardCFFunctionCount;
+	uint32_t GuardFlags;
+	PE_IMAGE_LOAD_CONFIG_CODE_INTEGRITY CodeIntegrity;
+	uint64_t GuardAddressTakenIatEntryTable; // VA
+	uint64_t GuardAddressTakenIatEntryCount;
+	uint64_t GuardLongJumpTargetTable;       // VA
+	uint64_t GuardLongJumpTargetCount;
+	uint64_t DynamicValueRelocTable;         // VA
+	uint64_t CHPEMetadataPointer;            // VA
+	uint64_t GuardRFFailureRoutine;          // VA
+	uint64_t GuardRFFailureRoutineFunctionPointer; // VA
+	uint32_t DynamicValueRelocTableOffset;
+	uint16_t DynamicValueRelocTableSection;
+	uint16_t Reserved2;
+	uint64_t GuardRFVerifyStackPointerFunctionPointer; // VA
+	uint32_t HotPatchTableOffset;
+	uint32_t Reserved3;
+	uint64_t EnclaveConfigurationPointer;     // VA
+	uint64_t VolatileMetadataPointer;         // VA
+	uint64_t GuardEHContinuationTable;        // VA
+	uint64_t GuardEHContinuationCount;
+} PE_IMAGE_LOAD_CONFIG_DIRECTORY64, * PPE_IMAGE_LOAD_CONFIG_DIRECTORY64;
+#define PE_IMAGE_LOAD_CONFIG_DIRECTORY64_SIZE (sizeof(PE_IMAGE_LOAD_CONFIG_DIRECTORY64))
+
+// GuardFlags
+#define PE_IMAGE_GUARD_CF_INSTRUMENTED                    0x00000100 // Module performs control flow integrity checks using system-supplied support
+#define PE_IMAGE_GUARD_CFW_INSTRUMENTED                   0x00000200 // Module performs control flow and write integrity checks
+#define PE_IMAGE_GUARD_CF_FUNCTION_TABLE_PRESENT          0x00000400 // Module contains valid control flow target metadata
+#define PE_IMAGE_GUARD_SECURITY_COOKIE_UNUSED             0x00000800 // Module does not make use of the /GS security cookie
+#define PE_IMAGE_GUARD_PROTECT_DELAYLOAD_IAT              0x00001000 // Module supports read only delay load IAT
+#define PE_IMAGE_GUARD_DELAYLOAD_IAT_IN_ITS_OWN_SECTION   0x00002000 // Delayload import table in its own .didat section (with nothing else in it) that can be freely reprotected
+#define PE_IMAGE_GUARD_CF_EXPORT_SUPPRESSION_INFO_PRESENT 0x00004000 // Module contains suppressed export information. This also infers that the address taken
+// taken IAT table is also present in the load config.
+#define PE_IMAGE_GUARD_CF_ENABLE_EXPORT_SUPPRESSION       0x00008000 // Module enables suppression of exports
+#define PE_IMAGE_GUARD_CF_LONGJUMP_TABLE_PRESENT          0x00010000 // Module contains longjmp target information
+#define PE_IMAGE_GUARD_RF_INSTRUMENTED                    0x00020000 // Module contains return flow instrumentation and metadata
+#define PE_IMAGE_GUARD_RF_ENABLE                          0x00040000 // Module requests that the OS enable return flow protection
+#define PE_IMAGE_GUARD_RF_STRICT                          0x00080000 // Module requests that the OS enable return flow protection in strict mode
+#define PE_IMAGE_GUARD_RETPOLINE_PRESENT                  0x00100000 // Module was built with retpoline support
+#define PE_IMAGE_GUARD_EH_CONTINUATION_TABLE_PRESENT      0x00200000 // Module contains EH continuation target information
+
+#define PE_IMAGE_GUARD_CF_FUNCTION_TABLE_SIZE_MASK        0xF0000000 // Stride of Guard CF function table encoded in these bits (additional count of bytes per element)
+#define PE_IMAGE_GUARD_CF_FUNCTION_TABLE_SIZE_SHIFT       28         // Shift to right-justify Guard CF function table stride
+
+//
+// GFIDS table entry flags.
+//
+
+#define PE_IMAGE_GUARD_FLAG_FID_SUPPRESSED               0x01       // The containing GFID entry is suppressed
+#define PE_IMAGE_GUARD_FLAG_EXPORT_SUPPRESSED            0x02       // The containing GFID entry is export suppressed
+
+
 
 
 

@@ -477,7 +477,7 @@ struct Pe_Image_Resource_Directory_Entry_Offsets {
 	uint8_t Name;
 	uint8_t OffsetToData;
 };
-struct Pe_Image_Resource_Directory_Entry_Offsets PeImageResourceDirectoryEntryOffsets = {
+static const struct Pe_Image_Resource_Directory_Entry_Offsets PeImageResourceDirectoryEntryOffsets = {
 	.Name = 0,
 	.OffsetToData = 4
 };
@@ -491,8 +491,7 @@ struct Pe_Image_Resource_Directory_Offsets {
 	uint8_t NumberOfIdEntries;
 //	uint8_t DirectoryEntries;
 };
-
-struct Pe_Image_Resource_Directory_Offsets PeImageResourceDirectoryOffsets = {
+static const struct Pe_Image_Resource_Directory_Offsets PeImageResourceDirectoryOffsets = {
 	.Characteristics = 0,
 	.TimeDateStamp = 4,
 	.MajorVersion = 8,
@@ -506,8 +505,7 @@ struct Pe_Image_Resource_Dir_String_U_Offsets {
 	uint8_t Length;
 	uint8_t NameString;
 };
-
-struct Pe_Image_Resource_Dir_String_U_Offsets PeImageResourceDirStringUOffsets = {
+static const struct Pe_Image_Resource_Dir_String_U_Offsets PeImageResourceDirStringUOffsets = {
 	.Length = 0,
 	.NameString = 2
 };
@@ -518,8 +516,7 @@ struct Pe_Image_Resource_Data_Entry_Offsets {
 	uint8_t CodePage;
 	uint8_t Reserved;
 };
-
-struct Pe_Image_Resource_Data_Entry_Offsets PeImageResourceDataEntryOffsets = {
+static const struct Pe_Image_Resource_Data_Entry_Offsets PeImageResourceDataEntryOffsets = {
 	.OffsetToData = 0,
 	.Size = 4,
 	.CodePage = 8,
@@ -530,8 +527,7 @@ struct PE_BASE_RELOCATION_BLOCK_Offsets {
 	uint8_t VirtualAddress;
 	uint8_t SizeOfBlock;
 };
-
-struct PE_BASE_RELOCATION_BLOCK_Offsets PeBaseRelocationBlockOffsets = {
+static const struct PE_BASE_RELOCATION_BLOCK_Offsets PeBaseRelocationBlockOffsets = {
 	.VirtualAddress = 0,
 	.SizeOfBlock = 4
 };
@@ -540,8 +536,7 @@ struct Pe_Base_Relocation_Entry_Offsets {
 	uint8_t Type;
 	uint8_t Offset;
 };
-
-struct Pe_Base_Relocation_Entry_Offsets PeBaseRelocationEntryOffsets = {
+static const struct Pe_Base_Relocation_Entry_Offsets PeBaseRelocationEntryOffsets = {
 	.Type = 0,
 	.Offset = 0
 };
@@ -556,8 +551,7 @@ struct PE_IMAGE_TLS_DIRECTORY_OFSETS {
 	uint8_t SizeOfZeroFill;
 	uint8_t Characteristics;
 };
-
-struct PE_IMAGE_TLS_DIRECTORY_OFSETS PeImageTlsDirectoryOfsets32 = {
+static const struct  PE_IMAGE_TLS_DIRECTORY_OFSETS PeImageTlsDirectoryOfsets32 = {
 	.StartAddressOfRawData = 0,
 	.EndAddressOfRawData = 4,
 	.AddressOfIndex = 8,
@@ -565,14 +559,172 @@ struct PE_IMAGE_TLS_DIRECTORY_OFSETS PeImageTlsDirectoryOfsets32 = {
 	.SizeOfZeroFill = 16,
 	.Characteristics = 20
 };
-
-struct PE_IMAGE_TLS_DIRECTORY_OFSETS PeImageTlsDirectoryOfsets64 = {
+static const struct PE_IMAGE_TLS_DIRECTORY_OFSETS PeImageTlsDirectoryOfsets64 = {
 	.StartAddressOfRawData = 0,
 	.EndAddressOfRawData = 8,
 	.AddressOfIndex = 16,
 	.AddressOfCallBacks = 24,
 	.SizeOfZeroFill = 32,
 	.Characteristics = 36
+};
+
+
+
+
+
+typedef struct PE_IMAGE_LOAD_CONFIG_CODE_INTEGRITY_OFFSETS {
+	uint8_t Flags;          // Flags to indicate if CI information is available, etc.
+	uint8_t Catalog;        // 0xFFFF means not available
+	uint8_t CatalogOffset;
+	uint8_t Reserved;       // Additional bitmask to be defined later
+};
+
+static const struct PE_IMAGE_LOAD_CONFIG_CODE_INTEGRITY_OFFSETS PeImageLoadConfigCodeIntegrityOffsets = {
+	.Flags = 0,
+	.Catalog = 2,
+	.CatalogOffset = 4,
+	.Reserved = 8,
+};
+
+typedef struct PE_IMAGE_LOAD_CONFIG_DIRECTORY_OFFSETS {
+	uint8_t Size;
+	uint8_t TimeDateStamp;
+	uint8_t MajorVersion;
+	uint8_t MinorVersion;
+	uint8_t GlobalFlagsClear;
+	uint8_t GlobalFlagsSet;
+	uint8_t CriticalSectionDefaultTimeout;
+	uint8_t DeCommitFreeBlockThreshold;
+	uint8_t DeCommitTotalFreeThreshold;
+	uint8_t LockPrefixTable;
+	uint8_t MaximumAllocationSize;
+	uint8_t VirtualMemoryThreshold;
+	uint8_t ProcessHeapFlags;
+	uint8_t ProcessAffinityMask;
+	uint8_t CSDVersion;
+	uint8_t DependentLoadFlags;
+	uint8_t EditList;
+	uint8_t SecurityCookie;
+	uint8_t SEHandlerTable;
+	uint8_t SEHandlerCount;
+	uint8_t GuardCFCheckFunctionPointer;
+	uint8_t GuardCFDispatchFunctionPointer;
+	uint8_t GuardCFFunctionTable;
+	uint8_t GuardCFFunctionCount;
+	uint8_t GuardFlags;
+	uint8_t CodeIntegrity;
+	uint8_t GuardAddressTakenIatEntryTable;
+	uint8_t GuardAddressTakenIatEntryCount;
+	uint8_t GuardLongJumpTargetTable;
+	uint8_t GuardLongJumpTargetCount;
+	uint8_t DynamicValueRelocTable;
+	uint8_t CHPEMetadataPointer; 
+	uint8_t GuardRFFailureRoutine;
+	uint8_t GuardRFFailureRoutineFunctionPointer;
+	uint8_t DynamicValueRelocTableOffset;
+	uint8_t DynamicValueRelocTableSection;
+	uint8_t Reserved2;
+	uint8_t GuardRFVerifyStackPointerFunctionPointer;
+	uint8_t HotPatchTableOffset;
+	uint8_t Reserved3;
+	uint8_t EnclaveConfigurationPointer; 
+	uint8_t VolatileMetadataPointer; 
+	uint8_t GuardEHContinuationTable;
+	uint8_t GuardEHContinuationCount; 
+};
+
+static const struct PE_IMAGE_LOAD_CONFIG_DIRECTORY_OFFSETS PeImageLoadConfigDirectoryOffsets32 = {
+	.Size = 0, 
+	.TimeDateStamp = 4,
+	.MajorVersion = 8,
+	.MinorVersion = 10,
+	.GlobalFlagsClear = 12,
+	.GlobalFlagsSet = 16,
+	.CriticalSectionDefaultTimeout = 20,
+	.DeCommitFreeBlockThreshold = 24,
+	.DeCommitTotalFreeThreshold = 28,
+	.LockPrefixTable = 32,
+	.MaximumAllocationSize = 36,
+	.VirtualMemoryThreshold = 40,
+	.ProcessHeapFlags = 44,
+	.ProcessAffinityMask = 48,
+	.CSDVersion = 52,
+	.DependentLoadFlags = 54,
+	.EditList = 56,
+	.SecurityCookie = 60,
+	.SEHandlerTable = 64,
+	.SEHandlerCount = 68,
+	.GuardCFCheckFunctionPointer = 72,
+	.GuardCFDispatchFunctionPointer = 76,
+	.GuardCFFunctionTable = 80,
+	.GuardCFFunctionCount = 84,
+	.GuardFlags = 88,
+	.CodeIntegrity = 92,
+	.GuardAddressTakenIatEntryTable = 104,
+	.GuardAddressTakenIatEntryCount = 108,
+	.GuardLongJumpTargetTable = 112,
+	.GuardLongJumpTargetCount = 116,
+	.DynamicValueRelocTable = 120,
+	.CHPEMetadataPointer = 124,
+	.GuardRFFailureRoutine = 128,
+	.GuardRFFailureRoutineFunctionPointer = 132,
+	.DynamicValueRelocTableOffset = 136,
+	.DynamicValueRelocTableSection = 140, 
+	.Reserved2 = 142,
+	.GuardRFVerifyStackPointerFunctionPointer = 144,
+	.HotPatchTableOffset = 148,
+	.Reserved3 = 152,
+	.EnclaveConfigurationPointer = 156,
+	.VolatileMetadataPointer = 160,
+	.GuardEHContinuationTable = 164,
+	.GuardEHContinuationCount = 168,
+};
+
+static const struct PE_IMAGE_LOAD_CONFIG_DIRECTORY_OFFSETS PeImageLoadConfigDirectoryOffsets64 = {
+	.Size = 0,
+	.TimeDateStamp = 4,
+	.MajorVersion = 8,
+	.MinorVersion = 10,
+	.GlobalFlagsClear = 12,
+	.GlobalFlagsSet = 16,
+	.CriticalSectionDefaultTimeout = 20,
+	.DeCommitFreeBlockThreshold = 24,
+	.DeCommitTotalFreeThreshold = 32,
+	.LockPrefixTable = 40,
+	.MaximumAllocationSize = 48,
+	.VirtualMemoryThreshold = 56,
+	.ProcessAffinityMask = 64,
+	.ProcessHeapFlags = 72,
+	.CSDVersion = 76,
+	.DependentLoadFlags = 78,
+	.EditList = 80,  
+	.SecurityCookie = 88,    
+	.SEHandlerTable = 96,
+	.SEHandlerCount = 104,
+	.GuardCFCheckFunctionPointer = 112, 
+	.GuardCFDispatchFunctionPointer = 120,
+	.GuardCFFunctionTable = 128, 
+	.GuardCFFunctionCount = 136,
+	.GuardFlags = 144,
+	.CodeIntegrity = 148,
+	.GuardAddressTakenIatEntryTable = 160,
+	.GuardAddressTakenIatEntryCount = 168,
+	.GuardLongJumpTargetTable = 176,
+	.GuardLongJumpTargetCount = 184,
+	.DynamicValueRelocTable = 192,  
+	.CHPEMetadataPointer = 200, 
+	.GuardRFFailureRoutine = 208,  
+	.GuardRFFailureRoutineFunctionPointer = 216,
+	.DynamicValueRelocTableOffset = 224,
+	.DynamicValueRelocTableSection = 228,
+	.Reserved2 = 230,
+	.GuardRFVerifyStackPointerFunctionPointer = 232,
+	.HotPatchTableOffset = 240,
+	.Reserved3 = 244,
+	.EnclaveConfigurationPointer = 248,
+	.VolatileMetadataPointer = 256, 
+	.GuardEHContinuationTable = 264, 
+	.GuardEHContinuationCount = 272
 };
 
 #endif

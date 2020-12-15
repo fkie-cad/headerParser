@@ -205,8 +205,15 @@ int parsePEHeader(uint8_t force,
 		return -1;
 	}
 
-	if ( pep->info_level_iimp || pep->info_level_iexp || pep->info_level_ires || pep->info_level_irel || pep->info_level_idimp)
+	if ( pep->info_level_iimp || 
+		 pep->info_level_iexp || 
+		 pep->info_level_ires || 
+		 pep->info_level_irel || 
+		 pep->info_level_idimp ||
+		 pep->info_level_ilcfg )
+	{
 		parse_svas = 1;
+	}
 
 	debug_info("parsePEHeader\n");
 
@@ -290,6 +297,14 @@ int parsePEHeader(uint8_t force,
 		PE_parseImageImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
                                  &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
 
+	if (pep->info_level_idimp == 1)
+		PE_parseImageDelayImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
+			&gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
+
+	if (pep->info_level_ibimp == 1)
+		PE_parseImageBoundImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
+			&gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
+
 	if ( pep->info_level_iexp == 1 )
 		PE_parseImageExportTable(opt_header, coff_header->NumberOfSections, gp->start_file_offset, gp->file_size, gp->fp, gp->block_standard, pehd->svas);
 
@@ -302,10 +317,10 @@ int parsePEHeader(uint8_t force,
 
 	if ( pep->info_level_icrt == 1 )
 		PE_parseCertificates(opt_header, gp->start_file_offset, gp->file_size, pep->certificate_directory, gp->fp, gp->block_standard);
-
-	if (pep->info_level_idimp == 1)
-		PE_parseImageDelayImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
-                                      &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
+	
+	if (pep->info_level_ilcfg == 1)
+		PE_parseImageLoadConfigTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
+                                      &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_standard);
 
 	return 0;
 }

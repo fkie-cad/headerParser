@@ -82,6 +82,23 @@ int PE_fillImageExportDirectory(PE_IMAGE_EXPORT_DIRECTORY* ied,
                                 FILE* fp,
                                 unsigned char* block_s);
 
+void PE_parseImageLoadConfigTable(PE64OptHeader* optional_header,
+                                 uint16_t nr_of_sections,
+                                 SVAS* svas,
+                                 uint8_t bitness,
+                                 uint64_t start_file_offset,
+                                 uint64_t* abs_file_offset,
+                                 size_t file_size,
+                                 FILE* fp,
+                                 unsigned char* block_s);
+int PE_fillImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
+                                    uint8_t bitness,
+                                    uint64_t offset,
+                                    uint64_t start_file_offset,
+                                    size_t file_size,
+                                    FILE* fp,
+                                    unsigned char* block_s);
+
 void PE_parseImageResourceTable(PE64OptHeader* optional_header,
                                 uint16_t nr_of_sections,
                                 uint64_t start_file_offset,
@@ -348,15 +365,15 @@ int PE_fillImportByName(PEImageImportByName* ibn,
  * @param nr_of_sections
  */
 void PE_parseImageDelayImportTable(PE64OptHeader* optional_header,
-    uint16_t nr_of_sections,
-    SVAS* svas,
-    uint8_t bitness,
-    uint64_t start_file_offset,
-    uint64_t* abs_file_offset,
-    size_t file_size,
-    FILE* fp,
-    unsigned char* block_l,
-    unsigned char* block_s)
+                                   uint16_t nr_of_sections,
+                                   SVAS* svas,
+                                   uint8_t bitness,
+                                   uint64_t start_file_offset,
+                                   uint64_t* abs_file_offset,
+                                   size_t file_size,
+                                   FILE* fp,
+                                   unsigned char* block_l,
+                                   unsigned char* block_s)
 {
     size_t size;
     uint64_t offset;
@@ -505,15 +522,15 @@ int PE_iterateThunkData(uint16_t nr_of_sections,
  *
  */
 void PE_parseImageBoundImportTable(PE64OptHeader* optional_header,
-    uint16_t nr_of_sections,
-    SVAS* svas,
-    uint8_t bitness,
-    uint64_t start_file_offset,
-    uint64_t* abs_file_offset,
-    size_t file_size,
-    FILE* fp,
-    unsigned char* block_l,
-    unsigned char* block_s)
+                                    uint16_t nr_of_sections,
+                                    SVAS* svas,
+                                    uint8_t bitness,
+                                    uint64_t start_file_offset,
+                                    uint64_t* abs_file_offset,
+                                    size_t file_size,
+                                    FILE* fp,
+                                    unsigned char* block_l,
+                                    unsigned char* block_s)
 {
     size_t size;
     uint64_t offset;
@@ -546,12 +563,12 @@ void PE_parseImageBoundImportTable(PE64OptHeader* optional_header,
     offset = 0;
 
     debug_info("offset: 0x%"PRIx64"\n", offset);
-    debug_info("abs_file_offset: 0x%"PRIx64"\n", abs_file_offset);
+    debug_info("abs_file_offset: 0x%"PRIx64"\n", *abs_file_offset);
     PE_fillBoundImportDescriptor(&bid, &offset, abs_file_offset, file_size, fp, block_l);
 
     PE_printImageBoundImportTableHeader(&bid);
 
-    // terminated by zero filled PEImageImportDescriptor
+    // terminated by zero filled PEImageBoundImportDescriptor
     while ( bid.OffsetModuleName != 0 )
     {
         dll_name = NULL;
@@ -743,7 +760,7 @@ int PE_fillImageExportDirectory(PE_IMAGE_EXPORT_DIRECTORY* ied,
                                 FILE* fp,
                                 unsigned char* block_s)
 {
-    uint32_t size;
+    size_t size;
     unsigned char* ptr = NULL;
     struct Pe_Image_Export_Directory_Offsets offsets = PeImageExportDirectoryOffsets;
 
@@ -769,6 +786,162 @@ int PE_fillImageExportDirectory(PE_IMAGE_EXPORT_DIRECTORY* ied,
     ied->AddressOfFunctions = *((uint32_t*) &ptr[offsets.AddressOfFunctions]);
     ied->AddressOfNames = *((uint32_t*) &ptr[offsets.AddressOfNames]);
     ied->AddressOfNameOrdinals = *((uint32_t*) &ptr[offsets.AddressOfNameOrdinals]);
+
+    return 0;
+}
+
+/**
+ * Parse ImageDelayImportTable, i.e. DataDirectory[DELAY_IMPORT]
+ *
+ * @param optional_header
+ * @param nr_of_sections
+ */
+void PE_parseImageLoadConfigTable(PE64OptHeader* optional_header,
+                                  uint16_t nr_of_sections,
+                                  SVAS* svas,
+                                  uint8_t bitness,
+                                  uint64_t start_file_offset,
+                                  uint64_t* abs_file_offset,
+                                  size_t file_size,
+                                  FILE* fp,
+                                  unsigned char* block_s)
+{
+    PE_IMAGE_LOAD_CONFIG_DIRECTORY64 lcd;
+
+    uint64_t table_fo;
+    size_t size;
+    size_t i;
+
+    table_fo = PE_getDataDirectoryEntryFileOffset(optional_header->DataDirectory, IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG, nr_of_sections, "Load Config", svas);
+    if (table_fo == 0)
+        return;
+
+    size_t e_size = (bitness == 32) ? PE_IMAGE_LOAD_CONFIG_DIRECTORY32_SIZE : PE_IMAGE_LOAD_CONFIG_DIRECTORY64_SIZE;
+    if (optional_header->DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].Size != e_size)
+    {
+        printf("LOAD_CONFIG size missmatch: expected %zx but got %"PRIu32"\n", e_size, optional_header->DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].Size);
+    }
+
+    // fill PE_IMAGE_EXPORT_DIRECTORY info
+    if (PE_fillImageLoadConfigDirectory(&lcd, bitness, table_fo, start_file_offset, file_size, fp, block_s) != 0)
+        return;
+
+    PE_printImageLoadConfigDirectory(&lcd, *abs_file_offset + table_fo, bitness);
+
+}
+
+int PE_fillImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
+                                    uint8_t bitness,
+                                    uint64_t offset,
+                                    uint64_t start_file_offset,
+                                    size_t file_size,
+                                    FILE* fp,
+                                    unsigned char* block_s)
+{
+    uint32_t size;
+    unsigned char* ptr = NULL;
+    struct PE_IMAGE_LOAD_CONFIG_DIRECTORY_OFFSETS offsets = (bitness==32) ? 
+                                                            PeImageLoadConfigDirectoryOffsets32 : 
+                                                            PeImageLoadConfigDirectoryOffsets64;
+    size_t d_size = (bitness == 32) ? PE_IMAGE_LOAD_CONFIG_DIRECTORY32_SIZE : PE_IMAGE_LOAD_CONFIG_DIRECTORY64_SIZE;
+
+    if (!checkFileSpace(offset, start_file_offset, d_size, file_size))
+        return 1;
+
+    offset = offset + start_file_offset;
+    size = readFile(fp, offset, BLOCKSIZE, block_s);
+    if (size == 0)
+        return 2;
+    offset = 0;
+
+    ptr = &block_s[offset];
+    memset(lcd, 0, PE_IMAGE_LOAD_CONFIG_DIRECTORY64_SIZE);
+    lcd->Size = *((uint32_t*)&ptr[offsets.Size]);
+    lcd->TimeDateStamp = *((uint32_t*)&ptr[offsets.TimeDateStamp]);
+    lcd->MajorVersion = *((uint16_t*)&ptr[offsets.MajorVersion]);
+    lcd->MinorVersion = *((uint16_t*)&ptr[offsets.MinorVersion]);
+    lcd->GlobalFlagsClear = *((uint32_t*)&ptr[offsets.GlobalFlagsClear]);
+    lcd->GlobalFlagsSet = *((uint32_t*)&ptr[offsets.GlobalFlagsSet]);
+    lcd->CriticalSectionDefaultTimeout = *((uint32_t*)&ptr[offsets.CriticalSectionDefaultTimeout]);
+    lcd->ProcessHeapFlags = *((uint32_t*)&ptr[offsets.ProcessHeapFlags]);
+    lcd->CSDVersion = *((uint16_t*)&ptr[offsets.CSDVersion]);
+    lcd->DependentLoadFlags = *((uint16_t*)&ptr[offsets.DependentLoadFlags]);
+    lcd->GuardFlags = *((uint32_t*)&ptr[offsets.GuardFlags]);
+    lcd->CodeIntegrity.Flags = *((uint16_t*)&ptr[offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.Flags]);
+    lcd->CodeIntegrity.Catalog = *((uint16_t*)&ptr[offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.Catalog]);
+    lcd->CodeIntegrity.CatalogOffset = *((uint32_t*)&ptr[offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.CatalogOffset]);
+    lcd->CodeIntegrity.Reserved = *((uint32_t*)&ptr[offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.Reserved]);
+    lcd->DynamicValueRelocTableOffset = *((uint32_t*)&ptr[offsets.DynamicValueRelocTableOffset]);
+    lcd->DynamicValueRelocTableSection = *((uint16_t*)&ptr[offsets.DynamicValueRelocTableSection]);
+    lcd->Reserved2 = *((uint16_t*)&ptr[offsets.Reserved2]);
+    lcd->HotPatchTableOffset = *((uint32_t*)&ptr[offsets.HotPatchTableOffset]);
+    lcd->Reserved3 = *((uint32_t*)&ptr[offsets.Reserved3]);
+
+    if (bitness == 32)
+    {
+        lcd->CriticalSectionDefaultTimeout = *((uint32_t*)&ptr[offsets.CriticalSectionDefaultTimeout]);
+        lcd->DeCommitFreeBlockThreshold = *((uint32_t*)&ptr[offsets.DeCommitFreeBlockThreshold]);
+        lcd->DeCommitTotalFreeThreshold = *((uint32_t*)&ptr[offsets.DeCommitTotalFreeThreshold]);
+        lcd->LockPrefixTable = *((uint32_t*)&ptr[offsets.LockPrefixTable]);
+        lcd->MaximumAllocationSize = *((uint32_t*)&ptr[offsets.MaximumAllocationSize]);
+        lcd->VirtualMemoryThreshold = *((uint32_t*)&ptr[offsets.VirtualMemoryThreshold]);
+        lcd->ProcessAffinityMask = *((uint32_t*)&ptr[offsets.ProcessAffinityMask]);
+        lcd->EditList = *((uint32_t*)&ptr[offsets.EditList]);
+        lcd->SecurityCookie = *((uint32_t*)&ptr[offsets.SecurityCookie]);
+        lcd->SEHandlerTable = *((uint32_t*)&ptr[offsets.SEHandlerTable]);
+        lcd->SEHandlerCount = *((uint32_t*)&ptr[offsets.SEHandlerCount]);
+        lcd->GuardCFCheckFunctionPointer = *((uint32_t*)&ptr[offsets.GuardCFCheckFunctionPointer]);
+        lcd->GuardCFDispatchFunctionPointer = *((uint32_t*)&ptr[offsets.GuardCFDispatchFunctionPointer]);
+        lcd->GuardCFFunctionTable = *((uint32_t*)&ptr[offsets.GuardCFFunctionTable]);
+        lcd->GuardCFFunctionCount = *((uint32_t*)&ptr[offsets.GuardCFFunctionCount]);
+        lcd->GuardAddressTakenIatEntryTable = *((uint32_t*)&ptr[offsets.GuardAddressTakenIatEntryTable]);
+        lcd->GuardAddressTakenIatEntryCount = *((uint32_t*)&ptr[offsets.GuardAddressTakenIatEntryCount]);
+        lcd->GuardLongJumpTargetTable = *((uint32_t*)&ptr[offsets.GuardLongJumpTargetTable]);
+        lcd->GuardLongJumpTargetCount = *((uint32_t*)&ptr[offsets.GuardLongJumpTargetCount]);
+        lcd->DynamicValueRelocTable = *((uint32_t*)&ptr[offsets.DynamicValueRelocTable]);
+        lcd->CHPEMetadataPointer = *((uint32_t*)&ptr[offsets.CHPEMetadataPointer]);
+        lcd->GuardRFFailureRoutine = *((uint32_t*)&ptr[offsets.GuardRFFailureRoutine]);
+        lcd->GuardRFFailureRoutineFunctionPointer = *((uint32_t*)&ptr[offsets.GuardRFFailureRoutineFunctionPointer]);
+        lcd->GuardRFVerifyStackPointerFunctionPointer = *((uint32_t*)&ptr[offsets.GuardRFVerifyStackPointerFunctionPointer]);
+        lcd->EnclaveConfigurationPointer = *((uint32_t*)&ptr[offsets.EnclaveConfigurationPointer]);
+        lcd->VolatileMetadataPointer = *((uint32_t*)&ptr[offsets.VolatileMetadataPointer]);
+        lcd->GuardEHContinuationTable = *((uint32_t*)&ptr[offsets.GuardEHContinuationTable]);
+        lcd->GuardEHContinuationCount = *((uint32_t*)&ptr[offsets.GuardEHContinuationCount]);
+    }
+    else
+    {
+        lcd->DeCommitFreeBlockThreshold = *((uint64_t*)&ptr[offsets.DeCommitFreeBlockThreshold]);
+        lcd->DeCommitTotalFreeThreshold = *((uint64_t*)&ptr[offsets.DeCommitTotalFreeThreshold]);
+        lcd->LockPrefixTable = *((uint64_t*)&ptr[offsets.LockPrefixTable]);
+        lcd->MaximumAllocationSize = *((uint64_t*)&ptr[offsets.MaximumAllocationSize]);
+        lcd->VirtualMemoryThreshold = *((uint64_t*)&ptr[offsets.VirtualMemoryThreshold]);
+        lcd->ProcessAffinityMask = *((uint64_t*)&ptr[offsets.ProcessAffinityMask]);
+        lcd->EditList = *((uint64_t*)&ptr[offsets.EditList]);
+        lcd->SecurityCookie = *((uint64_t*)&ptr[offsets.SecurityCookie]);
+        lcd->SEHandlerTable = *((uint64_t*)&ptr[offsets.SEHandlerTable]);
+        lcd->SEHandlerCount = *((uint64_t*)&ptr[offsets.SEHandlerCount]);
+        lcd->GuardCFCheckFunctionPointer = *((uint64_t*)&ptr[offsets.GuardCFCheckFunctionPointer]);
+        lcd->GuardCFDispatchFunctionPointer = *((uint64_t*)&ptr[offsets.GuardCFDispatchFunctionPointer]);
+        lcd->GuardCFFunctionTable = *((uint64_t*)&ptr[offsets.GuardCFFunctionTable]);
+        lcd->GuardCFFunctionCount = *((uint64_t*)&ptr[offsets.GuardCFFunctionCount]);
+        lcd->CodeIntegrity.Flags = *((uint16_t*)&ptr[offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.Flags]);
+        lcd->CodeIntegrity.Catalog = *((uint16_t*)&ptr[offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.Catalog]);
+        lcd->CodeIntegrity.CatalogOffset = *((uint32_t*)&ptr[offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.CatalogOffset]);
+        lcd->CodeIntegrity.Reserved = *((uint32_t*)&ptr[offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.Reserved]);
+        lcd->GuardAddressTakenIatEntryTable = *((uint64_t*)&ptr[offsets.GuardAddressTakenIatEntryTable]);
+        lcd->GuardAddressTakenIatEntryCount = *((uint64_t*)&ptr[offsets.GuardAddressTakenIatEntryCount]);
+        lcd->GuardLongJumpTargetTable = *((uint64_t*)&ptr[offsets.GuardLongJumpTargetTable]);
+        lcd->GuardLongJumpTargetCount = *((uint64_t*)&ptr[offsets.GuardLongJumpTargetCount]);
+        lcd->DynamicValueRelocTable = *((uint64_t*)&ptr[offsets.DynamicValueRelocTable]);
+        lcd->CHPEMetadataPointer = *((uint64_t*)&ptr[offsets.CHPEMetadataPointer]);
+        lcd->GuardRFFailureRoutine = *((uint64_t*)&ptr[offsets.GuardRFFailureRoutine]);
+        lcd->GuardRFFailureRoutineFunctionPointer = *((uint64_t*)&ptr[offsets.GuardRFFailureRoutineFunctionPointer]);
+        lcd->GuardRFVerifyStackPointerFunctionPointer = *((uint64_t*)&ptr[offsets.GuardRFVerifyStackPointerFunctionPointer]);
+        lcd->EnclaveConfigurationPointer = *((uint64_t*)&ptr[offsets.EnclaveConfigurationPointer]);
+        lcd->VolatileMetadataPointer = *((uint64_t*)&ptr[offsets.VolatileMetadataPointer]);
+        lcd->GuardEHContinuationTable = *((uint64_t*)&ptr[offsets.GuardEHContinuationTable]);
+        lcd->GuardEHContinuationCount = *((uint64_t*)&ptr[offsets.GuardEHContinuationCount]);
+    }
 
     return 0;
 }
