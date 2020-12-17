@@ -14,8 +14,8 @@ OsX may work too.
 
 
 ## Version ##
-1.10.0  
-Last changed: 15.12.2020
+1.10.1  
+Last changed: 17.12.2020
 
 ## REQUIREMENTS ##
 - A decent c compiler (gcc or msbuild) is required.  
