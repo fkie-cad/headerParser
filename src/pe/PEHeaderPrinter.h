@@ -733,12 +733,13 @@ const char* PeBaseRelocationTypeStrings[] = {
     "IMAGE_REL_BASED_MIPS_JMPADDR16",
     "IMAGE_REL_BASED_DIR64",
 };
+#define PeBaseRelocationTypeStrings_SIZE (sizeof(PeBaseRelocationTypeStrings))
 
 void PE_printImageBaseRelocationBlockEntry(PE_BASE_RELOCATION_ENTRY* e)
 {
     uint16_t type = e->Data >> 12;
     uint16_t offset = e->Data & 0x0FFF;
-    const char* type_str = (type <= 11) ? PeBaseRelocationTypeStrings[type] : "NONE";
+    const char* type_str = (type < PeBaseRelocationTypeStrings_SIZE) ? PeBaseRelocationTypeStrings[type] : "NONE";
 
     printf("     - 0x%04x | %s (%u)\n", offset, type_str, type);
 }

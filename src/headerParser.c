@@ -30,7 +30,7 @@ static void printHeaderData(uint8_t, PHeaderData hd, unsigned char* block);
 static void printHeaderData1(PHeaderData hd);
 static uint8_t getForceOption(const char* arg);
 
-const char* vs = "1.10.1";
+const char* vs = "1.10.2";
 const char* last_changed = "17.12.2020";
 
 

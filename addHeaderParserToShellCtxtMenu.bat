@@ -1,7 +1,7 @@
 @echo off
 
-set path=""
-set label="Open with HeaderParser"
+set path=
+set label=Open with HeaderParser
 
 set prog_name=%~n0
 set user_dir="%~dp0"
@@ -16,23 +16,23 @@ GOTO :ParseParams
     if [%1]==[/help] goto help
 
     IF "%~1"=="/p" (
-		SET path=%~2
-		SHIFT
-		goto reParseParams
-	)
+        SET path=%~2
+        SHIFT
+        goto reParseParams
+    )
     IF "%~1"=="/l" (
-		SET label=%~2
-		SHIFT
-		goto reParseParams
-	)
+        SET label=%~2
+        SHIFT
+        goto reParseParams
+    )
     IF "%~1"=="/v" (
-		SET verbose=1
-		goto reParseParams
-	)
-	
-	:reParseParams
+        SET verbose=1
+        goto reParseParams
+    )
+    
+    :reParseParams
     SHIFT
-	if [%1]==[] goto main
+    if [%1]==[] goto main
 
 GOTO :ParseParams
 
@@ -45,18 +45,18 @@ if ["%label%"] == [] goto usage
 if ["%label%"] == [""] goto usage
 
 IF not exist "%path%" (
-	echo HeaderParser not found at "%path%"!
-	echo Place it there or adjust the path.
-	exit /b 0
+    echo HeaderParser not found at "%path%"!
+    echo Place it there or adjust the path.
+    exit /b 0
 )
 
 if [%verbose%]==[1] (
-	echo path=%path%
-	echo label=%label%
+    echo path=%path%
+    echo label=%label%
 )
 
 :add
-	C:\Windows\System32\reg add "HKEY_CURRENT_USER\SOFTWARE\Classes\*\shell\%label%\Command" /t REG_SZ /d "cmd /k %path% \"%%1\" -i 2"
+    C:\Windows\System32\reg add "HKEY_CURRENT_USER\SOFTWARE\Classes\*\shell\%label%\Command" /t REG_SZ /d "cmd /k %path% \"%%1\" -i 2"
 
 exit /B 0
 
@@ -66,9 +66,9 @@ exit /B 0
     exit /B 0
 
 :help
-	call :usage
+    call :usage
     @echo /p Path to the HeaderParser binary. Must not have spaces at the moment!
     @echo /l Label to show up in the context menu.
     @echo /v Verbose mode.
-	@echo /h Print this.
+    @echo /h Print this.
     exit /B 0
