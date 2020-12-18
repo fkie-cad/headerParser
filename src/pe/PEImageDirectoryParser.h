@@ -206,7 +206,7 @@ void PE_parseImageImportTable(PE64OptHeader* optional_header,
     size_t size;
     uint64_t offset;
     
-    uint64_t rva_offset;
+    //uint64_t rva_offset;
     uint64_t thunk_data_offset;
     uint64_t table_fo;
 
@@ -386,8 +386,7 @@ void PE_parseImageDelayImportTable(PE64OptHeader* optional_header,
     PeImageDelayLoadDescriptor did; // 32 + 64
 
 
-    table_fo = PE_getDataDirectoryEntryFileOffset(optional_header->DataDirectory, IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT,
-        nr_of_sections, "Delay Import", svas);
+    table_fo = PE_getDataDirectoryEntryFileOffset(optional_header->DataDirectory, IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT, nr_of_sections, "Delay Import", svas);
     if ( table_fo == 0 )
         return;
 
@@ -404,7 +403,7 @@ void PE_parseImageDelayImportTable(PE64OptHeader* optional_header,
     offset = 0;
 
     debug_info("offset: 0x%"PRIx64"\n", offset);
-    debug_info("abs_file_offset: 0x%"PRIx64"\n", abs_file_offset);
+    debug_info("abs_file_offset: 0x%"PRIx64"\n", *abs_file_offset);
     PE_fillDelayImportDescriptor(&did, &offset, abs_file_offset, file_size, fp, block_l);
 
     PE_printImageDelayImportTableHeader(&did);
@@ -533,10 +532,12 @@ void PE_parseImageBoundImportTable(PE64OptHeader* optional_header,
                                     unsigned char* block_s)
 {
     size_t size;
+    uint64_t table_fo;
     uint64_t offset;
 
-    uint64_t thunk_data_offset;
-    uint64_t table_fo;
+    PEDataDirectory* table = &optional_header->DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT]; // 32 + 64
+    uint32_t vaddr = table->VirtualAddress;
+    uint32_t vsize = table->Size;
 
     char* dll_name = NULL;
 
@@ -545,11 +546,13 @@ void PE_parseImageBoundImportTable(PE64OptHeader* optional_header,
     PE_IMAGE_BOUND_IMPORT_DESCRIPTOR bid; // 32 + 64
     PE_IMAGE_BOUND_FORWARDER_REF bfr; // 32 + 64
 
-
-    table_fo = PE_getDataDirectoryEntryFileOffset(optional_header->DataDirectory, IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT, nr_of_sections, "Bound Import", svas);
-    if ( table_fo == 0 )
+    if (vaddr == 0 || vsize == 0)
+    {
+        printf("No Bound Import Table!\n\n");
         return;
-
+    }
+    // not an rva !!
+    table_fo = vaddr;
     offset = table_fo;
 
     // read new  block to ease up offsetting
@@ -572,7 +575,7 @@ void PE_parseImageBoundImportTable(PE64OptHeader* optional_header,
     while ( bid.OffsetModuleName != 0 )
     {
         dll_name = NULL;
-        *abs_file_offset = PE_Rva2Foa(bid.OffsetModuleName, svas, nr_of_sections);
+        *abs_file_offset = table_fo + bid.OffsetModuleName;
         if ( !checkFileSpace(0, *abs_file_offset, 1, file_size) )
             break;
 
@@ -590,7 +593,7 @@ void PE_parseImageBoundImportTable(PE64OptHeader* optional_header,
             PE_fillBoundForwarderRef(&bfr, &offset, abs_file_offset, file_size, fp, block_l);
 
             dll_name = NULL;
-            *abs_file_offset = PE_Rva2Foa(bfr.OffsetModuleName, svas, nr_of_sections);
+            *abs_file_offset = table_fo + bfr.OffsetModuleName;
             if ( !checkFileSpace(0, *abs_file_offset, 1, file_size) )
                 break;
 
@@ -599,7 +602,7 @@ void PE_parseImageBoundImportTable(PE64OptHeader* optional_header,
 
             PE_printImageBoundForwarderRef(&bfr, *abs_file_offset + offset, dll_name, ri+1, bid.NumberOfModuleForwarderRefs);
 
-            offset += PE_BOUND_FORWARDER_REF_SIZE ;
+            offset += PE_BOUND_FORWARDER_REF_SIZE;
         }
 
         printf("\n");
@@ -809,8 +812,8 @@ void PE_parseImageLoadConfigTable(PE64OptHeader* optional_header,
     PE_IMAGE_LOAD_CONFIG_DIRECTORY64 lcd;
 
     uint64_t table_fo;
-    size_t size;
-    size_t i;
+    //size_t size;
+    //size_t i;
 
     table_fo = PE_getDataDirectoryEntryFileOffset(optional_header->DataDirectory, IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG, nr_of_sections, "Load Config", svas);
     if (table_fo == 0)
@@ -838,7 +841,7 @@ int PE_fillImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
                                     FILE* fp,
                                     unsigned char* block_s)
 {
-    uint32_t size;
+    size_t size;
     unsigned char* ptr = NULL;
     struct PE_IMAGE_LOAD_CONFIG_DIRECTORY_OFFSETS offsets = (bitness==32) ? 
                                                             PeImageLoadConfigDirectoryOffsets32 : 
@@ -992,7 +995,6 @@ int PE_fillImageResourceDirectory(PE_IMAGE_RESOURCE_DIRECTORY* rd,
         return 1;
 
     offset = offset + start_file_offset;
-//	size = readCustomBlock(file_name, offset, BLOCKSIZE, block_s);
     size = readFile(fp, offset, BLOCKSIZE, block_s);
     if ( size == 0 )
         return 2;
@@ -1066,7 +1068,7 @@ int PE_parseResourceDirectoryEntry(uint16_t id,
     PE_IMAGE_RESOURCE_DATA_ENTRY de;
     
     int s;
-    uint32_t dir_offset = 0;
+    uint64_t dir_offset = 0;
     
     PE_fillImageResourceDirectoryEntry(&re, offset, table_fo, start_file_offset, file_size, fp, block_s);
     PE_printImageResourceDirectoryEntry(&re, table_fo, offset, level, id, nr_of_entries, start_file_offset, file_size, fp, block_s);
@@ -1160,7 +1162,7 @@ uint64_t PE_getDataDirectoryEntryFileOffset(PEDataDirectory* data_directory,
     uint32_t vsize = table->Size;
     uint64_t table_fo;
 
-    if ( vsize == 0 )
+    if ( vsize == 0 || vaddr == 0 )
     {
         printf("No %s Table!\n\n", label);
         return 0;

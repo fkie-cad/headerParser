@@ -30,8 +30,8 @@ static void printHeaderData(uint8_t, PHeaderData hd, unsigned char* block);
 static void printHeaderData1(PHeaderData hd);
 static uint8_t getForceOption(const char* arg);
 
-const char* vs = "1.10.2";
-const char* last_changed = "17.12.2020";
+const char* vs = "1.10.3";
+const char* last_changed = "18.12.2020";
 
 
 #ifdef DILLER
@@ -144,6 +144,7 @@ void printHelp()
 			"   * -icrt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE) (Currently needs -i > 1).\n"
 			"   * -cod: Directory to save found certificates in (Needs -icrt).\n"
 			"   * -idimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT) (Currently needs -i > 1).\n"
+			"   * -ibimp: Print the Image Bound Import Table (IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT) (Currently needs -i > 1).\n"
 			"   * -ilcfg: Print the Image Load Config Table (IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG) (Currently needs -i > 1).\n"
 	);
 	printf("\n");
@@ -241,6 +242,10 @@ uint8_t parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_
 		else if (isArgOfType(argv[i], "-idimp"))
 		{
 			pep->info_level_idimp = true;
+		}
+		else if (isArgOfType(argv[i], "-ibimp"))
+		{
+			pep->info_level_ibimp = true;
 		}
 		else if (isArgOfType(argv[i], "-ilcfg"))
 		{

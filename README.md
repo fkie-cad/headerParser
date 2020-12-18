@@ -14,8 +14,8 @@ OsX may work too.
 
 
 ## Version ##
-1.10.2  
-Last changed: 17.12.2020
+1.10.3  
+Last changed: 18.12.2020
 
 ## REQUIREMENTS ##
 - A decent c compiler (gcc or msbuild) is required.  
@@ -60,6 +60,7 @@ Possible options:
    * -icrt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE). (Needs -i > 1.)
    * -cod: Directory to save found certificates in. (Needs -icrt.)
    * -idimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT). (Needs -i > 1.)
+   * -ibimp: Print the Image Bound Import Table (IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT). (Needs -i > 1.)
    * -ilcfg: Print the Image Load Config Table (IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG) (Needs -i > 1.)
  
 ## EXAMPLE ##

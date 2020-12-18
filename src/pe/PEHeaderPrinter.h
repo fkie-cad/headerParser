@@ -778,16 +778,22 @@ void PE_printImageBoundImportTableHeader(PE_IMAGE_BOUND_IMPORT_DESCRIPTOR* bid)
 
 void PE_printImageBoundImportDescriptor(PE_IMAGE_BOUND_IMPORT_DESCRIPTOR* bid, uint64_t offset, const char* dll_name)
 {
+    char ts[32];
+    formatTimeStampD(bid->TimeDateStamp, ts, sizeof(ts));
+
     printf(" -%s %s (0x%x)\n", fillOffset(PeImageBoundDescriptorOffsets.OffsetModuleName, offset, 0), dll_name, bid->OffsetModuleName);
-    printf("   - TimeDateStamp%s: 0x%x\n", fillOffset(PeImageBoundDescriptorOffsets.TimeDateStamp, offset, 0), bid->TimeDateStamp);
+    printf("   - TimeDateStamp%s: %s (0x%x)\n", fillOffset(PeImageBoundDescriptorOffsets.TimeDateStamp, offset, 0), ts, bid->TimeDateStamp);
     printf("   - NumberOfModuleForwarderRefs%s: 0x%x\n", fillOffset(PeImageBoundDescriptorOffsets.NumberOfModuleForwarderRefs, offset, 0), bid->NumberOfModuleForwarderRefs);
 }
 
 void PE_printImageBoundForwarderRef(PE_IMAGE_BOUND_FORWARDER_REF* bfr, uint64_t offset, const char* dll_name, uint16_t i, uint16_t n)
 {
-    printf(" -[%d/%d]%s %s (0x%x)\n", i, n, fillOffset(PeImageBoundForwarderRefOffsets.OffsetModuleName, offset, 0), dll_name, bfr->OffsetModuleName);
-    printf("   - TimeDateStamp%s: 0x%x\n", fillOffset(PeImageBoundForwarderRefOffsets.TimeDateStamp, offset, 0), bfr->TimeDateStamp);
-    printf("   - Reserved%s: 0x%x\n", fillOffset(PeImageBoundForwarderRefOffsets.Reserved, offset, 0), bfr->Reserved);
+    char ts[32];
+    formatTimeStampD(bfr->TimeDateStamp, ts, sizeof(ts));
+
+    printf("   - [%d/%d]%s %s (0x%x)\n", i, n, fillOffset(PeImageBoundForwarderRefOffsets.OffsetModuleName, offset, 0), dll_name, bfr->OffsetModuleName);
+    printf("     - TimeDateStamp%s: %s (0x%x)\n", fillOffset(PeImageBoundForwarderRefOffsets.TimeDateStamp, offset, 0), ts, bfr->TimeDateStamp);
+    printf("     - Reserved%s: 0x%x\n", fillOffset(PeImageBoundForwarderRefOffsets.Reserved, offset, 0), bfr->Reserved);
 }
 
 #endif

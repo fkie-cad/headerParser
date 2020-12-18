@@ -154,7 +154,7 @@ int PE_loadStringTable(PECoffFileHeader* coff_header,
                        unsigned char* block_s,
                        PStringTable st)
 {
-	uint32_t size = 0;
+	size_t size = 0;
 	uint64_t ptr_to_string_table = (uint64_t)coff_header->PointerToSymbolTable + (coff_header->NumberOfSymbols * SIZE_OF_SYM_ENT);
 	uint64_t end_of_string_table = 0;
 
@@ -192,7 +192,7 @@ int PE_loadStringTable(PECoffFileHeader* coff_header,
 uint32_t PE_getSizeOfStringTable(uint64_t ptr_to_string_table, uint64_t start_file_offset, size_t file_size, FILE* fp, unsigned char* block_s)
 {
 	uint32_t size_of_table = 0;
-	uint32_t size;
+	size_t size;
 	uint64_t end_of_size_info = ptr_to_string_table + PE_STRING_TABLE_SIZE_INFO_SIZE;
 
 	if ( start_file_offset + end_of_size_info > file_size )

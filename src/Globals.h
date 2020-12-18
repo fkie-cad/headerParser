@@ -13,7 +13,7 @@
 #endif
 
 #ifndef PATH_MAX
-	#define PATH_MAX 4096
+    #define PATH_MAX 4096
 #endif
 
 #define BLOCKSIZE (0x200)
@@ -35,9 +35,9 @@
 #define prog_error(...) if (VERBOSE_MODE) fprintf(stderr, __VA_ARGS__)
 
 #ifndef __cplusplus
-	typedef uint8_t bool;
-	#define true 1
-	#define false 0
+    typedef uint8_t bool;
+    #define true 1
+    #define false 0
 #endif
 
 const uint16_t MAX_SIZE_OF_SECTION_NAME = 128;
@@ -63,11 +63,11 @@ uint8_t info_level; // may be global.
 
 typedef struct GlobalParams
 {
-	// dynamic
-	unsigned char block_standard[BLOCKSIZE];
-	unsigned char block_large[BLOCKSIZE_LARGE];
+    // dynamic
+    unsigned char block_standard[BLOCKSIZE];
+    unsigned char block_large[BLOCKSIZE_LARGE];
 
-	// static after init
+    // static after init
 //	struct file
 //    {
 //    char file_name[PATH_MAX];
@@ -77,21 +77,21 @@ typedef struct GlobalParams
     uint64_t abs_file_offset;
 //    } file;
 
-	uint8_t info_level; // may be global. TODO: delete this or the global one
+    uint8_t info_level; // may be global. TODO: delete this or the global one
 } GlobalParams, *PGlobalParams;
 
 typedef struct PEParams
 {
-	bool info_level_iimp;
-	bool info_level_iexp;
-	bool info_level_ires;
-	bool info_level_irel;
-	bool info_level_icrt;
-	bool info_level_idimp;
-	bool info_level_ibimp;
-	bool info_level_ilcfg;
+    bool info_level_iimp;
+    bool info_level_iexp;
+    bool info_level_ires;
+    bool info_level_irel;
+    bool info_level_icrt;
+    bool info_level_idimp;
+    bool info_level_ibimp;
+    bool info_level_ilcfg;
 
-	const char* certificate_directory;
+    const char* certificate_directory;
 } PEParams, *PPEParams;
 
 //const unsigned char CRAMFS[] = { 0x28,, 0x0xCD, 0x3D, 0x45 };
