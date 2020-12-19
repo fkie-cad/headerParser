@@ -37,7 +37,7 @@ void PE_printImageImportTableHeader(PEImageImportDescriptor* impd);
 void PE_printImageImportDescriptor(PEImageImportDescriptor* impd, 
                                    uint64_t offset, 
                                    const char* impd_name);
-void PE_printHintFunctionHeader();
+void PE_printHintFunctionHeader(int bound);
 void PE_printImageThunkData(PEImageThunkData64* td, PEImageImportByName* ibn, uint64_t td_offset, uint64_t ibn_offset, uint8_t bitness);
 
 void PE_printImageExportDirectoryInfo(PE_IMAGE_EXPORT_DIRECTORY* ied);
@@ -378,7 +378,10 @@ void PE_printImageImportTableHeader(PEImageImportDescriptor* impd)
 void PE_printImageImportDescriptor(PEImageImportDescriptor* impd, uint64_t offset, const char* impd_name)
 {
     char date[32];
-    formatTimeStampD(impd->TimeDateStamp, date, sizeof(date));
+    if (impd->TimeDateStamp != (uint32_t)-1)
+        formatTimeStampD(impd->TimeDateStamp, date, sizeof(date));
+    else
+        strcpy(date, "-1 (check bound import)", 23);
 
     printf(" -%s %s (0x%x)\n", fillOffset(PEImageImportDescriptorOffsets.Name, offset, 0), impd_name, impd->Name);
     printf("   - OriginalFirstThunk%s: 0x%x\n", fillOffset(PEImageImportDescriptorOffsets.Union, offset, 0), impd->OriginalFirstThunk);
@@ -387,10 +390,11 @@ void PE_printImageImportDescriptor(PEImageImportDescriptor* impd, uint64_t offse
     printf("   - FirstThunk%s: 0x%x\n", fillOffset(PEImageImportDescriptorOffsets.FirstThunk, offset, 0), impd->FirstThunk);
 }
 
-void PE_printHintFunctionHeader()
+void PE_printHintFunctionHeader(int bound)
 {
-        printf("   - %s | Function\n", "Ordinal");
-        printf("     --------+-----------\n");
+    char* col0_l = (bound) ? "Address" : "Ordinal";
+    printf("   - %s | Function\n", col0_l);
+    printf("     --------+-----------\n");
 }
 
 void PE_printImageThunkData(PEImageThunkData64* td, PEImageImportByName* ibn, uint64_t td_offset, uint64_t ibn_offset, uint8_t bitness)

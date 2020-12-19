@@ -20,7 +20,7 @@ void PE_parseImageImportTable(PE64OptHeader* optional_header,
                               FILE* fp,
                               unsigned char* block_l,
                               unsigned char* block_s);
-void PE_fillImportDescriptor(PEImageImportDescriptor* import_desciptor,
+void PE_fillImportDescriptor(PEImageImportDescriptor* id,
                              uint64_t* offset,
                              uint64_t* abs_file_offset,
                              size_t file_size,
@@ -156,7 +156,7 @@ void PE_parseImageDelayImportTable(PE64OptHeader* optional_header,
                                    FILE* fp,
                                    unsigned char* block_l,
                                    unsigned char* block_s);
-void PE_fillDelayImportDescriptor(PeImageDelayLoadDescriptor* import_desciptor,
+void PE_fillDelayImportDescriptor(PeImageDelayLoadDescriptor* id,
                                   uint64_t* offset,
                                   uint64_t* abs_file_offset,
                                   size_t file_size,
@@ -214,7 +214,7 @@ void PE_parseImageImportTable(PE64OptHeader* optional_header,
 
     char* dll_name = NULL;
 
-    PEImageImportDescriptor import_desciptor; // 32 + 64
+    PEImageImportDescriptor id; // 32 + 64
     PEImageThunkData64 thunk_data; // 32==PIMAGE_THUNK_DATA32 64:PIMAGE_THUNK_DATA64
     PEImageImportByName import_by_name; // 32 + 64
 
@@ -238,15 +238,15 @@ void PE_parseImageImportTable(PE64OptHeader* optional_header,
 
     debug_info("offset: 0x%"PRIx64"\n", offset);
     debug_info("abs_file_offset: 0x%"PRIx64"\n", abs_file_offset);
-    PE_fillImportDescriptor(&import_desciptor, &offset, abs_file_offset, file_size, fp, block_l);
+    PE_fillImportDescriptor(&id, &offset, abs_file_offset, file_size, fp, block_l);
 
-    PE_printImageImportTableHeader(&import_desciptor);
+    PE_printImageImportTableHeader(&id);
 
     // terminated by zero filled PEImageImportDescriptor
-    while ( import_desciptor.Characteristics != 0 )
+    while ( id.Characteristics != 0 )
     {
         dll_name = NULL;
-        *abs_file_offset = PE_Rva2Foa(import_desciptor.Name, svas, nr_of_sections);
+        *abs_file_offset = PE_Rva2Foa(id.Name, svas, nr_of_sections);
         if ( !checkFileSpace(0, *abs_file_offset, 1, file_size) )
             break;
 
@@ -255,15 +255,15 @@ void PE_parseImageImportTable(PE64OptHeader* optional_header,
 //		else
 //			break;
 
-        PE_printImageImportDescriptor(&import_desciptor, *abs_file_offset+offset, dll_name);
+        PE_printImageImportDescriptor(&id, *abs_file_offset+offset, dll_name);
 
-        if ( import_desciptor.OriginalFirstThunk != 0)
-            thunk_data_offset = PE_Rva2Foa(import_desciptor.OriginalFirstThunk, svas, nr_of_sections);
+        if ( id.OriginalFirstThunk != 0)
+            thunk_data_offset = PE_Rva2Foa(id.OriginalFirstThunk, svas, nr_of_sections);
         else
-            thunk_data_offset = PE_Rva2Foa(import_desciptor.FirstThunk, svas, nr_of_sections);
+            thunk_data_offset = PE_Rva2Foa(id.FirstThunk, svas, nr_of_sections);
 
         //PE_fillThunkData(&thunk_data, thunk_data_offset, bitness, start_file_offset, file_size, fp);
-        PE_printHintFunctionHeader();
+        PE_printHintFunctionHeader((id.TimeDateStamp == (uint32_t)-1));
         PE_iterateThunkData(nr_of_sections, svas, bitness, start_file_offset, file_size, fp, block_s, thunk_data_offset);
 
 //        while ( thunk_data.Ordinal != 0 )
@@ -280,13 +280,13 @@ void PE_parseImageImportTable(PE64OptHeader* optional_header,
 //        }
 
         offset += PE_IMPORT_DESCRIPTOR_SIZE;
-        PE_fillImportDescriptor(&import_desciptor, &offset, abs_file_offset, file_size, fp, block_l);
+        PE_fillImportDescriptor(&id, &offset, abs_file_offset, file_size, fp, block_l);
         
         printf("\n");
     }
 }
 
-void PE_fillImportDescriptor(PEImageImportDescriptor* import_desciptor,
+void PE_fillImportDescriptor(PEImageImportDescriptor* id,
                              uint64_t* offset,
                              uint64_t* abs_file_offset,
                              size_t file_size,
@@ -295,7 +295,7 @@ void PE_fillImportDescriptor(PEImageImportDescriptor* import_desciptor,
 {
     unsigned char *ptr = NULL;
 
-    memset(import_desciptor, 0, PE_IMPORT_DESCRIPTOR_SIZE);
+    memset(id, 0, PE_IMPORT_DESCRIPTOR_SIZE);
 
     if ( !checkFileSpace(*offset, *abs_file_offset, PE_IMPORT_DESCRIPTOR_SIZE, file_size) )
         return;
@@ -304,11 +304,11 @@ void PE_fillImportDescriptor(PEImageImportDescriptor* import_desciptor,
         return;
 
     ptr = &block_l[*offset];
-    import_desciptor->OriginalFirstThunk = *((uint32_t*) &ptr[PEImageImportDescriptorOffsets.Union]);
-    import_desciptor->TimeDateStamp = *((uint32_t*) &ptr[PEImageImportDescriptorOffsets.TimeDateStamp]);
-    import_desciptor->ForwarderChain = *((uint32_t*) &ptr[PEImageImportDescriptorOffsets.ForwarderChain]);
-    import_desciptor->Name = *((uint32_t*) &ptr[PEImageImportDescriptorOffsets.Name]);
-    import_desciptor->FirstThunk = *((uint32_t*) &ptr[PEImageImportDescriptorOffsets.FirstThunk]);
+    id->OriginalFirstThunk = *((uint32_t*) &ptr[PEImageImportDescriptorOffsets.Union]);
+    id->TimeDateStamp = *((uint32_t*) &ptr[PEImageImportDescriptorOffsets.TimeDateStamp]);
+    id->ForwarderChain = *((uint32_t*) &ptr[PEImageImportDescriptorOffsets.ForwarderChain]);
+    id->Name = *((uint32_t*) &ptr[PEImageImportDescriptorOffsets.Name]);
+    id->FirstThunk = *((uint32_t*) &ptr[PEImageImportDescriptorOffsets.FirstThunk]);
 }
 
 int PE_fillThunkData(PEImageThunkData64* thunk_data,
@@ -428,7 +428,7 @@ void PE_parseImageDelayImportTable(PE64OptHeader* optional_header,
         else
             thunk_data_offset = PE_Rva2Foa(did.ImportAddressTableRVA, svas, nr_of_sections);
 
-        PE_printHintFunctionHeader();
+        PE_printHintFunctionHeader((did.TimeDateStamp == (uint32_t)-1));
         PE_iterateThunkData(nr_of_sections, svas, bitness, start_file_offset, file_size, fp, block_s, thunk_data_offset);
 
         offset += PE_DELAY_IMPORT_DESCRIPTOR_SIZE;

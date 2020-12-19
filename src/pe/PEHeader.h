@@ -274,11 +274,11 @@ typedef struct PEImageImportDescriptor {
     union {
         uint32_t Characteristics;            // 0 for terminating null import descriptor
         uint32_t OriginalFirstThunk;         // RVA to original unbound INT (Import Name Table) (an Array of PIMAGE_THUNK_DATA)
-    };
-    uint32_t TimeDateStamp;                  // 0 if not bound,
-    // -1 if bound, and real date\time stamp
-    //     in IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT (new BIND)
+    };                  
+    // 0 if not bound,
+    // -1 if bound, and real date\time stamp is found in IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT (new BIND)
     // O.W. date/time stamp of DLL bound to (Old BIND)
+    uint32_t TimeDateStamp;
     uint32_t ForwarderChain;                 // -1 if no forwarders
     uint32_t Name;							// RVA to the name of the module. I.e  xxx.dll
     uint32_t FirstThunk;                     // RVA to IAT (if bound this IAT has actual addresses)
