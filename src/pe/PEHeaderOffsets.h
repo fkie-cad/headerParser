@@ -572,7 +572,7 @@ static const struct PE_IMAGE_TLS_DIRECTORY_OFSETS PeImageTlsDirectoryOfsets64 = 
 
 
 
-typedef struct PE_IMAGE_LOAD_CONFIG_CODE_INTEGRITY_OFFSETS {
+struct PE_IMAGE_LOAD_CONFIG_CODE_INTEGRITY_OFFSETS {
     uint8_t Flags;          // Flags to indicate if CI information is available, etc.
     uint8_t Catalog;        // 0xFFFF means not available
     uint8_t CatalogOffset;
@@ -586,7 +586,7 @@ static const struct PE_IMAGE_LOAD_CONFIG_CODE_INTEGRITY_OFFSETS PeImageLoadConfi
     .Reserved = 8,
 };
 
-typedef struct PE_IMAGE_LOAD_CONFIG_DIRECTORY_OFFSETS {
+struct PE_IMAGE_LOAD_CONFIG_DIRECTORY_OFFSETS {
     uint16_t Size;
     uint16_t TimeDateStamp;
     uint16_t MajorVersion;
