@@ -152,8 +152,7 @@ void PE_printCoffFileHeader(PECoffFileHeader* ch, uint64_t offset, uint64_t star
 //	printf(" - Machine%s: %s (0x%X)\n", fillOffset(PECoffFileHeaderOffsets.Machine, offset), PE_getMachineName(ch->Machine), ch->Machine);
     printf(" - NumberOfSections%s: %u\n", fillOffset(PECoffFileHeaderOffsets.NumberOfSections, offset, start_file_offset), ch->NumberOfSections);
     printf(" - TimeDateStamp%s: %s (%u)\n", fillOffset(PECoffFileHeaderOffsets.TimeDateStamp, offset, start_file_offset), date, ch->TimeDateStamp);
-    printf(" - PointerToSymbolTable%s: 0x%X (%u)\n", fillOffset(PECoffFileHeaderOffsets.PointerToSymbolTable, offset,
-                                                                0), ch->PointerToSymbolTable, ch->PointerToSymbolTable);
+    printf(" - PointerToSymbolTable%s: 0x%X (%u)\n", fillOffset(PECoffFileHeaderOffsets.PointerToSymbolTable, offset, 0), ch->PointerToSymbolTable, ch->PointerToSymbolTable);
     printf(" - NumberOfSymbols%s: %u\n", fillOffset(PECoffFileHeaderOffsets.NumberOfSymbols, offset, start_file_offset), ch->NumberOfSymbols);
     printf(" - SizeOfOptionalHeader%s: %u\n", fillOffset(PECoffFileHeaderOffsets.SizeOfOptionalHeader, offset, start_file_offset), ch->SizeOfOptionalHeader);
     uint16ToBin(ch->Characteristics, ch_bin);
@@ -711,6 +710,8 @@ void PE_printImageResourceDataEntry(const PE_IMAGE_RESOURCE_DATA_ENTRY* de, uint
     printf("%s    - CodePage: 0x%x\n", dashes, de->CodePage);
     printf("%s    - Reserved: 0x%x\n", dashes, de->Reserved);
 }
+
+
 
 void PE_printImageBaseRelocationTable()
 {
