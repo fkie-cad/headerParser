@@ -41,7 +41,7 @@ HeaderData* getInitializedHeaderParserHeaderData();
 /**
  * Get architecture name string from type id.
  */
-const char* getHeaderDataArchitecture(uint8_t id);
+const char* getHeaderDataArchitecture(uint16_t id);
 
 /**
  * Free a HeaderData object and its internal structures.

@@ -14,8 +14,8 @@ OsX may work too.
 
 
 ## Version ##
-1.10.3  
-Last changed: 18.12.2020
+1.10.4  
+Last changed: 05.01.2021
 
 ## REQUIREMENTS ##
 - A decent c compiler (gcc or msbuild) is required.  
@@ -53,15 +53,16 @@ Possible options:
  * -i:uint8_t Level of output info. 1 : minimal output (Default), 2 : extended output, 3 : extended output with offset info.
  * -f:string Force parsing a specific type, skipping magic value checks. Currently only "pe" is supported.
  * PE only options:
-   * -iimp: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT). (Needs -i > 1.)
    * -iexp: Print the Image Export Table (IMAGE_DIRECTORY_ENTRY_EXPORT). (Needs -i > 1.)
+   * -iimp: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT). (Needs -i > 1.)
    * -ires: Print the Image Resource Table (IMAGE_DIRECTORY_ENTRY_RESOURCE). (Needs -i > 1.)
-   * -irel: Print the Image Base Relocation Table (IMAGE_DIRECTORY_ENTRY_BASE_RELOC). (Needs -i > 1.)
    * -icrt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE). (Needs -i > 1.)
    * -cod: Directory to save found certificates in. (Needs -icrt.)
-   * -idimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT). (Needs -i > 1.)
-   * -ibimp: Print the Image Bound Import Table (IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT). (Needs -i > 1.)
+   * -irel: Print the Image Base Relocation Table (IMAGE_DIRECTORY_ENTRY_BASE_RELOC). (Needs -i > 1.)
+   * -itls: Print the Image TLS Table (IMAGE_DIRECTORY_ENTRY_TLS). (Needs -i > 1.)
    * -ilcfg: Print the Image Load Config Table (IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG) (Needs -i > 1.)
+   * -ibimp: Print the Image Bound Import Table (IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT). (Needs -i > 1.)
+   * -idimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT). (Needs -i > 1.)
  
 ## EXAMPLE ##
 ```bash

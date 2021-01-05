@@ -529,7 +529,6 @@ typedef struct PE_BASE_RELOCATION_BLOCK {
 
 typedef struct PE_BASE_RELOCATION_ENTRY {
     union {
-        // Bit fields don't work properly => use bit shifftig. 
         //union {
         //	uint16_t AllData;
         //	struct {
@@ -575,6 +574,7 @@ typedef struct PE_IMAGE_TLS_DIRECTORY32 {
         } DUMMYSTRUCTNAME;
     } DUMMYUNIONNAME;
 } PE_IMAGE_TLS_DIRECTORY32, * PPE_IMAGE_TLS_DIRECTORY32;
+#define PE_IMAGE_TLS_DIRECTORY32_SIZE (sizeof(PE_IMAGE_TLS_DIRECTORY32))
 
 typedef struct PE_IMAGE_TLS_DIRECTORY64 {
     uint64_t StartAddressOfRawData; // The starting address of the TLS template. The template is a block of data that is used to initialize TLS data. The system copies all of this data each time a thread is created, so it must not be corrupted. Note that this address is not an RVA; it is an address for which there should be a base relocation in the .reloc section.
@@ -591,6 +591,7 @@ typedef struct PE_IMAGE_TLS_DIRECTORY64 {
         } DUMMYSTRUCTNAME;
     } DUMMYUNIONNAME;
 } PE_IMAGE_TLS_DIRECTORY64, * PPE_IMAGE_TLS_DIRECTORY64;
+#define PE_IMAGE_TLS_DIRECTORY64_SIZE (sizeof(PE_IMAGE_TLS_DIRECTORY64))
 
 //typedef VOID
 //(NTAPI* PIMAGE_TLS_CALLBACK) (

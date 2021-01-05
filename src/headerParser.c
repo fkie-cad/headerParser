@@ -30,8 +30,8 @@ static void printHeaderData(uint8_t, PHeaderData hd, unsigned char* block);
 static void printHeaderData1(PHeaderData hd);
 static uint8_t getForceOption(const char* arg);
 
-const char* vs = "1.10.3";
-const char* last_changed = "18.12.2020";
+const char* vs = "1.10.4";
+const char* last_changed = "05.01.2021";
 
 
 #ifdef DILLER
@@ -137,15 +137,16 @@ void printHelp()
 			" * -i:uint8_t Level of output info. Default = 1 : minimal output. 2 : Full output. 3 : Full output with offsets.\n"
 			" * -f:string Force a headertype to be parsed skipping magic value validity checks. Supported types are: pe.\n"
 			" * PE only options:\n"
-			"   * -iimp: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT) (Currently needs -i > 1).\n"
 			"   * -iexp: Print the Image Export Table (IMAGE_DIRECTORY_ENTRY_EXPORT) (Currently needs -i > 1).\n"
-			"   * -irel: Print the Image Base Relocation Table (IMAGE_DIRECTORY_ENTRY_BASE_RELOC) (Currently needs -i > 1).\n"
+			"   * -iimp: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT) (Currently needs -i > 1).\n"
 			"   * -ires: Print the Image Resource Table (IMAGE_DIRECTORY_ENTRY_RESOURCE) (Currently needs -i > 1).\n"
 			"   * -icrt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE) (Currently needs -i > 1).\n"
 			"   * -cod: Directory to save found certificates in (Needs -icrt).\n"
-			"   * -idimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT) (Currently needs -i > 1).\n"
-			"   * -ibimp: Print the Image Bound Import Table (IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT) (Currently needs -i > 1).\n"
+			"   * -irel: Print the Image Base Relocation Table (IMAGE_DIRECTORY_ENTRY_BASE_RELOC) (Currently needs -i > 1).\n"
+			"   * -itls: Print the Image TLS Table (IMAGE_DIRECTORY_ENTRY_TLS) (Currently needs -i > 1).\n"
 			"   * -ilcfg: Print the Image Load Config Table (IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG) (Currently needs -i > 1).\n"
+			"   * -ibimp: Print the Image Bound Import Table (IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT) (Currently needs -i > 1).\n"
+			"   * -idimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT) (Currently needs -i > 1).\n"
 	);
 	printf("\n");
 	printf("Examples:\n");
@@ -221,6 +222,10 @@ uint8_t parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_
 		else if (isArgOfType(argv[i], "-ires"))
 		{
 			pep->info_level_ires = true;
+		}
+		else if (isArgOfType(argv[i], "-itls"))
+		{
+			pep->info_level_itls = true;
 		}
 		else if (isArgOfType(argv[i], "-irel"))
 		{

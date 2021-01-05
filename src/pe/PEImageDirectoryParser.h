@@ -10,7 +10,7 @@
 #include "PEHeaderPrinter.h"
 #include "PEHeader.h"
 
-void PE_parseImageImportTable(PE64OptHeader* optional_header,
+void PE_parseImageImportTable(PE64OptHeader* oh,
                               uint16_t nr_of_sections,
                               SVAS* svas,
                               uint8_t bitness,
@@ -45,7 +45,7 @@ int PE_iterateThunkData(uint16_t nr_of_sections,
                         unsigned char* block_s,
                         uint64_t thunk_data_offset);
 
-void PE_parseImageBoundImportTable(PE64OptHeader* optional_header,
+void PE_parseImageBoundImportTable(PE64OptHeader* oh,
                                    uint16_t nr_of_sections,
                                    SVAS* svas,
                                    uint8_t bitness,
@@ -68,7 +68,7 @@ void PE_fillBoundForwarderRef(PE_IMAGE_BOUND_FORWARDER_REF* bfr,
                               FILE* fp,
                               unsigned char* block_l);
 
-void PE_parseImageExportTable(PE64OptHeader* optional_header,
+void PE_parseImageExportTable(PE64OptHeader* oh,
                               uint16_t nr_of_sections,
                               uint64_t start_file_offset,
                               size_t file_size,
@@ -82,7 +82,7 @@ int PE_fillImageExportDirectory(PE_IMAGE_EXPORT_DIRECTORY* ied,
                                 FILE* fp,
                                 unsigned char* block_s);
 
-void PE_parseImageLoadConfigTable(PE64OptHeader* optional_header,
+void PE_parseImageLoadConfigTable(PE64OptHeader* oh,
                                  uint16_t nr_of_sections,
                                  SVAS* svas,
                                  uint8_t bitness,
@@ -99,7 +99,7 @@ int PE_fillImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
                                     FILE* fp,
                                     unsigned char* block_s);
 
-void PE_parseImageResourceTable(PE64OptHeader* optional_header,
+void PE_parseImageResourceTable(PE64OptHeader* oh,
                                 uint16_t nr_of_sections,
                                 uint64_t start_file_offset,
                                 size_t file_size,
@@ -146,7 +146,7 @@ int PE_fillImageResourceDataEntry(PE_IMAGE_RESOURCE_DATA_ENTRY* de,
                                   FILE* fp,
                                   unsigned char* block_s);
 
-void PE_parseImageDelayImportTable(PE64OptHeader* optional_header,
+void PE_parseImageDelayImportTable(PE64OptHeader* oh,
                                    uint16_t nr_of_sections,
                                    SVAS* svas,
                                    uint8_t bitness,
@@ -169,7 +169,25 @@ uint64_t PE_getDataDirectoryEntryFileOffset(PEDataDirectory* data_directory,
                                             const char* label,
                                             SVAS* svas);
 
-int PE_parseImageBaseRelocationTable(PE64OptHeader* optional_header,
+void PE_parseImageTLSTable(PE64OptHeader* oh,
+                           uint16_t nr_of_sections,
+                           SVAS* svas,
+                           uint8_t bitness,
+                           uint64_t start_file_offset,
+                           uint64_t* abs_file_offset,
+                           size_t file_size,
+                           FILE* fp,
+                           unsigned char* block_l,
+                           unsigned char* block_s);
+void PE_fillTLSEntry(PE_IMAGE_TLS_DIRECTORY64* tls,
+                     uint64_t* offset,
+                     uint64_t* abs_file_offset,
+                     size_t file_size,
+                     uint8_t bitness,
+                     FILE* fp,
+                     unsigned char* block_l);
+
+int PE_parseImageBaseRelocationTable(PE64OptHeader* oh,
     uint16_t nr_of_sections,
     SVAS* svas,
     uint8_t bitness,
@@ -189,10 +207,10 @@ uint64_t PE_Rva2Foa(uint32_t va, SVAS* svas, uint16_t svas_size);
 /**
  * Parse ImageImportTable, i.e. DataDirectory[IMPORT]
  *
- * @param optional_header
+ * @param oh
  * @param nr_of_sections
  */
-void PE_parseImageImportTable(PE64OptHeader* optional_header,
+void PE_parseImageImportTable(PE64OptHeader* oh,
                               uint16_t nr_of_sections,
                               SVAS* svas,
                               uint8_t bitness,
@@ -215,11 +233,9 @@ void PE_parseImageImportTable(PE64OptHeader* optional_header,
     char* dll_name = NULL;
 
     PEImageImportDescriptor id; // 32 + 64
-    PEImageThunkData64 thunk_data; // 32==PIMAGE_THUNK_DATA32 64:PIMAGE_THUNK_DATA64
-    PEImageImportByName import_by_name; // 32 + 64
 
 
-    table_fo = PE_getDataDirectoryEntryFileOffset(optional_header->DataDirectory, IMAGE_DIRECTORY_ENTRY_IMPORT,
+    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_IMPORT,
                                                  nr_of_sections, "Import", svas);
     if ( table_fo == 0 )
         return;
@@ -237,7 +253,7 @@ void PE_parseImageImportTable(PE64OptHeader* optional_header,
     offset = 0;
 
     debug_info("offset: 0x%"PRIx64"\n", offset);
-    debug_info("abs_file_offset: 0x%"PRIx64"\n", abs_file_offset);
+    debug_info("abs_file_offset: 0x%"PRIx64"\n", *abs_file_offset);
     PE_fillImportDescriptor(&id, &offset, abs_file_offset, file_size, fp, block_l);
 
     PE_printImageImportTableHeader(&id);
@@ -262,22 +278,8 @@ void PE_parseImageImportTable(PE64OptHeader* optional_header,
         else
             thunk_data_offset = PE_Rva2Foa(id.FirstThunk, svas, nr_of_sections);
 
-        //PE_fillThunkData(&thunk_data, thunk_data_offset, bitness, start_file_offset, file_size, fp);
         PE_printHintFunctionHeader((id.TimeDateStamp == (uint32_t)-1));
         PE_iterateThunkData(nr_of_sections, svas, bitness, start_file_offset, file_size, fp, block_s, thunk_data_offset);
-
-//        while ( thunk_data.Ordinal != 0 )
-//        {
-//            rva_offset = PE_Rva2Foa(thunk_data.AddressOfData, svas, nr_of_sections); // INT => AddressOfData, IAT => Function
-////			if ( rva_offset == 0 )
-////				continue;
-//
-//            PE_fillImportByName(&import_by_name, rva_offset, fp, block_s);
-//            PE_printImageThunkData(&thunk_data, &import_by_name, thunk_data_offset, rva_offset, bitness);
-//
-//            thunk_data_offset += thunk_data_size;
-//            PE_fillThunkData(&thunk_data, thunk_data_offset, bitness, start_file_offset, file_size, fp);
-//        }
 
         offset += PE_IMPORT_DESCRIPTOR_SIZE;
         PE_fillImportDescriptor(&id, &offset, abs_file_offset, file_size, fp, block_l);
@@ -361,10 +363,10 @@ int PE_fillImportByName(PEImageImportByName* ibn,
 /**
  * Parse ImageDelayImportTable, i.e. DataDirectory[DELAY_IMPORT]
  *
- * @param optional_header
+ * @param oh
  * @param nr_of_sections
  */
-void PE_parseImageDelayImportTable(PE64OptHeader* optional_header,
+void PE_parseImageDelayImportTable(PE64OptHeader* oh,
                                    uint16_t nr_of_sections,
                                    SVAS* svas,
                                    uint8_t bitness,
@@ -386,7 +388,7 @@ void PE_parseImageDelayImportTable(PE64OptHeader* optional_header,
     PeImageDelayLoadDescriptor did; // 32 + 64
 
 
-    table_fo = PE_getDataDirectoryEntryFileOffset(optional_header->DataDirectory, IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT, nr_of_sections, "Delay Import", svas);
+    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT, nr_of_sections, "Delay Import", svas);
     if ( table_fo == 0 )
         return;
 
@@ -520,7 +522,7 @@ int PE_iterateThunkData(uint16_t nr_of_sections,
  * Parse ImageBoundImportTable, i.e. DataDirectory[BOUND_IMPORT]
  *
  */
-void PE_parseImageBoundImportTable(PE64OptHeader* optional_header,
+void PE_parseImageBoundImportTable(PE64OptHeader* oh,
                                     uint16_t nr_of_sections,
                                     SVAS* svas,
                                     uint8_t bitness,
@@ -535,7 +537,7 @@ void PE_parseImageBoundImportTable(PE64OptHeader* optional_header,
     uint64_t table_fo;
     uint64_t offset;
 
-    PEDataDirectory* table = &optional_header->DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT]; // 32 + 64
+    PEDataDirectory* table = &oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT]; // 32 + 64
     uint32_t vaddr = table->VirtualAddress;
     uint32_t vsize = table->Size;
 
@@ -660,7 +662,7 @@ void PE_fillBoundForwarderRef(PE_IMAGE_BOUND_FORWARDER_REF* bfr,
 /**
  * Parse ImageExportTable, i.e. DataDirectory[EXPORT]
  *
- * @param optional_header
+ * @param oh
  * @param nr_of_sections
  * @param start_file_offset
  * @param file_size
@@ -668,7 +670,7 @@ void PE_fillBoundForwarderRef(PE_IMAGE_BOUND_FORWARDER_REF* bfr,
  * @param block_s
  * @param svas
  */
-void PE_parseImageExportTable(PE64OptHeader* optional_header,
+void PE_parseImageExportTable(PE64OptHeader* oh,
                               uint16_t nr_of_sections,
                               uint64_t start_file_offset,
                               size_t file_size,
@@ -689,7 +691,7 @@ void PE_parseImageExportTable(PE64OptHeader* optional_header,
 
     size_t i;
 
-    table_fo = PE_getDataDirectoryEntryFileOffset(optional_header->DataDirectory, IMAGE_DIRECTORY_ENTRY_EXPORT, nr_of_sections, "Export", svas);
+    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_EXPORT, nr_of_sections, "Export", svas);
     if ( table_fo == 0 )
         return;
 
@@ -793,13 +795,139 @@ int PE_fillImageExportDirectory(PE_IMAGE_EXPORT_DIRECTORY* ied,
     return 0;
 }
 
+
+
+
+
+void PE_parseImageTLSTable(PE64OptHeader* oh,
+                           uint16_t nr_of_sections,
+                           SVAS* svas,
+                           uint8_t bitness,
+                           uint64_t start_file_offset,
+                           uint64_t* abs_file_offset,
+                           size_t file_size,
+                           FILE* fp,
+                           unsigned char* block_l,
+                           unsigned char* block_s)
+{
+    PE_IMAGE_TLS_DIRECTORY64 tls;
+
+    uint64_t table_fo;
+    size_t e_size = (bitness == 32) ? PE_IMAGE_TLS_DIRECTORY32_SIZE : PE_IMAGE_TLS_DIRECTORY64_SIZE;
+    size_t r_size = 0;
+    size_t size;
+    uint64_t offset;
+    uint32_t i = 0;
+    uint64_t s_offset;
+    uint64_t e_offset;
+    uint64_t cb_offset;
+    
+    PEDataDirectory* table = &oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS]; // 32 + 64
+    uint32_t tls_table_size = table->Size;
+
+    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_TLS, nr_of_sections, "TLS", svas);
+    if (table_fo == 0)
+        return;
+    debug_info("PE_parseImageTLSTable\n");
+    debug_info("table_fo: 0x%"PRIx64"\n", table_fo);
+
+    offset = table_fo;
+
+    // read new block to ease up offsetting
+    if ( !checkFileSpace(offset, start_file_offset, e_size, file_size) )
+        return;
+
+    *abs_file_offset = offset + start_file_offset;
+    size = readFile(fp, *abs_file_offset, BLOCKSIZE_LARGE, block_l);
+    if ( size == 0 )
+        return;
+    offset = 0;
+
+    debug_info("offset: 0x%"PRIx64"\n", offset);
+    debug_info("abs_file_offset: 0x%"PRIx64"\n", *abs_file_offset);
+
+    PE_printImageTLSTableHeader();
+
+    while ( 1 )
+    {
+        PE_fillTLSEntry(&tls, &offset, abs_file_offset, file_size, bitness, fp, block_l);
+        
+        if ( tls.StartAddressOfRawData == 0 )
+            break;
+
+        s_offset = tls.StartAddressOfRawData - oh->ImageBase;
+        s_offset = PE_Rva2Foa(s_offset, svas, nr_of_sections);
+        e_offset = tls.EndAddressOfRawData - oh->ImageBase;
+        e_offset = PE_Rva2Foa(e_offset, svas, nr_of_sections);
+        cb_offset = tls.AddressOfCallBacks - oh->ImageBase;
+        cb_offset = PE_Rva2Foa(cb_offset, svas, nr_of_sections);
+
+        PE_printTLSEntry(&tls, i+1, bitness, *abs_file_offset+offset, s_offset, e_offset, cb_offset, file_size, fp, block_s);
+
+        offset += e_size;
+        r_size += e_size;
+        
+        if ( r_size >= tls_table_size )
+            break;
+
+        i++;
+        printf("\n");
+    }
+}
+
+void PE_fillTLSEntry(PE_IMAGE_TLS_DIRECTORY64* tls,
+                    uint64_t* offset,
+                    uint64_t* abs_file_offset,
+                    size_t file_size,
+                    uint8_t bitness,
+                    FILE* fp,
+                    unsigned char* block_l)
+{
+    unsigned char *ptr = NULL;
+    size_t e_size = (bitness == 32) 
+        ? PE_IMAGE_TLS_DIRECTORY32_SIZE 
+        : PE_IMAGE_TLS_DIRECTORY64_SIZE;
+    struct PE_IMAGE_TLS_DIRECTORY_OFFSETS offsets = (bitness == 32)
+        ? PeImageTlsDirectoryOfsets32
+        : PeImageTlsDirectoryOfsets64;
+
+    memset(tls, 0, PE_IMAGE_TLS_DIRECTORY64_SIZE);
+
+    if ( !checkFileSpace(*offset, *abs_file_offset, e_size, file_size) )
+        return;
+
+    if ( !checkLargeBlockSpace(offset, abs_file_offset, e_size, block_l, fp) )
+        return;
+
+    ptr = &block_l[*offset];
+    if ( bitness == 32 )
+    {
+        tls->StartAddressOfRawData = *((uint32_t*) &ptr[offsets.StartAddressOfRawData]);
+        tls->EndAddressOfRawData = *((uint32_t*) &ptr[offsets.EndAddressOfRawData]);
+        tls->AddressOfIndex = *((uint32_t*) &ptr[offsets.AddressOfIndex]);
+        tls->AddressOfCallBacks = *((uint32_t*) &ptr[offsets.AddressOfCallBacks]);
+    }
+    else
+    {
+        tls->StartAddressOfRawData = *((uint64_t*) &ptr[offsets.StartAddressOfRawData]);
+        tls->EndAddressOfRawData = *((uint64_t*) &ptr[offsets.EndAddressOfRawData]);
+        tls->AddressOfIndex = *((uint64_t*) &ptr[offsets.AddressOfIndex]);
+        tls->AddressOfCallBacks = *((uint64_t*) &ptr[offsets.AddressOfCallBacks]);
+    }
+    tls->SizeOfZeroFill = *((uint32_t*) &ptr[offsets.SizeOfZeroFill]);
+    tls->DUMMYUNIONNAME.Characteristics = *((uint32_t*) &ptr[offsets.Characteristics]);
+}
+
+
+
+
 /**
  * Parse ImageDelayImportTable, i.e. DataDirectory[DELAY_IMPORT]
  *
- * @param optional_header
+ * @param oh
  * @param nr_of_sections
  */
-void PE_parseImageLoadConfigTable(PE64OptHeader* optional_header,
+void PE_parseImageLoadConfigTable(PE64OptHeader* oh,
                                   uint16_t nr_of_sections,
                                   SVAS* svas,
                                   uint8_t bitness,
@@ -815,14 +943,14 @@ void PE_parseImageLoadConfigTable(PE64OptHeader* optional_header,
     //size_t size;
     //size_t i;
 
-    table_fo = PE_getDataDirectoryEntryFileOffset(optional_header->DataDirectory, IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG, nr_of_sections, "Load Config", svas);
+    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG, nr_of_sections, "Load Config", svas);
     if (table_fo == 0)
         return;
 
     size_t e_size = (bitness == 32) ? PE_IMAGE_LOAD_CONFIG_DIRECTORY32_SIZE : PE_IMAGE_LOAD_CONFIG_DIRECTORY64_SIZE;
-    if (optional_header->DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].Size != e_size)
+    if (oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].Size != e_size)
     {
-        printf("LOAD_CONFIG size missmatch: expected %zx but got %"PRIu32"\n", e_size, optional_header->DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].Size);
+        printf("LOAD_CONFIG size missmatch: expected %zx but got %"PRIu32"\n", e_size, oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].Size);
     }
 
     // fill PE_IMAGE_EXPORT_DIRECTORY info
@@ -830,7 +958,6 @@ void PE_parseImageLoadConfigTable(PE64OptHeader* optional_header,
         return;
 
     PE_printImageLoadConfigDirectory(&lcd, *abs_file_offset + table_fo, bitness);
-
 }
 
 int PE_fillImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
@@ -952,10 +1079,10 @@ int PE_fillImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
 /**
  * Parse ImageResourceTable, i.e. DataDirectory[RESOURCE]
  *
- * @param optional_header
+ * @param oh
  * @param nr_of_sections
  */
-void PE_parseImageResourceTable(PE64OptHeader* optional_header,
+void PE_parseImageResourceTable(PE64OptHeader* oh,
                                 uint16_t nr_of_sections,
                                 uint64_t start_file_offset,
                                 size_t file_size,
@@ -966,7 +1093,7 @@ void PE_parseImageResourceTable(PE64OptHeader* optional_header,
     PE_IMAGE_RESOURCE_DIRECTORY rd;
     uint64_t table_fo;
 
-    table_fo = PE_getDataDirectoryEntryFileOffset(optional_header->DataDirectory, IMAGE_DIRECTORY_ENTRY_RESOURCE,
+    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_RESOURCE,
                                                  nr_of_sections, "Resource", svas);
     if ( table_fo == 0 )
         return;
@@ -1177,16 +1304,16 @@ uint64_t PE_getDataDirectoryEntryFileOffset(PEDataDirectory* data_directory,
     return table_fo;
 }
 
-int PE_parseImageBaseRelocationTable(PE64OptHeader* optional_header,
-                                      uint16_t nr_of_sections,
-                                      SVAS* svas,
-                                      uint8_t bitness,
-                                      uint64_t start_file_offset,
-                                      uint64_t* abs_file_offset,
-                                      size_t file_size,
-                                      FILE* fp,
-                                      unsigned char* block_l,
-                                      unsigned char* block_s)
+int PE_parseImageBaseRelocationTable(PE64OptHeader* oh,
+                                     uint16_t nr_of_sections,
+                                     SVAS* svas,
+                                     uint8_t bitness,
+                                     uint64_t start_file_offset,
+                                     uint64_t* abs_file_offset,
+                                     size_t file_size,
+                                     FILE* fp,
+                                     unsigned char* block_l,
+                                     unsigned char* block_s)
 {
     uint64_t table_fo;
     uint64_t offset;
@@ -1196,13 +1323,13 @@ int PE_parseImageBaseRelocationTable(PE64OptHeader* optional_header,
     uint32_t e_i;
     uint32_t b_i = 0;
 
-    PEDataDirectory* reloc = &optional_header->DataDirectory[IMAGE_DIRECTORY_ENTRY_BASE_RELOC];
+    PEDataDirectory* reloc = &oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_BASE_RELOC];
 
     PE_BASE_RELOCATION_BLOCK block;
     PE_BASE_RELOCATION_ENTRY entry;
     uint32_t nr_of_entries;
 
-    table_fo = PE_getDataDirectoryEntryFileOffset(optional_header->DataDirectory, IMAGE_DIRECTORY_ENTRY_BASE_RELOC, nr_of_sections, "Base Relocation", svas);
+    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_BASE_RELOC, nr_of_sections, "Base Relocation", svas);
 
     if (table_fo == 0)
         return -3;
@@ -1225,20 +1352,20 @@ int PE_parseImageBaseRelocationTable(PE64OptHeader* optional_header,
     debug_info("reloc->Size: 0x%x\n", reloc->Size);
     debug_info("sizeof(PE_BASE_RELOCATION_BLOCK): 0x%zx\n", sizeof(PE_BASE_RELOCATION_BLOCK));
     debug_info("sizeof(PE_BASE_RELOCATION_ENTRY): 0x%zx\n", sizeof(PE_BASE_RELOCATION_ENTRY));
-    
+
     PE_printImageBaseRelocationTable();
 
     while (reloc_o < reloc->Size)
     {
         if (!checkFileSpace(offset, start_file_offset, reloc->Size - reloc_o, file_size))
             return -1;
-        if (!checkLargeBlockSpace(&offset, abs_file_offset, reloc->Size-reloc_o, block_l, fp))
+        if (!checkLargeBlockSpace(&offset, abs_file_offset, reloc->Size - reloc_o, block_l, fp))
             return -2;
         ptr = &block_l[offset];
 
         block.VirtualAddress = *((uint32_t*)&ptr[PeBaseRelocationBlockOffsets.VirtualAddress]);
         block.SizeOfBlock = *((uint32_t*)&ptr[PeBaseRelocationBlockOffsets.SizeOfBlock]);
-        
+
         nr_of_entries = PE_numberOfRelocationEntries(block.SizeOfBlock);
 
         PE_printImageBaseRelocationBlockHeader(&block, b_i, start_file_offset);
@@ -1248,18 +1375,18 @@ int PE_parseImageBaseRelocationTable(PE64OptHeader* optional_header,
         debug_info(" - - expected new block offset: 0x%"PRIx64"\n", (offset + block.SizeOfBlock));
 
         offset += sizeof(PE_BASE_RELOCATION_BLOCK);
-        for ( e_i = 0; e_i < nr_of_entries; e_i++ )
+        for (e_i = 0; e_i < nr_of_entries; e_i++)
         {
             ptr = &block_l[offset];
 
             entry.Data = 0;
 
             entry.Data = *((uint16_t*)&ptr[PeBaseRelocationEntryOffsets.Type]);
-            
+
             debug_info("  - data: 0x%x\n", entry.Data);
-            debug_info("  - Type: 0x%x\n", (entry.Data>>12));
-            debug_info("  - Offset: 0x%x\n", (entry.Data&0x0FFF));
-            
+            debug_info("  - Type: 0x%x\n", (entry.Data >> 12));
+            debug_info("  - Offset: 0x%x\n", (entry.Data & 0x0FFF));
+
             PE_printImageBaseRelocationBlockEntry(&entry);
 
             offset += sizeof(PE_BASE_RELOCATION_ENTRY);
@@ -1270,6 +1397,7 @@ int PE_parseImageBaseRelocationTable(PE64OptHeader* optional_header,
         reloc_o += block.SizeOfBlock;
         b_i++;
     }
+    printf("\n");
 
     return 0;
 }

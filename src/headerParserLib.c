@@ -279,7 +279,7 @@ HeaderData* getInitializedHeaderParserHeaderData()
 //	hd = NULL;
 //}
 
-const char* getHeaderDataArchitecture(uint8_t id)
+const char* getHeaderDataArchitecture(uint16_t id)
 {
 	if ( id >= ARCHITECTURE_NAMES_SIZE )
 		id = 0;

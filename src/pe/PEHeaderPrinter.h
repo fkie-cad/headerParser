@@ -62,6 +62,18 @@ void PE_printImageResourceDirectoryEntry(const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY
                                          FILE* fp,
                                          unsigned char* block_s);
 
+void PE_printImageTLSTableHeader();
+void PE_printTLSEntry(PE_IMAGE_TLS_DIRECTORY64* tls, 
+                      uint32_t i, 
+                      uint8_t bitness, 
+                      uint64_t start_file_offset,
+                      uint64_t s_offset,
+                      uint64_t e_offset,
+                      uint64_t cb_offset,
+                      size_t file_size,
+                      FILE* fp,
+                      unsigned char* block_s);
+
 void PE_printImageBaseRelocationTable();
 void PE_printImageBaseRelocationBlockHeader(PE_BASE_RELOCATION_BLOCK* b, 
                                             uint32_t i,
@@ -83,6 +95,7 @@ void PE_printImageBoundForwarderRef(PE_IMAGE_BOUND_FORWARDER_REF* bfr,
                                     uint16_t i, 
                                     uint16_t n);
 
+char* PE_getImageSecAlignmentString(uint32_t ch);
 
 
 #define MAX_SPACES (512)
@@ -710,6 +723,130 @@ void PE_printImageResourceDataEntry(const PE_IMAGE_RESOURCE_DATA_ENTRY* de, uint
     printf("%s    - CodePage: 0x%x\n", dashes, de->CodePage);
     printf("%s    - Reserved: 0x%x\n", dashes, de->Reserved);
 }
+
+
+
+
+
+void PE_printImageTLSTableHeader()
+{
+    printf("TLS Table:\n");
+}
+
+void PE_printTLSEntry(PE_IMAGE_TLS_DIRECTORY64* tls, 
+                      uint32_t i, 
+                      uint8_t bitness, 
+                      uint64_t start_file_offset,
+                      uint64_t s_offset,
+                      uint64_t e_offset,
+                      uint64_t cb_offset,
+                      size_t file_size,
+                      FILE* fp,
+                      unsigned char* block_s)
+{
+    struct PE_IMAGE_TLS_DIRECTORY_OFFSETS offsets = (bitness == 32)
+        ? PeImageTlsDirectoryOfsets32
+        : PeImageTlsDirectoryOfsets64;
+
+    uint64_t bi;
+    size_t size;
+    uint8_t ptr_size = (bitness == 32) ? 4 : 8;
+    uint64_t cb;
+    int loop;
+
+    printf(" - TLS %u:\n", i);
+    printf("   - StartAddressOfRawData%s: 0x%"PRIx64"\n", fillOffset(offsets.StartAddressOfRawData, 0, start_file_offset), tls->StartAddressOfRawData);
+    printf("   - EndAddressOfRawData%s: 0x%"PRIx64"\n", fillOffset(offsets.EndAddressOfRawData, 0, start_file_offset), tls->EndAddressOfRawData);
+    if (s_offset < e_offset && e_offset < file_size)
+    {
+        size = e_offset - s_offset;
+        if ( size > BLOCKSIZE )
+            size = BLOCKSIZE;
+        size = readFile(fp, s_offset, size, block_s);
+        if (size != 0)
+        {
+            printf("       ");
+            for ( bi = 0; bi < size; bi++ )
+                printf("%02x|", block_s[bi]);
+            printf("\n");
+        }
+    }
+    printf("   - AddressOfIndex%s: 0x%"PRIx64"\n", fillOffset(offsets.AddressOfIndex, 0, start_file_offset), tls->AddressOfIndex);
+    printf("   - AddressOfCallBacks%s: 0x%"PRIx64"\n", fillOffset(offsets.AddressOfCallBacks, 0, start_file_offset), tls->AddressOfCallBacks);
+    if (cb_offset < file_size - ptr_size)
+    {
+        loop = 1;
+        while (loop)
+        {
+            if (cb_offset > file_size - ptr_size)
+                break;
+
+            size = readFile(fp, cb_offset, BLOCKSIZE, block_s);
+            if (size == 0)
+                break;
+
+            for ( bi = 0; bi < size; bi+=ptr_size )
+            {
+                if ( bitness == 32 )
+                    cb = *((uint32_t*)&block_s[bi]);
+                else
+                    cb = *((uint64_t*)&block_s[bi]);
+                printf("       %0.*"PRIX64"\n", (ptr_size*2), cb);
+                
+                if ( cb == 0 )
+                {
+                    loop = 0;
+                    break;
+                }
+            }
+
+            cb_offset += BLOCKSIZE;
+        }
+    }
+    printf("   - SizeOfZeroFill%s: 0x%x\n", fillOffset(offsets.SizeOfZeroFill, 0, start_file_offset), tls->SizeOfZeroFill);
+    printf("   - Characteristics%s: 0x%08x:\n", fillOffset(offsets.Characteristics, 0, start_file_offset), tls->DUMMYUNIONNAME.Characteristics);
+    printf("     - Reserved0%s: 0x%x\n", fillOffset(offsets.Characteristics, 0, start_file_offset), tls->DUMMYUNIONNAME.DUMMYSTRUCTNAME.Reserved0);
+    printf("     - Alignment%s: %s (0x%x)\n", fillOffset(offsets.Characteristics, 0, start_file_offset), PE_getImageSecAlignmentString(tls->DUMMYUNIONNAME.Characteristics), tls->DUMMYUNIONNAME.DUMMYSTRUCTNAME.Alignment);
+    printf("     - Reserved1%s: 0x%x\n", fillOffset(offsets.Characteristics, 0, start_file_offset), tls->DUMMYUNIONNAME.DUMMYSTRUCTNAME.Reserved1);
+}
+
+#define PE_IMAGE_SCN_ALIGN_MASK (0x00F00000)
+char* PE_getImageSecAlignmentString(uint32_t ch)
+{
+    uint32_t a = ch & PE_IMAGE_SCN_ALIGN_MASK;
+
+    if ( a == 0x00100000 )
+        return "IMAGE_SCN_ALIGN_1BYTES";
+    if ( a == 0x00200000 )
+        return "IMAGE_SCN_ALIGN_2BYTES";
+    if ( a == 0x00300000 )
+        return "IMAGE_SCN_ALIGN_4BYTES";
+    if ( a == 0x00400000 )
+        return "IMAGE_SCN_ALIGN_8BYTES";
+    if ( a == 0x00500000 )
+        return "IMAGE_SCN_ALIGN_16BYTES";
+    if ( a == 0x00600000 )
+        return "IMAGE_SCN_ALIGN_32BYTES";
+    if ( a == 0x00700000 )
+        return "IMAGE_SCN_ALIGN_64BYTES";
+    if ( a == 0x00800000 )
+        return "IMAGE_SCN_ALIGN_128BYTES";
+    if ( a == 0x00900000 )
+        return "IMAGE_SCN_ALIGN_256BYTES";
+    if ( a == 0x00a00000 )
+        return "IMAGE_SCN_ALIGN_512BYTES";
+    if ( a == 0x00b00000 )
+        return "IMAGE_SCN_ALIGN_1024BYTES";
+    if ( a == 0x00c00000 )
+        return "IMAGE_SCN_ALIGN_2048BYTES";
+    if ( a == 0x00d00000 )
+        return "IMAGE_SCN_ALIGN_4096BYTES";
+    if ( a == 0x00e00000 )
+        return "IMAGE_SCN_ALIGN_8192BYTES";
+
+    return "NONE";
+}
+
 
 
 

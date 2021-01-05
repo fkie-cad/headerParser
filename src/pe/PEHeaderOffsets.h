@@ -543,7 +543,8 @@ static const struct Pe_Base_Relocation_Entry_Offsets PeBaseRelocationEntryOffset
 
 
 
-struct PE_IMAGE_TLS_DIRECTORY_OFSETS {
+
+struct PE_IMAGE_TLS_DIRECTORY_OFFSETS {
     uint8_t StartAddressOfRawData;
     uint8_t EndAddressOfRawData;
     uint8_t AddressOfIndex;
@@ -551,7 +552,7 @@ struct PE_IMAGE_TLS_DIRECTORY_OFSETS {
     uint8_t SizeOfZeroFill;
     uint8_t Characteristics;
 };
-static const struct  PE_IMAGE_TLS_DIRECTORY_OFSETS PeImageTlsDirectoryOfsets32 = {
+static const struct  PE_IMAGE_TLS_DIRECTORY_OFFSETS PeImageTlsDirectoryOfsets32 = {
     .StartAddressOfRawData = 0,
     .EndAddressOfRawData = 4,
     .AddressOfIndex = 8,
@@ -559,7 +560,7 @@ static const struct  PE_IMAGE_TLS_DIRECTORY_OFSETS PeImageTlsDirectoryOfsets32 =
     .SizeOfZeroFill = 16,
     .Characteristics = 20
 };
-static const struct PE_IMAGE_TLS_DIRECTORY_OFSETS PeImageTlsDirectoryOfsets64 = {
+static const struct PE_IMAGE_TLS_DIRECTORY_OFFSETS PeImageTlsDirectoryOfsets64 = {
     .StartAddressOfRawData = 0,
     .EndAddressOfRawData = 8,
     .AddressOfIndex = 16,

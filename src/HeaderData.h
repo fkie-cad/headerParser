@@ -152,7 +152,7 @@ typedef struct HeaderData
 	uint8_t h_bitness;
 	uint8_t i_bitness;
 	uint8_t endian;
-	uint8_t CPU_arch;
+	uint16_t CPU_arch;
 	const char* Machine;
 
 	CodeRegionData* code_regions;
