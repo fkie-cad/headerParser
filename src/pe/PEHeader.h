@@ -638,8 +638,8 @@ typedef struct PE_IMAGE_LOAD_CONFIG_DIRECTORY32 {
     PE_IMAGE_LOAD_CONFIG_CODE_INTEGRITY CodeIntegrity; // Code integrity information.
     uint32_t GuardAddressTakenIatEntryTable; // The VA where Control Flow Guard address taken IAT table is stored.
     uint32_t GuardAddressTakenIatEntryCount; // The count of unique RVAs in the above table.
-    uint32_t GuardLongJumpTargetTable;       // VA
-    uint32_t GuardLongJumpTargetCount; // 
+    uint32_t GuardLongJumpTargetTable;       // VA where Control Flow Guard long jump target table is stored.
+    uint32_t GuardLongJumpTargetCount;       // The count of unique RVAs in the above table.
     uint32_t DynamicValueRelocTable;         // VA
     uint32_t CHPEMetadataPointer; // 
     uint32_t GuardRFFailureRoutine;          // VA
@@ -652,7 +652,7 @@ typedef struct PE_IMAGE_LOAD_CONFIG_DIRECTORY32 {
     uint32_t Reserved3; // 
     uint32_t EnclaveConfigurationPointer;    // VA
     uint32_t VolatileMetadataPointer;        // 
-    uint32_t GuardEHContinuationTable;       // VA VA where Control Flow Guard long jump target table is stored.
+    uint32_t GuardEHContinuationTable;       // VA 
     uint32_t GuardEHContinuationCount; // The count of unique RVAs in the above table.
 } PE_IMAGE_LOAD_CONFIG_DIRECTORY32, * PPE_IMAGE_LOAD_CONFIG_DIRECTORY32;
 #define PE_IMAGE_LOAD_CONFIG_DIRECTORY32_SIZE (sizeof(PE_IMAGE_LOAD_CONFIG_DIRECTORY32))

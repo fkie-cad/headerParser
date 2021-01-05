@@ -14,7 +14,7 @@ OsX may work too.
 
 
 ## Version ##
-1.10.4  
+1.10.5  
 Last changed: 05.01.2021
 
 ## REQUIREMENTS ##

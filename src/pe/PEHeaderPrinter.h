@@ -46,7 +46,16 @@ void PE_printImageExportDirectoryEntry(size_t i, uint32_t n_fun, const char* nam
 
 void PE_printImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
                                       size_t offset,
-                                      int bitness);
+                                      int bitness,
+                                      PLoadConfigTableOffsets to,
+                                      size_t file_size,
+                                      FILE* fp,
+                                      unsigned char* block_s);
+void PE_printSizedRVAArray(uint64_t count, 
+                           uint64_t offset, 
+                           size_t file_size,
+                           FILE* fp,
+                           unsigned char* block_s);
 
 void PE_printAttributeCertificateTable(PeAttributeCertificateTable* t, uint8_t n, uint64_t offset);
 const char* PE_getCertificateTypeString(uint16_t type);
@@ -474,7 +483,11 @@ void PE_printImageExportDirectoryEntry(size_t i, uint32_t n_fun, const char* nam
 
 void PE_printImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
                                       size_t offset, 
-                                      int bitness)
+                                      int bitness,
+                                      PLoadConfigTableOffsets to,
+                                      size_t file_size,
+                                      FILE* fp,
+                                      unsigned char* block_s)
 {
     struct PE_IMAGE_LOAD_CONFIG_DIRECTORY_OFFSETS offsets = (bitness == 32) ?
                                                             PeImageLoadConfigDirectoryOffsets32 :
@@ -507,10 +520,13 @@ void PE_printImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
     printf(" - SecurityCookie%s: 0x%"PRIx64"\n", fillOffset(offsets.SecurityCookie, offset, 0), lcd->SecurityCookie);
     printf(" - SEHandlerTable%s: 0x%"PRIx64"\n", fillOffset(offsets.SEHandlerTable, offset, 0), lcd->SEHandlerTable);
     printf(" - SEHandlerCount%s: 0x%"PRIx64"\n", fillOffset(offsets.SEHandlerCount, offset, 0), lcd->SEHandlerCount);
+    PE_printSizedRVAArray(lcd->SEHandlerCount, to->seh, file_size, fp, block_s);
     printf(" - GuardCFCheckFunctionPointer%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardCFCheckFunctionPointer, offset, 0), lcd->GuardCFCheckFunctionPointer);
     printf(" - GuardCFDispatchFunctionPointer%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardCFDispatchFunctionPointer, offset, 0), lcd->GuardCFDispatchFunctionPointer);
     printf(" - GuardCFFunctionTable%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardCFFunctionTable, offset, 0), lcd->GuardCFFunctionTable);
     printf(" - GuardCFFunctionCount%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardCFFunctionCount, offset, 0), lcd->GuardCFFunctionCount);
+    PE_printSizedRVAArray(lcd->GuardCFFunctionCount, to->fun, file_size, fp, block_s);
+
     printf(" - GuardFlags%s: 0x%"PRIx32"\n", fillOffset(offsets.GuardFlags, offset, 0), lcd->GuardFlags);
     printFlag32F(lcd->GuardFlags, PE_IMAGE_GUARD_CF_INSTRUMENTED, "PE_IMAGE_GUARD_CF_INSTRUMENTED", f_pre, f_post);
     printFlag32F(lcd->GuardFlags, PE_IMAGE_GUARD_CFW_INSTRUMENTED, "PE_IMAGE_GUARD_CFW_INSTRUMENTED", f_pre, f_post);
@@ -535,8 +551,12 @@ void PE_printImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
     printf("   - Reserved%s: 0x%"PRIx32"\n", fillOffset(offsets.CodeIntegrity+ PeImageLoadConfigCodeIntegrityOffsets.Reserved, offset, 0), lcd->CodeIntegrity.Reserved);
     printf(" - GuardAddressTakenIatEntryTable%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardAddressTakenIatEntryTable, offset, 0), lcd->GuardAddressTakenIatEntryTable);
     printf(" - GuardAddressTakenIatEntryCount%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardAddressTakenIatEntryCount, offset, 0), lcd->GuardAddressTakenIatEntryCount);
+    PE_printSizedRVAArray(lcd->GuardAddressTakenIatEntryCount, to->iat, file_size, fp, block_s);
+
     printf(" - GuardLongJumpTargetTable%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardLongJumpTargetTable, offset, 0), lcd->GuardLongJumpTargetTable);
     printf(" - GuardLongJumpTargetCount%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardLongJumpTargetCount, offset, 0), lcd->GuardLongJumpTargetCount);
+    PE_printSizedRVAArray(lcd->GuardLongJumpTargetCount, to->jmp, file_size, fp, block_s);
+
     printf(" - DynamicValueRelocTable%s: 0x%"PRIx64"\n", fillOffset(offsets.DynamicValueRelocTable, offset, 0), lcd->DynamicValueRelocTable);
     printf(" - CHPEMetadataPointer%s: 0x%"PRIx64"\n", fillOffset(offsets.CHPEMetadataPointer, offset, 0), lcd->CHPEMetadataPointer);
     printf(" - GuardRFFailureRoutine%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardRFFailureRoutine, offset, 0), lcd->GuardRFFailureRoutine);
@@ -551,7 +571,46 @@ void PE_printImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
     printf(" - VolatileMetadataPointer%s: 0x%"PRIx64"\n", fillOffset(offsets.VolatileMetadataPointer, offset, 0), lcd->VolatileMetadataPointer);
     printf(" - GuardEHContinuationTable%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardEHContinuationTable, offset, 0), lcd->GuardEHContinuationTable);
     printf(" - GuardEHContinuationCount%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardEHContinuationCount, offset, 0), lcd->GuardEHContinuationCount);
+    PE_printSizedRVAArray(lcd->GuardEHContinuationCount, to->ehc, file_size, fp, block_s);
     printf("\n");
+}
+
+void PE_printSizedRVAArray(uint64_t count, 
+                           uint64_t offset, 
+                           size_t file_size,
+                           FILE* fp,
+                           unsigned char* block_s)
+{
+    size_t size;
+    uint64_t i, j;
+    uint64_t ptr_size = 4;
+    uint64_t ptr;
+
+    if ( count > 0 && offset < file_size )
+    {
+        size = readFile(fp, offset, BLOCKSIZE, block_s);
+        if (size == 0)
+            return;
+        
+        for ( i = 0, j=0; i < count; i++, j+=ptr_size)
+        {
+            if (j > BLOCKSIZE - ptr_size)
+            {
+                offset += BLOCKSIZE;
+                if (offset > file_size - ptr_size)
+                    break;
+
+                size = readFile(fp, offset, BLOCKSIZE, block_s);
+                if (size == 0)
+                    break;
+                j = 0;
+            }
+
+            ptr = *((uint32_t*)&block_s[j]);
+
+            printf("     %08X\n", ptr);
+        }
+    }
 }
 
 void PE_printAttributeCertificateTable(PeAttributeCertificateTable* t, uint8_t n, uint64_t offset)

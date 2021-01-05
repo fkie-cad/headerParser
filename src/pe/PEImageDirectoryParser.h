@@ -6,6 +6,14 @@
 #include <stdio.h>
 #include <string.h>
 
+typedef struct LoadConfigTableOffsets {
+    uint64_t seh;
+    uint64_t fun;
+    uint64_t iat;
+    uint64_t jmp;
+    uint64_t ehc;
+} LoadConfigTableOffsets, *PLoadConfigTableOffsets;
+
 #include "../utils/fifo/Fifo.h"
 #include "PEHeaderPrinter.h"
 #include "PEHeader.h"
@@ -940,8 +948,8 @@ void PE_parseImageLoadConfigTable(PE64OptHeader* oh,
     PE_IMAGE_LOAD_CONFIG_DIRECTORY64 lcd;
 
     uint64_t table_fo;
-    //size_t size;
-    //size_t i;
+
+    LoadConfigTableOffsets to;
 
     table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG, nr_of_sections, "Load Config", svas);
     if (table_fo == 0)
@@ -956,8 +964,19 @@ void PE_parseImageLoadConfigTable(PE64OptHeader* oh,
     // fill PE_IMAGE_EXPORT_DIRECTORY info
     if (PE_fillImageLoadConfigDirectory(&lcd, bitness, table_fo, start_file_offset, file_size, fp, block_s) != 0)
         return;
+    
+    to.seh = lcd.SEHandlerTable - oh->ImageBase;
+    to.seh = PE_Rva2Foa(to.seh, svas, nr_of_sections);
+    to.fun = lcd.GuardCFFunctionTable - oh->ImageBase;
+    to.fun = PE_Rva2Foa(to.fun, svas, nr_of_sections);
+    to.iat = lcd.GuardAddressTakenIatEntryTable - oh->ImageBase;
+    to.iat = PE_Rva2Foa(to.iat, svas, nr_of_sections);
+    to.jmp = lcd.GuardLongJumpTargetTable - oh->ImageBase;
+    to.jmp = PE_Rva2Foa(to.jmp, svas, nr_of_sections);
+    to.ehc = lcd.GuardEHContinuationTable - oh->ImageBase;
+    to.ehc = PE_Rva2Foa(to.ehc, svas, nr_of_sections);
 
-    PE_printImageLoadConfigDirectory(&lcd, *abs_file_offset + table_fo, bitness);
+    PE_printImageLoadConfigDirectory(&lcd, *abs_file_offset + table_fo, bitness, &to, file_size, fp, block_s);
 }
 
 int PE_fillImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
