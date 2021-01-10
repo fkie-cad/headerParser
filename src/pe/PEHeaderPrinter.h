@@ -583,8 +583,8 @@ void PE_printSizedRVAArray(uint64_t count,
 {
     size_t size;
     uint64_t i, j;
-    uint64_t ptr_size = 4;
-    uint64_t ptr;
+    uint8_t ptr_size = 4;
+    uint32_t ptr;
 
     if ( count > 0 && offset < file_size )
     {
