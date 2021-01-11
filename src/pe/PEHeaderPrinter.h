@@ -168,6 +168,7 @@ void PE_printCoffFileHeader(PECoffFileHeader* ch, uint64_t offset, uint64_t star
     char ch_bin[17];
     char date[32];
     formatTimeStampD(ch->TimeDateStamp, date, sizeof(date));
+    uint16ToBin(ch->Characteristics, ch_bin);
 
     printf("Coff File Header:\n");
     printf(" - Machine%s: %s (0x%X)\n", fillOffset(PECoffFileHeaderOffsets.Machine, offset, start_file_offset), arch->arch.name, ch->Machine);
@@ -177,7 +178,6 @@ void PE_printCoffFileHeader(PECoffFileHeader* ch, uint64_t offset, uint64_t star
     printf(" - PointerToSymbolTable%s: 0x%X (%u)\n", fillOffset(PECoffFileHeaderOffsets.PointerToSymbolTable, offset, 0), ch->PointerToSymbolTable, ch->PointerToSymbolTable);
     printf(" - NumberOfSymbols%s: %u\n", fillOffset(PECoffFileHeaderOffsets.NumberOfSymbols, offset, start_file_offset), ch->NumberOfSymbols);
     printf(" - SizeOfOptionalHeader%s: %u\n", fillOffset(PECoffFileHeaderOffsets.SizeOfOptionalHeader, offset, start_file_offset), ch->SizeOfOptionalHeader);
-    uint16ToBin(ch->Characteristics, ch_bin);
     printf(" - Characteristics%s: 0x%X (b%s)\n", fillOffset(PECoffFileHeaderOffsets.Characteristics, offset, start_file_offset), ch->Characteristics, ch_bin);
     printFlag32F(ch->Characteristics, PECoffCharacteristics.IMAGE_FILE_RELOCS_STRIPPED,
             "IMAGE_FILE_RELOCS_STRIPPED: Relocation information was stripped from the file. The file must be loaded at its preferred base address. If the base address is not available, the loader reports an error.", dll_c_pre, dll_c_post);
@@ -218,6 +218,9 @@ void PE_printOptionalHeader(PE64OptHeader* oh, uint64_t offset, uint64_t start_f
     const char* magic_string;
     const char* dll_c_pre = "   - ";
     const char dll_c_post = '\n';
+    char ch_bin[17];
+
+    uint16ToBin(oh->DLLCharacteristics, ch_bin);
 
     if ( oh->Magic == PeOptionalHeaderSignature.IMAGE_NT_OPTIONAL_HDR32_MAGIC )
         magic_string = "32-bit exe";
@@ -257,7 +260,7 @@ void PE_printOptionalHeader(PE64OptHeader* oh, uint64_t offset, uint64_t start_f
     printf(" - SizeOfHeaders%s: 0x%X (%u)\n", fillOffset(offsets.SizeOfHeaders, offset, start_file_offset), oh->SizeOfHeaders, oh->SizeOfHeaders);
     printf(" - Checksum%s: 0x%X (%u)\n", fillOffset(offsets.CheckSum, offset, start_file_offset), oh->Checksum, oh->Checksum);
     printf(" - Subsystem%s: %s (%u)\n", fillOffset(offsets.Subsystem, offset, start_file_offset), PE_getSubsystemName((enum PEWinudowsSubsystem)oh->Subsystem), oh->Subsystem);
-    printf(" - DllCharacteristics%s: 0x%X (%u)\n", fillOffset(offsets.DllCharacteristics, offset, start_file_offset), oh->DLLCharacteristics, oh->DLLCharacteristics);
+    printf(" - DllCharacteristics%s: 0x%X (b%s)\n", fillOffset(offsets.DllCharacteristics, offset, start_file_offset), oh->DLLCharacteristics, ch_bin);
     printFlag32F(oh->DLLCharacteristics, IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA,
             "IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA: Image can handle a high entropy 64-bit virtual address space.", dll_c_pre, dll_c_post);
     printFlag32F(oh->DLLCharacteristics, IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE,
