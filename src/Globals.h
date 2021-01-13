@@ -82,15 +82,15 @@ typedef struct GlobalParams
 
 typedef struct PEParams
 {
-    bool info_level_iimp;
-    bool info_level_iexp;
-    bool info_level_ires;
-    bool info_level_itls;
-    bool info_level_irel;
-    bool info_level_icrt;
-    bool info_level_idimp;
-    bool info_level_ibimp;
-    bool info_level_ilcfg;
+    bool info_level_imp;
+    bool info_level_exp;
+    bool info_level_res;
+    bool info_level_tls;
+    bool info_level_rel;
+    bool info_level_crt;
+    bool info_level_dimp;
+    bool info_level_bimp;
+    bool info_level_lcfg;
 
     const char* certificate_directory;
 } PEParams, *PPEParams;

@@ -205,14 +205,14 @@ int parsePEHeader(uint8_t force,
         return -1;
     }
 
-    if ( pep->info_level_iexp ||
-         pep->info_level_iimp ||
-         pep->info_level_ires || 
-         pep->info_level_irel || 
-         pep->info_level_itls ||
-         pep->info_level_ilcfg ||
-         pep->info_level_ibimp ||
-         pep->info_level_idimp )
+    if ( pep->info_level_exp ||
+         pep->info_level_imp ||
+         pep->info_level_res || 
+         pep->info_level_rel || 
+         pep->info_level_tls ||
+         pep->info_level_lcfg ||
+         pep->info_level_bimp ||
+         pep->info_level_dimp )
     {
         parse_svas = 1;
     }
@@ -295,34 +295,34 @@ int parsePEHeader(uint8_t force,
     PE_readSectionHeader(section_header_offset, coff_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->info_level,
                          gp->fp, gp->block_standard, gp->block_large, &pehd->st, parse_svas, &pehd->svas, hd);
 
-    if ( pep->info_level_iimp == 1 )
+    if ( pep->info_level_imp == 1 )
         PE_parseImageImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
                                  &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
 
-    if (pep->info_level_idimp == 1)
+    if (pep->info_level_dimp == 1)
         PE_parseImageDelayImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
             &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
 
-    if (pep->info_level_ibimp == 1)
+    if (pep->info_level_bimp == 1)
         PE_parseImageBoundImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
             &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
 
-    if ( pep->info_level_iexp == 1 )
+    if ( pep->info_level_exp == 1 )
         PE_parseImageExportTable(opt_header, coff_header->NumberOfSections, gp->start_file_offset, gp->file_size, gp->fp, gp->block_standard, pehd->svas);
 
-    if ( pep->info_level_ires == 1 )
+    if ( pep->info_level_res == 1 )
         PE_parseImageResourceTable(opt_header, coff_header->NumberOfSections, gp->start_file_offset, gp->file_size, gp->fp, gp->block_standard, pehd->svas);
 
-    if (pep->info_level_irel == 1)
+    if (pep->info_level_rel == 1)
         PE_parseImageBaseRelocationTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
 
-    if ( pep->info_level_icrt == 1 )
+    if ( pep->info_level_crt == 1 )
         PE_parseCertificates(opt_header, gp->start_file_offset, gp->file_size, pep->certificate_directory, gp->fp, gp->block_standard);
 
-    if (pep->info_level_itls == 1)
+    if (pep->info_level_tls == 1)
         PE_parseImageTLSTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
     
-    if (pep->info_level_ilcfg == 1)
+    if (pep->info_level_lcfg == 1)
         PE_parseImageLoadConfigTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
                                       &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_standard);
 

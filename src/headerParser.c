@@ -19,6 +19,8 @@
 
 #define BINARYNAME ("headerParser")
 
+
+
 static void printUsage();
 static void printHelp();
 static uint8_t parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_t* force, char* file_name);
@@ -30,8 +32,9 @@ static void printHeaderData(uint8_t, PHeaderData hd, unsigned char* block);
 static void printHeaderData1(PHeaderData hd);
 static uint8_t getForceOption(const char* arg);
 
-const char* vs = "1.10.5";
-const char* last_changed = "05.01.2021";
+const char* vs = "1.10.6";
+const char* last_changed = "13.01.2021";
+
 
 
 #ifdef DILLER
@@ -89,7 +92,6 @@ int main(int argc, char** argv)
 	debug_info("abs_file_offset: 0x%"PRIx64"\n", gp.abs_file_offset);
 	debug_info("start_file_offset: 0x%"PRIx64"\n", gp.start_file_offset);
 
-//	n = readCustomBlock(gp.file_name, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
 	n = readFile(gp.fp, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
 	if ( !n )
 	{
@@ -122,8 +124,13 @@ int main(int argc, char** argv)
 
 void printUsage()
 {
-	printf("Usage: ./%s file/name [options]\n", BINARYNAME);
-	printf("Usage: ./%s [options] file/name\n", BINARYNAME);
+#ifdef _WIN32
+	char* pref = "";
+#else
+	char* pref = "./";
+#endif
+	printf("Usage: %s%s file/name [options]\n", pref, BINARYNAME);
+	printf("Usage: %s%s [options] file/name\n", pref, BINARYNAME);
 	printf("\nVersion: %s\n", vs);
 	printf("Last changed: %s\n", last_changed);
 }
@@ -132,21 +139,22 @@ void printHelp()
 {
 	printUsage();
 	printf("\n"
+		"Options:\n"
 			" * -h Print this.\n"
 			" * -s:uint64_t Start offset. Default = 0.\n"
 			" * -i:uint8_t Level of output info. Default = 1 : minimal output. 2 : Full output. 3 : Full output with offsets.\n"
 			" * -f:string Force a headertype to be parsed skipping magic value validity checks. Supported types are: pe.\n"
 			" * PE only options:\n"
-			"   * -iexp: Print the Image Export Table (IMAGE_DIRECTORY_ENTRY_EXPORT) (Currently needs -i > 1).\n"
-			"   * -iimp: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT) (Currently needs -i > 1).\n"
-			"   * -ires: Print the Image Resource Table (IMAGE_DIRECTORY_ENTRY_RESOURCE) (Currently needs -i > 1).\n"
-			"   * -icrt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE) (Currently needs -i > 1).\n"
+			"   * -exp: Print the Image Export Table (IMAGE_DIRECTORY_ENTRY_EXPORT) (Currently needs -i > 1).\n"
+			"   * -imp: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT) (Currently needs -i > 1).\n"
+			"   * -res: Print the Image Resource Table (IMAGE_DIRECTORY_ENTRY_RESOURCE) (Currently needs -i > 1).\n"
+			"   * -crt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE) (Currently needs -i > 1).\n"
 			"   * -cod: Directory to save found certificates in (Needs -icrt).\n"
-			"   * -irel: Print the Image Base Relocation Table (IMAGE_DIRECTORY_ENTRY_BASE_RELOC) (Currently needs -i > 1).\n"
-			"   * -itls: Print the Image TLS Table (IMAGE_DIRECTORY_ENTRY_TLS) (Currently needs -i > 1).\n"
-			"   * -ilcfg: Print the Image Load Config Table (IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG) (Currently needs -i > 1).\n"
-			"   * -ibimp: Print the Image Bound Import Table (IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT) (Currently needs -i > 1).\n"
-			"   * -idimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT) (Currently needs -i > 1).\n"
+			"   * -rel: Print the Image Base Relocation Table (IMAGE_DIRECTORY_ENTRY_BASE_RELOC) (Currently needs -i > 1).\n"
+			"   * -tls: Print the Image TLS Table (IMAGE_DIRECTORY_ENTRY_TLS) (Currently needs -i > 1).\n"
+			"   * -lcfg: Print the Image Load Config Table (IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG) (Currently needs -i > 1).\n"
+			"   * -bimp: Print the Image Bound Import Table (IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT) (Currently needs -i > 1).\n"
+			"   * -dimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT) (Currently needs -i > 1).\n"
 	);
 	printf("\n");
 	printf("Examples:\n");
@@ -211,29 +219,29 @@ uint8_t parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_
 				i++;
 			}
 		}
-		else if ( isArgOfType(argv[i], "-iimp") )
+		else if ( isArgOfType(argv[i], "-imp") )
 		{
-			pep->info_level_iimp = true;
+			pep->info_level_imp = true;
 		}
-		else if ( isArgOfType(argv[i], "-iexp") )
+		else if ( isArgOfType(argv[i], "-exp") )
 		{
-            pep->info_level_iexp = true;
+            pep->info_level_exp = true;
 		}
-		else if (isArgOfType(argv[i], "-ires"))
+		else if (isArgOfType(argv[i], "-res"))
 		{
-			pep->info_level_ires = true;
+			pep->info_level_res = true;
 		}
-		else if (isArgOfType(argv[i], "-itls"))
+		else if (isArgOfType(argv[i], "-tls"))
 		{
-			pep->info_level_itls = true;
+			pep->info_level_tls = true;
 		}
-		else if (isArgOfType(argv[i], "-irel"))
+		else if (isArgOfType(argv[i], "-rel"))
 		{
-			pep->info_level_irel = true;
+			pep->info_level_rel = true;
 		}
-		else if ( isArgOfType(argv[i], "-icrt") )
+		else if ( isArgOfType(argv[i], "-crt") )
 		{
-            pep->info_level_icrt = true;
+            pep->info_level_crt = true;
 		}
 		else if ( isArgOfType(argv[i], "-cod") )
 		{
@@ -244,17 +252,17 @@ uint8_t parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_
 				i++;
 			}
 		}
-		else if (isArgOfType(argv[i], "-idimp"))
+		else if (isArgOfType(argv[i], "-dimp"))
 		{
-			pep->info_level_idimp = true;
+			pep->info_level_dimp = true;
 		}
-		else if (isArgOfType(argv[i], "-ibimp"))
+		else if (isArgOfType(argv[i], "-bimp"))
 		{
-			pep->info_level_ibimp = true;
+			pep->info_level_bimp = true;
 		}
-		else if (isArgOfType(argv[i], "-ilcfg"))
+		else if (isArgOfType(argv[i], "-lcfg"))
 		{
-			pep->info_level_ilcfg = true;
+			pep->info_level_lcfg = true;
 		}
 		else
 		{
@@ -267,10 +275,10 @@ uint8_t parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_
 
 	if ( gp->info_level < 2 )
 	{
-        pep->info_level_iimp = false;
-        pep->info_level_iexp = false;
-        pep->info_level_ires = false;
-        pep->info_level_icrt = false;
+        pep->info_level_imp = false;
+        pep->info_level_exp = false;
+        pep->info_level_res = false;
+        pep->info_level_crt = false;
 	}
 
 	if ( pep->certificate_directory!=NULL )

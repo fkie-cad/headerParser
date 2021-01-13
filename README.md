@@ -14,8 +14,8 @@ OsX may work too.
 
 
 ## Version ##
-1.10.5  
-Last changed: 05.01.2021
+1.10.6  
+Last changed: 13.01.2021
 
 ## REQUIREMENTS ##
 - A decent c compiler (gcc or msbuild) is required.  
@@ -47,22 +47,22 @@ Thats the place to correct the path to your cmake installation as well.
 $ ./headerParser a/file/name [options]
 $ ./headerParser [options] a/file/name
 ```
-Possible options:  
+Options:  
  * -h Print help.
  * -s:uint64_t Start offset in file. Default = 1.
  * -i:uint8_t Level of output info. 1 : minimal output (Default), 2 : extended output, 3 : extended output with offset info.
  * -f:string Force parsing a specific type, skipping magic value checks. Currently only "pe" is supported.
  * PE only options:
-   * -iexp: Print the Image Export Table (IMAGE_DIRECTORY_ENTRY_EXPORT). (Needs -i > 1.)
-   * -iimp: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT). (Needs -i > 1.)
-   * -ires: Print the Image Resource Table (IMAGE_DIRECTORY_ENTRY_RESOURCE). (Needs -i > 1.)
-   * -icrt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE). (Needs -i > 1.)
+   * -exp: Print the Image Export Table (IMAGE_DIRECTORY_ENTRY_EXPORT). (Needs -i > 1.)
+   * -imp: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT). (Needs -i > 1.)
+   * -res: Print the Image Resource Table (IMAGE_DIRECTORY_ENTRY_RESOURCE). (Needs -i > 1.)
+   * -crt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE). (Needs -i > 1.)
    * -cod: Directory to save found certificates in. (Needs -icrt.)
-   * -irel: Print the Image Base Relocation Table (IMAGE_DIRECTORY_ENTRY_BASE_RELOC). (Needs -i > 1.)
-   * -itls: Print the Image TLS Table (IMAGE_DIRECTORY_ENTRY_TLS). (Needs -i > 1.)
-   * -ilcfg: Print the Image Load Config Table (IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG) (Needs -i > 1.)
-   * -ibimp: Print the Image Bound Import Table (IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT). (Needs -i > 1.)
-   * -idimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT). (Needs -i > 1.)
+   * -rel: Print the Image Base Relocation Table (IMAGE_DIRECTORY_ENTRY_BASE_RELOC). (Needs -i > 1.)
+   * -tls: Print the Image TLS Table (IMAGE_DIRECTORY_ENTRY_TLS). (Needs -i > 1.)
+   * -lcfg: Print the Image Load Config Table (IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG) (Needs -i > 1.)
+   * -bimp: Print the Image Bound Import Table (IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT). (Needs -i > 1.)
+   * -dimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT). (Needs -i > 1.)
  
 ## EXAMPLE ##
 ```bash
@@ -125,6 +125,8 @@ size_t offset = 0;
 uint8_t force = FORCE_NONE; // or FORCE_PE
 HeaderData* data = getBasicHeaderParserInfo("a/file.path", offset, force);
 // do stuff handling data
+// ...
+// clean up
 freeHeaderData(data);
 ```
 

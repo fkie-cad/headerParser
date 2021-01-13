@@ -42,7 +42,16 @@ void PE_printImageThunkData(PEImageThunkData64* td, PEImageImportByName* ibn, ui
 
 void PE_printImageExportDirectoryInfo(PE_IMAGE_EXPORT_DIRECTORY* ied);
 void PE_printImageExportDirectoryHeader();
-void PE_printImageExportDirectoryEntry(size_t i, uint32_t n_fun, const char* name, int name_max, uint16_t name_ordinal, unsigned char* bytes, size_t bytes_max, uint32_t rva, uint64_t fo);
+void PE_printImageExportDirectoryEntry(size_t i, 
+                                       uint32_t n_fun, 
+                                       const char* name, 
+                                       int name_max, 
+                                       uint16_t name_ordinal, 
+                                       unsigned char* bytes, 
+                                       size_t bytes_max, 
+                                       uint32_t rva, 
+                                       uint64_t fo, 
+                                       int is_forwarded);
 
 void PE_printImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
                                       size_t offset,
@@ -314,21 +323,24 @@ const char* PE_getSubsystemName(enum PEWinudowsSubsystem type)
     }
 }
 
-void PE_printDataDirectory(PE64OptHeader* oh, uint64_t offset, uint8_t bitness)
+void PE_printDataDirectory(PE64OptHeader* oh, 
+                           uint64_t offset, 
+                           uint8_t bitness)
 {
     PEOptionalHeaderOffsets offsets = (bitness == 32 ) ? PEOptional32HeaderOffsets : PEOptional64HeaderOffsets;
     uint64_t dir_offset = offsets.DataDirectories;
     uint8_t size_of_data_entry = sizeof(PEDataDirectory);
 
-    printf(" - DataDirectory        | VirtualAddress |     Size\n");
+    printf(" - DataDirectory      | VirtualAddress |     Size\n");
+    printf("   -------------------+----------------+----------\n");
     uint32_t i;
     uint8_t max_nr_of_rva_to_read = 128;
     uint8_t nr_of_rva_to_read = ( oh->NumberOfRvaAndSizes > max_nr_of_rva_to_read ) ? max_nr_of_rva_to_read : oh->NumberOfRvaAndSizes;
 
     for ( i = 0; i < nr_of_rva_to_read; i++ )
     {
-        if ( i < NUMBER_OF_RVA_AND_SIZES ) printf("   - %-18s%s | ", ImageDirectoryEntryNames[i], fillOffset(dir_offset, offset, 0));
-        else printf("   - %18u%s ", i, fillOffset(dir_offset, offset, 0));
+        if ( i < NUMBER_OF_RVA_AND_SIZES ) printf("   %-18s%s | ", ImageDirectoryEntryNames[i], fillOffset(dir_offset, offset, 0));
+        else printf("   %18u%s ", i, fillOffset(dir_offset, offset, 0));
         printf("%#14x", oh->DataDirectory[i].VirtualAddress);
         printf(" | %#8x\n", oh->DataDirectory[i].Size);
 
@@ -336,17 +348,16 @@ void PE_printDataDirectory(PE64OptHeader* oh, uint64_t offset, uint8_t bitness)
     }
 }
 
-void
-PE_printImageSectionHeader(PEImageSectionHeader* sh,
-                           uint16_t idx,
-                           uint16_t size,
-                           PECoffFileHeader* ch,
-                           uint64_t offset,
-                           uint64_t start_file_offset,
-                           size_t file_size,
-                           FILE* fp,
-                           unsigned char* block_s,
-                           PStringTable st)
+void PE_printImageSectionHeader(PEImageSectionHeader* sh,
+                                uint16_t idx,
+                                uint16_t size,
+                                PECoffFileHeader* ch,
+                                uint64_t offset,
+                                uint64_t start_file_offset,
+                                size_t file_size,
+                                FILE* fp,
+                                unsigned char* block_s,
+                                PStringTable st)
 {
     char characteristics_bin[33];
     char* name;
@@ -458,30 +469,29 @@ void PE_printImageExportDirectoryHeader()
     printf(" - List of exported functions:\n");
 }
 
-void PE_printImageExportDirectoryEntry(size_t i, uint32_t n_fun, const char* name, int name_max, uint16_t name_ordinal, unsigned char* bytes, size_t bytes_max, uint32_t rva, uint64_t fo)
+void PE_printImageExportDirectoryEntry(size_t i, uint32_t n_fun, const char* name, int name_max, uint16_t name_ordinal, unsigned char* bytes, size_t bytes_max, uint32_t rva, uint64_t fo, int is_forwarded)
 {
     size_t j;
     size_t nr_of_bytes = 0x10;
     if ( nr_of_bytes > bytes_max )
         nr_of_bytes = bytes_max;
 
-//#if defined(_WIN32)
-//    printf("   [%zu/%lu] \n", (i+1), n_fun);
-//#else
-//    printf("   [%zu/%u] \n", (i+1), n_fun);
-//#endif
     printf("   [%zu/%u] \n", (i+1), n_fun);
-    printf("   - name: %.*s\n", name_max, name);
+    printf("   - name: %s\n", name);
     printf("   - ordinal: 0x%x\n", name_ordinal);
-//#if defined(_WIN32)
-//    printf("   - function (rva: 0x%lx, fo: 0x%llx):\n     ", rva, fo);
-//#else
-//    printf("   - function (rva: 0x%x, fo: 0x%lx):\n     ", rva, fo);
-//#endif
-    printf("   - function (rva: 0x%x, fo: 0x%"PRIx64"):\n     ", rva, fo);
-    for ( j = 0; j < nr_of_bytes; j++ )
-        printf("%02x ", bytes[j]);
-    printf("...\n");
+    if ( is_forwarded )
+    {
+        bytes[bytes_max-1] = 0;
+        printf("   - forwarded:\n");
+        printf("     %s\n", bytes);
+    }
+    else
+    {
+        printf("   - function (rva: 0x%x, fo: 0x%"PRIx64"):\n     ", rva, fo);
+        for ( j = 0; j < nr_of_bytes; j++ )
+            printf("%02x ", bytes[j]);
+        printf("...\n");
+    }
 }
 
 void PE_printImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
@@ -522,12 +532,13 @@ void PE_printImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
     printf(" - EditList%s: 0x%"PRIx64"\n", fillOffset(offsets.EditList, offset, 0), lcd->EditList);
     printf(" - SecurityCookie%s: 0x%"PRIx64"\n", fillOffset(offsets.SecurityCookie, offset, 0), lcd->SecurityCookie);
     printf(" - SEHandlerTable%s: 0x%"PRIx64"\n", fillOffset(offsets.SEHandlerTable, offset, 0), lcd->SEHandlerTable);
-    printf(" - SEHandlerCount%s: 0x%"PRIx64"\n", fillOffset(offsets.SEHandlerCount, offset, 0), lcd->SEHandlerCount);
+    printf(" - SEHandlerCount%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.SEHandlerCount, offset, 0), lcd->SEHandlerCount, lcd->SEHandlerCount);
     PE_printSizedRVAArray(lcd->SEHandlerCount, to->seh, file_size, fp, block_s);
+
     printf(" - GuardCFCheckFunctionPointer%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardCFCheckFunctionPointer, offset, 0), lcd->GuardCFCheckFunctionPointer);
     printf(" - GuardCFDispatchFunctionPointer%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardCFDispatchFunctionPointer, offset, 0), lcd->GuardCFDispatchFunctionPointer);
     printf(" - GuardCFFunctionTable%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardCFFunctionTable, offset, 0), lcd->GuardCFFunctionTable);
-    printf(" - GuardCFFunctionCount%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardCFFunctionCount, offset, 0), lcd->GuardCFFunctionCount);
+    printf(" - GuardCFFunctionCount%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.GuardCFFunctionCount, offset, 0), lcd->GuardCFFunctionCount, lcd->GuardCFFunctionCount);
     PE_printSizedRVAArray(lcd->GuardCFFunctionCount, to->fun, file_size, fp, block_s);
 
     printf(" - GuardFlags%s: 0x%x\n", fillOffset(offsets.GuardFlags, offset, 0), lcd->GuardFlags);
@@ -553,11 +564,11 @@ void PE_printImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
     printf("   - CatalogOffset%s: 0x%x\n", fillOffset(offsets.CodeIntegrity+PeImageLoadConfigCodeIntegrityOffsets.CatalogOffset, offset, 0), lcd->CodeIntegrity.CatalogOffset);
     printf("   - Reserved%s: 0x%x\n", fillOffset(offsets.CodeIntegrity+ PeImageLoadConfigCodeIntegrityOffsets.Reserved, offset, 0), lcd->CodeIntegrity.Reserved);
     printf(" - GuardAddressTakenIatEntryTable%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardAddressTakenIatEntryTable, offset, 0), lcd->GuardAddressTakenIatEntryTable);
-    printf(" - GuardAddressTakenIatEntryCount%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardAddressTakenIatEntryCount, offset, 0), lcd->GuardAddressTakenIatEntryCount);
+    printf(" - GuardAddressTakenIatEntryCount%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.GuardAddressTakenIatEntryCount, offset, 0), lcd->GuardAddressTakenIatEntryCount, lcd->GuardAddressTakenIatEntryCount);
     PE_printSizedRVAArray(lcd->GuardAddressTakenIatEntryCount, to->iat, file_size, fp, block_s);
 
     printf(" - GuardLongJumpTargetTable%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardLongJumpTargetTable, offset, 0), lcd->GuardLongJumpTargetTable);
-    printf(" - GuardLongJumpTargetCount%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardLongJumpTargetCount, offset, 0), lcd->GuardLongJumpTargetCount);
+    printf(" - GuardLongJumpTargetCount%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.GuardLongJumpTargetCount, offset, 0), lcd->GuardLongJumpTargetCount, lcd->GuardLongJumpTargetCount);
     PE_printSizedRVAArray(lcd->GuardLongJumpTargetCount, to->jmp, file_size, fp, block_s);
 
     printf(" - DynamicValueRelocTable%s: 0x%"PRIx64"\n", fillOffset(offsets.DynamicValueRelocTable, offset, 0), lcd->DynamicValueRelocTable);
@@ -573,7 +584,7 @@ void PE_printImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
     printf(" - EnclaveConfigurationPointer%s: 0x%"PRIx64"\n", fillOffset(offsets.EnclaveConfigurationPointer, offset, 0), lcd->EnclaveConfigurationPointer);
     printf(" - VolatileMetadataPointer%s: 0x%"PRIx64"\n", fillOffset(offsets.VolatileMetadataPointer, offset, 0), lcd->VolatileMetadataPointer);
     printf(" - GuardEHContinuationTable%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardEHContinuationTable, offset, 0), lcd->GuardEHContinuationTable);
-    printf(" - GuardEHContinuationCount%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardEHContinuationCount, offset, 0), lcd->GuardEHContinuationCount);
+    printf(" - GuardEHContinuationCount%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.GuardEHContinuationCount, offset, 0), lcd->GuardEHContinuationCount, lcd->GuardEHContinuationCount);
     PE_printSizedRVAArray(lcd->GuardEHContinuationCount, to->ehc, file_size, fp, block_s);
     printf("\n");
 }

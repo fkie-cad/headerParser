@@ -279,16 +279,16 @@ typedef struct PEImageImportDescriptor {
     // -1 if bound, and real date\time stamp is found in IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT (new BIND)
     // O.W. date/time stamp of DLL bound to (Old BIND)
     uint32_t TimeDateStamp;
-    uint32_t ForwarderChain;                 // -1 if no forwarders
+    uint32_t ForwarderChain;                // -1 if no forwarders
     uint32_t Name;							// RVA to the name of the module. I.e  xxx.dll
-    uint32_t FirstThunk;                     // RVA to IAT (if bound this IAT has actual addresses)
+    uint32_t FirstThunk;                    // RVA to IAT (if bound this IAT has actual addresses)
 } PEImageImportDescriptor;
 
 typedef struct PEImageThunkData32 {
     union {
         uint32_t ForwarderString;      // PBYTE 
         uint32_t Function;             // Puint32_t
-        uint32_t Ordinal;
+        uint32_t Ordinal;              // uint16_t number
         uint32_t AddressOfData;        // PIMAGE_IMPORT_BY_NAME
     };
 } PEImageThunkData32;
@@ -314,15 +314,6 @@ typedef struct PEImageImportByName {
 
 // _IMAGE_DELAY_IMPORT_DESCRIPTOR
 typedef struct PeImageDelayLoadDescriptor {
-    //uint32_t Attributes; // Must be zero (offical docu). 1 stands for : RVAs are used instead of pointers (bug in older version uses absolute addresses.
-    //uint32_t DllNameRVA; // The RVA of the name of the DLL to be loaded.The name resides in the read - only data section of the image.
-    //uint32_t ModuleHandleRVA; // The RVA of the module handle(in the data section of the image) of the DLL to be delay-loaded. It is used for storage by the routine that is supplied to manage delay-loading.
-    //uint32_t ImportAddressTableRVA; // The RVA of the delay-load import address table. 
-    //uint32_t ImportNameTableRVA; // The RVA of the delay-load name table, which contains the names of the imports that might need to be loaded. This matches the layout of the import name table.
-    //uint32_t BoundImportAddressTableRVA; // The RVA of the bound delay-load address table, if it exists.
-    //uint32_t UnloadInformationTableRVA; // The RVA of the unload delay-load address table, if it exists. 
-    //uint32_t TimeDateStamp; // The timestamp of the DLL to which this image has been bound. 
-
     union {
         uint32_t AllAttributes;
         struct {
@@ -382,6 +373,7 @@ typedef struct PE_IMAGE_EXPORT_DIRECTORY
     // The number of elements in the AddressOfNames array.
     // This value seems always to be identical to the NumberOfFunctions field, and so is the number of exported functions.
     uint32_t NumberOfNames;
+    // The address of the export address table, relative to the image base.
     // This field is an RVA and points to an array of function addresses.
     // The function addresses are the entry points (RVAs) for each exported function in this module.
     uint32_t AddressOfFunctions;
@@ -399,7 +391,21 @@ typedef struct PE_IMAGE_EXPORT_DIRECTORY
 // There are three of these arrays (AddressOfFunctions, AddressOfNames, AddressOfNameOrdinals),
 // and they are all parallel to one another.
 
-
+// Each entry in the export address table is a field that uses one of two formats in the following table.
+// If the address specified is not within the export section(as defined by the address and length that are indicated in the optional header), 
+// the field is an export RVA, which is an actual address in code or data.
+// Otherwise, the field is a forwarder RVA, which names a symbol in another DLL.
+typedef struct PE_EXPORT_ADDRESS_TABLE_ENTRY
+{
+    union {
+        // The address of the exported symbol when loaded into memory, relative to the image base.
+        uint32_t ExportRva;
+        // The pointer to a null - terminated ASCII string in the export section.
+        // This string must be within the range that is given by the export table data directory entry.
+        // This string gives the DLL name and the name of the export (for example, "MYDLL.expfunc") or the DLL name and the ordinal number of the export (for example, "MYDLL.#27").
+        uint32_t ForwarderRva;
+    } rva;
+}PE_EXPORT_ADDRESS_TABLE_ENTRY, *PPE_EXPORT_ADDRESS_TABLE_ENTRY;
 
 
 
@@ -740,16 +746,16 @@ typedef struct PE_IMAGE_LOAD_CONFIG_DIRECTORY64 {
 
 // custom
 
-typedef struct StringTable {
+typedef struct _StringTable {
     unsigned char *strings;
     uint32_t size;
 } StringTable, *PStringTable;
 
-typedef struct SVAS {
+typedef struct _SVAS {
     uint32_t VirtualAddress;
     uint32_t VirtualSize;
     uint32_t PointerToRawData;
     uint32_t SizeOfRawData;
-} SVAS;
+} SVAS, PSVAS;
 
 #endif

@@ -449,11 +449,11 @@ void PE_parseImageDelayImportTable(PE64OptHeader* oh,
 }
 
 void PE_fillDelayImportDescriptor(PeImageDelayLoadDescriptor* did,
-    uint64_t* offset,
-    uint64_t* abs_file_offset,
-    size_t file_size,
-    FILE* fp,
-    unsigned char* block_l)
+                                  uint64_t* offset,
+                                  uint64_t* abs_file_offset,
+                                  size_t file_size,
+                                  FILE* fp,
+                                  unsigned char* block_l)
 {
     unsigned char* ptr = NULL;
 
@@ -477,13 +477,13 @@ void PE_fillDelayImportDescriptor(PeImageDelayLoadDescriptor* did,
 }
 
 int PE_iterateThunkData(uint16_t nr_of_sections,
-    SVAS* svas,
-    uint8_t bitness,
-    uint64_t start_file_offset,
-    size_t file_size,
-    FILE* fp,
-    unsigned char* block_s,
-    uint64_t thunk_data_offset)
+                        SVAS* svas,
+                        uint8_t bitness,
+                        uint64_t start_file_offset,
+                        size_t file_size,
+                        FILE* fp,
+                        unsigned char* block_s,
+                        uint64_t thunk_data_offset)
 {
     int s;
     uint64_t rva_offset;
@@ -693,10 +693,11 @@ void PE_parseImageExportTable(PE64OptHeader* oh,
     uint32_t function_rva, name_rva;
     uint64_t function_fo, name_fo;
     uint16_t name_ordinal;
-    char name[0x200];
-
-    size_t size;
-
+    char name[BLOCKSIZE];
+    uint32_t table_start_rva = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
+    uint32_t table_end_rva = table_start_rva + oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size;
+    int is_forwarded;
+    size_t size, name_size, bytes_size;
     size_t i;
 
     table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_EXPORT, nr_of_sections, "Export", svas);
@@ -720,49 +721,63 @@ void PE_parseImageExportTable(PE64OptHeader* oh,
     // iterate through the blocks
     for ( i = 0; i < ied.NumberOfFunctions; i++, functions_offset+=4,names_offset+=4,names_ordinal_offset+=2 )
     {
-//		if ( functions_offset + 4 >= file_size )
-//			continue;
+        is_forwarded = 0;
+
         fseek(fp, functions_offset, SEEK_SET);
         size = fread(&function_rva, 1, 4, fp);
         if ( size != 4 )
             continue;
+        
+        if ( table_start_rva <= function_rva && function_rva < table_end_rva )
+        {
+            is_forwarded = 1;
+        }
 
-//		if ( names_offset + 4 >= file_size )
-//			continue;
         fseek(fp, names_offset, SEEK_SET);
         size = fread(&name_rva, 1, 4, fp);
         if ( size != 4 )
             continue;
 
-//		if ( names_ordinal_offset + 2 >= file_size )
-//			continue;
         fseek(fp, names_ordinal_offset, SEEK_SET);
         size = fread(&name_ordinal, 1, 2, fp);
         if ( size != 2 )
             continue;
 
-
-        name_fo = PE_Rva2Foa(name_rva, svas, nr_of_sections);
-//		if ( name_fo == 0 )
-//			name_fo = UINT64_MAX;
-        size = readFile(fp, name_fo, 0x200, (unsigned char*)name);
-        if ( size < 2 || name_fo == 0 )
+        
+        name_size = 0;
+        name_fo = 0;
+        memset(name, 0, BLOCKSIZE);
+        if ( name_rva > 0 )
         {
-            size = 0;
-            name[0] = 0;
+            name_fo = PE_Rva2Foa(name_rva, svas, nr_of_sections);
+            name_size = readFile(fp, name_fo, BLOCKSIZE, (unsigned char*)name);
+            if ( name_size < 2 || name_fo == 0 )
+            {
+                name_size = 0;
+                name[0] = 0;
+            }
+            else
+            {
+                name[name_size-1] = 0;
+            }
+        }
+        
+        bytes_size = 0;
+        function_fo = 0;
+        memset(block_s, 0, BLOCKSIZE);
+        if ( function_rva > 0 )
+        {
+            function_fo = PE_Rva2Foa(function_rva, svas, nr_of_sections);
+            bytes_size = readFile(fp, function_fo, BLOCKSIZE, block_s);
+            
+            if ( bytes_size == 0 || function_fo == 0)
+            {
+                bytes_size = 0;
+                block_s[0] = 0;
+            }
         }
 
-        function_fo = PE_Rva2Foa(function_rva, svas, nr_of_sections);
-//		if ( function_fo == 0 )
-//			function_fo = function_rva;
-        size = readFile(fp, function_fo, BLOCKSIZE, block_s);
-        if ( size == 0 || function_fo == 0)
-        {
-            size = 0;
-            block_s[0] = 0;
-        }
-
-        PE_printImageExportDirectoryEntry(i, ied.NumberOfFunctions, name, 0x200, name_ordinal, block_s, size, function_rva, function_fo);
+        PE_printImageExportDirectoryEntry(i, ied.NumberOfFunctions, name, name_size, name_ordinal, block_s, bytes_size, function_rva, function_fo, is_forwarded);
     }
 }
 
