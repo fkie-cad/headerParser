@@ -409,7 +409,7 @@ void PE_printImageImportDescriptor(PEImageImportDescriptor* impd, uint64_t offse
 
     printf(" -%s %s (0x%x)\n", fillOffset(PEImageImportDescriptorOffsets.Name, offset, 0), impd_name, impd->Name);
     printf("   - OriginalFirstThunk%s: 0x%x\n", fillOffset(PEImageImportDescriptorOffsets.Union, offset, 0), impd->OriginalFirstThunk);
-    printf("   - TimeDateStamp%s: %s (%"PRIu32")\n", fillOffset(PEImageImportDescriptorOffsets.TimeDateStamp, offset, 0), date, impd->TimeDateStamp);
+    printf("   - TimeDateStamp%s: %s (%u)\n", fillOffset(PEImageImportDescriptorOffsets.TimeDateStamp, offset, 0), date, impd->TimeDateStamp);
     printf("   - ForwarderChain%s: 0x%x\n", fillOffset(PEImageImportDescriptorOffsets.ForwarderChain, offset, 0), impd->ForwarderChain);
     printf("   - FirstThunk%s: 0x%x\n", fillOffset(PEImageImportDescriptorOffsets.FirstThunk, offset, 0), impd->FirstThunk);
 }
@@ -426,7 +426,7 @@ void PE_printImageThunkData(PEImageThunkData64* td, PEImageImportByName* ibn, ui
     uint64_t flag = (bitness == 32) ? IMAGE_ORDINAL_FLAG32 : IMAGE_ORDINAL_FLAG64;
 
     if ( td->Ordinal & flag )
-        printf("      0x%04x%s\n", (uint16_t)(td->Ordinal - IMAGE_ORDINAL_FLAG64), fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0));
+        printf("      0x%04x%s\n", (uint16_t)(td->Ordinal - flag), fillOffset(PEImageThunkData64Offsets.u1, td_offset, 0));
     else
         printf("      0x%04x%s | %s%s\n",
                 ibn->Hint, fillOffset(PEImageImportByNameOffsets.Hint, ibn_offset, 0), 
@@ -439,17 +439,17 @@ void PE_printImageExportDirectoryInfo(PE_IMAGE_EXPORT_DIRECTORY* ied)
     formatTimeStampD(ied->TimeDateStamp, date, sizeof(date));
 
     printf("IMAGE_EXPORT_DIRECTORY:\n");
-    printf(" - Characteristics: 0x%"PRIx32"\n", ied->Characteristics);
-    printf(" - TimeDateStamp: %s (%"PRIu32")\n", date, ied->TimeDateStamp);
+    printf(" - Characteristics: 0x%x\n", ied->Characteristics);
+    printf(" - TimeDateStamp: %s (%u)\n", date, ied->TimeDateStamp);
     printf(" - MajorVersion: %u\n", ied->MajorVersion);
     printf(" - MinorVersion: %u\n", ied->MinorVersion);
-    printf(" - Name: 0x%"PRIx32"\n", ied->Name);
-    printf(" - Base: 0x%"PRIx32"\n", ied->Base);
-    printf(" - NumberOfFunctions: 0x%"PRIx32"\n", ied->NumberOfFunctions);
-    printf(" - NumberOfNames: 0x%"PRIx32"\n", ied->NumberOfNames);
-    printf(" - AddressOfFunctions: 0x%"PRIx32"\n", ied->AddressOfFunctions);
-    printf(" - AddressOfNames: 0x%"PRIx32"\n", ied->AddressOfNames);
-    printf(" - AddressOfNameOrdinals: 0x%"PRIx32"\n", ied->AddressOfNameOrdinals);
+    printf(" - Name: 0x%x\n", ied->Name);
+    printf(" - Base: 0x%x\n", ied->Base);
+    printf(" - NumberOfFunctions: 0x%x (%u)\n", ied->NumberOfFunctions, ied->NumberOfFunctions);
+    printf(" - NumberOfNames: 0x%x (%u)\n", ied->NumberOfNames, ied->NumberOfNames);
+    printf(" - AddressOfFunctions: 0x%x\n", ied->AddressOfFunctions);
+    printf(" - AddressOfNames: 0x%x\n", ied->AddressOfNames);
+    printf(" - AddressOfNameOrdinals: 0x%x\n", ied->AddressOfNameOrdinals);
     printf("\n");
 }
 
@@ -470,7 +470,7 @@ void PE_printImageExportDirectoryEntry(size_t i, uint32_t n_fun, const char* nam
 //#else
 //    printf("   [%zu/%u] \n", (i+1), n_fun);
 //#endif
-    printf("   [%zu/%"PRIu32"] \n", (i+1), n_fun);
+    printf("   [%zu/%u] \n", (i+1), n_fun);
     printf("   - name: %.*s\n", name_max, name);
     printf("   - ordinal: 0x%x\n", name_ordinal);
 //#if defined(_WIN32)
@@ -478,7 +478,7 @@ void PE_printImageExportDirectoryEntry(size_t i, uint32_t n_fun, const char* nam
 //#else
 //    printf("   - function (rva: 0x%x, fo: 0x%lx):\n     ", rva, fo);
 //#endif
-    printf("   - function (rva: 0x%"PRIx32", fo: 0x%"PRIx64"):\n     ", rva, fo);
+    printf("   - function (rva: 0x%x, fo: 0x%"PRIx64"):\n     ", rva, fo);
     for ( j = 0; j < nr_of_bytes; j++ )
         printf("%02x ", bytes[j]);
     printf("...\n");
@@ -503,20 +503,20 @@ void PE_printImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
     const char f_post = '\n';
 
     printf("IMAGE_DIRECTORY_LOAD_CONFIG:\n");
-    printf(" - Size: 0x%"PRIx32"\n", lcd->Size);
-    printf(" - TimeDateStamp%s: %s (%"PRIu32")\n", fillOffset(offsets.Size, offset, 0), date, lcd->TimeDateStamp);
-    printf(" - MajorVersion%s: %"PRIu32"\n", fillOffset(offsets.MajorVersion, offset, 0), lcd->MajorVersion);
-    printf(" - MinorVersion%s: %"PRIu32"\n", fillOffset(offsets.MinorVersion, offset, 0), lcd->MinorVersion);
-    printf(" - GlobalFlagsClear%s: 0x%"PRIx32"\n", fillOffset(offsets.GlobalFlagsClear, offset, 0), lcd->GlobalFlagsClear);
-    printf(" - GlobalFlagsSet%s: 0x%"PRIx32"\n", fillOffset(offsets.GlobalFlagsSet, offset, 0), lcd->GlobalFlagsSet);
-    printf(" - CriticalSectionDefaultTimeout%s: 0x%"PRIx32"\n", fillOffset(offsets.CriticalSectionDefaultTimeout, offset, 0), lcd->CriticalSectionDefaultTimeout);
+    printf(" - Size: 0x%x\n", lcd->Size);
+    printf(" - TimeDateStamp%s: %s (%u)\n", fillOffset(offsets.Size, offset, 0), date, lcd->TimeDateStamp);
+    printf(" - MajorVersion%s: %u\n", fillOffset(offsets.MajorVersion, offset, 0), lcd->MajorVersion);
+    printf(" - MinorVersion%s: %u\n", fillOffset(offsets.MinorVersion, offset, 0), lcd->MinorVersion);
+    printf(" - GlobalFlagsClear%s: 0x%x\n", fillOffset(offsets.GlobalFlagsClear, offset, 0), lcd->GlobalFlagsClear);
+    printf(" - GlobalFlagsSet%s: 0x%x\n", fillOffset(offsets.GlobalFlagsSet, offset, 0), lcd->GlobalFlagsSet);
+    printf(" - CriticalSectionDefaultTimeout%s: 0x%x\n", fillOffset(offsets.CriticalSectionDefaultTimeout, offset, 0), lcd->CriticalSectionDefaultTimeout);
     printf(" - DeCommitFreeBlockThreshold%s: 0x%"PRIx64"\n", fillOffset(offsets.DeCommitFreeBlockThreshold, offset, 0), lcd->DeCommitFreeBlockThreshold);
     printf(" - DeCommitTotalFreeThreshold%s: 0x%"PRIx64"\n", fillOffset(offsets.DeCommitTotalFreeThreshold, offset, 0), lcd->DeCommitTotalFreeThreshold);
     printf(" - LockPrefixTable%s: 0x%"PRIx64"\n", fillOffset(offsets.LockPrefixTable, offset, 0), lcd->LockPrefixTable);
     printf(" - MaximumAllocationSize%s: 0x%"PRIx64"\n", fillOffset(offsets.MaximumAllocationSize, offset, 0), lcd->MaximumAllocationSize);
     printf(" - VirtualMemoryThreshold%s: 0x%"PRIx64"\n", fillOffset(offsets.VirtualMemoryThreshold, offset, 0), lcd->VirtualMemoryThreshold);
     printf(" - ProcessAffinityMask%s: 0x%"PRIx64"\n", fillOffset(offsets.ProcessAffinityMask, offset, 0), lcd->ProcessAffinityMask);
-    printf(" - ProcessHeapFlags%s: 0x%"PRIx32"\n", fillOffset(offsets.ProcessHeapFlags, offset, 0), lcd->ProcessHeapFlags);
+    printf(" - ProcessHeapFlags%s: 0x%x\n", fillOffset(offsets.ProcessHeapFlags, offset, 0), lcd->ProcessHeapFlags);
     printf(" - CSDVersion%s: 0x%u\n", fillOffset(offsets.CSDVersion, offset, 0), lcd->CSDVersion);
     printf(" - DependentLoadFlags%s: 0x%u\n", fillOffset(offsets.DependentLoadFlags, offset, 0), lcd->DependentLoadFlags);
     printf(" - EditList%s: 0x%"PRIx64"\n", fillOffset(offsets.EditList, offset, 0), lcd->EditList);
@@ -530,7 +530,7 @@ void PE_printImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
     printf(" - GuardCFFunctionCount%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardCFFunctionCount, offset, 0), lcd->GuardCFFunctionCount);
     PE_printSizedRVAArray(lcd->GuardCFFunctionCount, to->fun, file_size, fp, block_s);
 
-    printf(" - GuardFlags%s: 0x%"PRIx32"\n", fillOffset(offsets.GuardFlags, offset, 0), lcd->GuardFlags);
+    printf(" - GuardFlags%s: 0x%x\n", fillOffset(offsets.GuardFlags, offset, 0), lcd->GuardFlags);
     printFlag32F(lcd->GuardFlags, PE_IMAGE_GUARD_CF_INSTRUMENTED, "PE_IMAGE_GUARD_CF_INSTRUMENTED", f_pre, f_post);
     printFlag32F(lcd->GuardFlags, PE_IMAGE_GUARD_CFW_INSTRUMENTED, "PE_IMAGE_GUARD_CFW_INSTRUMENTED", f_pre, f_post);
     printFlag32F(lcd->GuardFlags, PE_IMAGE_GUARD_CF_FUNCTION_TABLE_PRESENT, "PE_IMAGE_GUARD_CF_FUNCTION_TABLE_PRESENT", f_pre, f_post);
@@ -550,8 +550,8 @@ void PE_printImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
     printf(" - CodeIntegrity\n");
     printf("   - Flags%s: 0x%u\n", fillOffset(offsets.CodeIntegrity+PeImageLoadConfigCodeIntegrityOffsets.Flags, offset, 0), lcd->CodeIntegrity.Flags);
     printf("   - Catalog%s: 0x%u\n", fillOffset(offsets.CodeIntegrity+ PeImageLoadConfigCodeIntegrityOffsets.Catalog, offset, 0), lcd->CodeIntegrity.Catalog);
-    printf("   - CatalogOffset%s: 0x%"PRIx32"\n", fillOffset(offsets.CodeIntegrity+PeImageLoadConfigCodeIntegrityOffsets.CatalogOffset, offset, 0), lcd->CodeIntegrity.CatalogOffset);
-    printf("   - Reserved%s: 0x%"PRIx32"\n", fillOffset(offsets.CodeIntegrity+ PeImageLoadConfigCodeIntegrityOffsets.Reserved, offset, 0), lcd->CodeIntegrity.Reserved);
+    printf("   - CatalogOffset%s: 0x%x\n", fillOffset(offsets.CodeIntegrity+PeImageLoadConfigCodeIntegrityOffsets.CatalogOffset, offset, 0), lcd->CodeIntegrity.CatalogOffset);
+    printf("   - Reserved%s: 0x%x\n", fillOffset(offsets.CodeIntegrity+ PeImageLoadConfigCodeIntegrityOffsets.Reserved, offset, 0), lcd->CodeIntegrity.Reserved);
     printf(" - GuardAddressTakenIatEntryTable%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardAddressTakenIatEntryTable, offset, 0), lcd->GuardAddressTakenIatEntryTable);
     printf(" - GuardAddressTakenIatEntryCount%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardAddressTakenIatEntryCount, offset, 0), lcd->GuardAddressTakenIatEntryCount);
     PE_printSizedRVAArray(lcd->GuardAddressTakenIatEntryCount, to->iat, file_size, fp, block_s);
@@ -564,12 +564,12 @@ void PE_printImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
     printf(" - CHPEMetadataPointer%s: 0x%"PRIx64"\n", fillOffset(offsets.CHPEMetadataPointer, offset, 0), lcd->CHPEMetadataPointer);
     printf(" - GuardRFFailureRoutine%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardRFFailureRoutine, offset, 0), lcd->GuardRFFailureRoutine);
     printf(" - GuardRFFailureRoutineFunctionPointer%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardRFFailureRoutineFunctionPointer, offset, 0), lcd->GuardRFFailureRoutineFunctionPointer);
-    printf(" - DynamicValueRelocTableOffset%s: 0x%"PRIx32"\n", fillOffset(offsets.DynamicValueRelocTableOffset, offset, 0), lcd->DynamicValueRelocTableOffset);
+    printf(" - DynamicValueRelocTableOffset%s: 0x%x\n", fillOffset(offsets.DynamicValueRelocTableOffset, offset, 0), lcd->DynamicValueRelocTableOffset);
     printf(" - DynamicValueRelocTableSection%s: 0x%u\n", fillOffset(offsets.DynamicValueRelocTableSection, offset, 0), lcd->DynamicValueRelocTableSection);
     printf(" - Reserved2%s: 0x%u\n", fillOffset(offsets.Reserved2, offset, 0), lcd->Reserved2);
     printf(" - GuardRFVerifyStackPointerFunctionPointer%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardRFVerifyStackPointerFunctionPointer, offset, 0), lcd->GuardRFVerifyStackPointerFunctionPointer);
-    printf(" - HotPatchTableOffset%s: 0x%"PRIx32"\n", fillOffset(offsets.HotPatchTableOffset, offset, 0), lcd->HotPatchTableOffset);
-    printf(" - Reserved3%s: 0x%"PRIx32"\n", fillOffset(offsets.Reserved3, offset, 0), lcd->Reserved3);
+    printf(" - HotPatchTableOffset%s: 0x%x\n", fillOffset(offsets.HotPatchTableOffset, offset, 0), lcd->HotPatchTableOffset);
+    printf(" - Reserved3%s: 0x%x\n", fillOffset(offsets.Reserved3, offset, 0), lcd->Reserved3);
     printf(" - EnclaveConfigurationPointer%s: 0x%"PRIx64"\n", fillOffset(offsets.EnclaveConfigurationPointer, offset, 0), lcd->EnclaveConfigurationPointer);
     printf(" - VolatileMetadataPointer%s: 0x%"PRIx64"\n", fillOffset(offsets.VolatileMetadataPointer, offset, 0), lcd->VolatileMetadataPointer);
     printf(" - GuardEHContinuationTable%s: 0x%"PRIx64"\n", fillOffset(offsets.GuardEHContinuationTable, offset, 0), lcd->GuardEHContinuationTable);
@@ -696,7 +696,7 @@ void PE_printImageResourceDirectory(const PE_IMAGE_RESOURCE_DIRECTORY* rd, uint6
 
     printf("%sResource Directory%s:\n", dashes, fillOffset(0, offset, 0));
     printf("%s- Characteristics: 0x%x\n", dashes, rd->Characteristics);
-    printf("%s- TimeDateStamp: %s (%"PRIu32")\n", dashes, date, rd->TimeDateStamp);
+    printf("%s- TimeDateStamp: %s (%u)\n", dashes, date, rd->TimeDateStamp);
     printf("%s- MajorVersion: %u\n", dashes, rd->MajorVersion);
     printf("%s- MinorVersion: %u\n", dashes, rd->MinorVersion);
     printf("%s- NumberOfNamedEntries: 0x%x\n", dashes, rd->NumberOfNamedEntries);
@@ -961,13 +961,13 @@ void PE_printImageDelayImportTableHeader(PeImageDelayLoadDescriptor* impd)
 void PE_printImageDelayImportDescriptor(PeImageDelayLoadDescriptor* did, uint64_t offset, const char* dll_name)
 {
     printf(" -%s %s (0x%x)\n", fillOffset(PeImageDelayLoadDescriptorOffsets.DllNameRVA, offset, 0), dll_name, did->DllNameRVA);
-    printf("   - Attributes%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayLoadDescriptorOffsets.Attributes, offset, 0), did->Attributes.AllAttributes);
-    printf("   - ModuleHandle%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayLoadDescriptorOffsets.ModuleHandleRVA, offset, 0), did->ModuleHandleRVA);
-    printf("   - ImportAddressTable%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayLoadDescriptorOffsets.ImportAddressTableRVA, offset, 0), did->ImportAddressTableRVA);
-    printf("   - ImportNameTable%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayLoadDescriptorOffsets.ImportNameTableRVA, offset, 0), did->ImportNameTableRVA);
-    printf("   - BoundImportAddressTable%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayLoadDescriptorOffsets.BoundImportAddressTableRVA, offset, 0), did->BoundImportAddressTableRVA);
-    printf("   - UnloadInformationTable%s: 0x%"PRIx32"\n", fillOffset(PeImageDelayLoadDescriptorOffsets.UnloadInformationTableRVA, offset, 0), did->UnloadInformationTableRVA);
-    printf("   - TimeDateStamp%s: %"PRIu32"\n", fillOffset(PeImageDelayLoadDescriptorOffsets.TimeDateStamp, offset, 0), did->TimeDateStamp);
+    printf("   - Attributes%s: 0x%x\n", fillOffset(PeImageDelayLoadDescriptorOffsets.Attributes, offset, 0), did->Attributes.AllAttributes);
+    printf("   - ModuleHandle%s: 0x%x\n", fillOffset(PeImageDelayLoadDescriptorOffsets.ModuleHandleRVA, offset, 0), did->ModuleHandleRVA);
+    printf("   - ImportAddressTable%s: 0x%x\n", fillOffset(PeImageDelayLoadDescriptorOffsets.ImportAddressTableRVA, offset, 0), did->ImportAddressTableRVA);
+    printf("   - ImportNameTable%s: 0x%x\n", fillOffset(PeImageDelayLoadDescriptorOffsets.ImportNameTableRVA, offset, 0), did->ImportNameTableRVA);
+    printf("   - BoundImportAddressTable%s: 0x%x\n", fillOffset(PeImageDelayLoadDescriptorOffsets.BoundImportAddressTableRVA, offset, 0), did->BoundImportAddressTableRVA);
+    printf("   - UnloadInformationTable%s: 0x%x\n", fillOffset(PeImageDelayLoadDescriptorOffsets.UnloadInformationTableRVA, offset, 0), did->UnloadInformationTableRVA);
+    printf("   - TimeDateStamp%s: %u\n", fillOffset(PeImageDelayLoadDescriptorOffsets.TimeDateStamp, offset, 0), did->TimeDateStamp);
 }
 
 
