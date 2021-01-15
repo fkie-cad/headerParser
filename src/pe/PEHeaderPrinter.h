@@ -183,7 +183,7 @@ void PE_printCoffFileHeader(PECoffFileHeader* ch, uint64_t offset, uint64_t star
     printf(" - Machine%s: %s (0x%X)\n", fillOffset(PECoffFileHeaderOffsets.Machine, offset, start_file_offset), arch->arch.name, ch->Machine);
 //	printf(" - Machine%s: %s (0x%X)\n", fillOffset(PECoffFileHeaderOffsets.Machine, offset), PE_getMachineName(ch->Machine), ch->Machine);
     printf(" - NumberOfSections%s: %u\n", fillOffset(PECoffFileHeaderOffsets.NumberOfSections, offset, start_file_offset), ch->NumberOfSections);
-    printf(" - TimeDateStamp%s: %s (%u)\n", fillOffset(PECoffFileHeaderOffsets.TimeDateStamp, offset, start_file_offset), date, ch->TimeDateStamp);
+    printf(" - TimeDateStamp%s: %s (0x%x)\n", fillOffset(PECoffFileHeaderOffsets.TimeDateStamp, offset, start_file_offset), date, ch->TimeDateStamp);
     printf(" - PointerToSymbolTable%s: 0x%X (%u)\n", fillOffset(PECoffFileHeaderOffsets.PointerToSymbolTable, offset, 0), ch->PointerToSymbolTable, ch->PointerToSymbolTable);
     printf(" - NumberOfSymbols%s: %u\n", fillOffset(PECoffFileHeaderOffsets.NumberOfSymbols, offset, start_file_offset), ch->NumberOfSymbols);
     printf(" - SizeOfOptionalHeader%s: %u\n", fillOffset(PECoffFileHeaderOffsets.SizeOfOptionalHeader, offset, start_file_offset), ch->SizeOfOptionalHeader);
@@ -420,7 +420,7 @@ void PE_printImageImportDescriptor(PEImageImportDescriptor* impd, uint64_t offse
 
     printf(" -%s %s (0x%x)\n", fillOffset(PEImageImportDescriptorOffsets.Name, offset, 0), impd_name, impd->Name);
     printf("   - OriginalFirstThunk%s: 0x%x\n", fillOffset(PEImageImportDescriptorOffsets.Union, offset, 0), impd->OriginalFirstThunk);
-    printf("   - TimeDateStamp%s: %s (%u)\n", fillOffset(PEImageImportDescriptorOffsets.TimeDateStamp, offset, 0), date, impd->TimeDateStamp);
+    printf("   - TimeDateStamp%s: %s (0x%x)\n", fillOffset(PEImageImportDescriptorOffsets.TimeDateStamp, offset, 0), date, impd->TimeDateStamp);
     printf("   - ForwarderChain%s: 0x%x\n", fillOffset(PEImageImportDescriptorOffsets.ForwarderChain, offset, 0), impd->ForwarderChain);
     printf("   - FirstThunk%s: 0x%x\n", fillOffset(PEImageImportDescriptorOffsets.FirstThunk, offset, 0), impd->FirstThunk);
 }
@@ -451,7 +451,7 @@ void PE_printImageExportDirectoryInfo(PE_IMAGE_EXPORT_DIRECTORY* ied)
 
     printf("IMAGE_EXPORT_DIRECTORY:\n");
     printf(" - Characteristics: 0x%x\n", ied->Characteristics);
-    printf(" - TimeDateStamp: %s (%u)\n", date, ied->TimeDateStamp);
+    printf(" - TimeDateStamp: %s (0x%x)\n", date, ied->TimeDateStamp);
     printf(" - MajorVersion: %u\n", ied->MajorVersion);
     printf(" - MinorVersion: %u\n", ied->MinorVersion);
     printf(" - Name: 0x%x\n", ied->Name);
@@ -514,7 +514,7 @@ void PE_printImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
 
     printf("IMAGE_DIRECTORY_LOAD_CONFIG:\n");
     printf(" - Size: 0x%x\n", lcd->Size);
-    printf(" - TimeDateStamp%s: %s (%u)\n", fillOffset(offsets.Size, offset, 0), date, lcd->TimeDateStamp);
+    printf(" - TimeDateStamp%s: %s (0x%x)\n", fillOffset(offsets.Size, offset, 0), date, lcd->TimeDateStamp);
     printf(" - MajorVersion%s: %u\n", fillOffset(offsets.MajorVersion, offset, 0), lcd->MajorVersion);
     printf(" - MinorVersion%s: %u\n", fillOffset(offsets.MinorVersion, offset, 0), lcd->MinorVersion);
     printf(" - GlobalFlagsClear%s: 0x%x\n", fillOffset(offsets.GlobalFlagsClear, offset, 0), lcd->GlobalFlagsClear);
@@ -707,7 +707,7 @@ void PE_printImageResourceDirectory(const PE_IMAGE_RESOURCE_DIRECTORY* rd, uint6
 
     printf("%sResource Directory%s:\n", dashes, fillOffset(0, offset, 0));
     printf("%s- Characteristics: 0x%x\n", dashes, rd->Characteristics);
-    printf("%s- TimeDateStamp: %s (%u)\n", dashes, date, rd->TimeDateStamp);
+    printf("%s- TimeDateStamp: %s (0x%x)\n", dashes, date, rd->TimeDateStamp);
     printf("%s- MajorVersion: %u\n", dashes, rd->MajorVersion);
     printf("%s- MinorVersion: %u\n", dashes, rd->MinorVersion);
     printf("%s- NumberOfNamedEntries: 0x%x\n", dashes, rd->NumberOfNamedEntries);
@@ -971,6 +971,9 @@ void PE_printImageDelayImportTableHeader(PeImageDelayLoadDescriptor* impd)
 
 void PE_printImageDelayImportDescriptor(PeImageDelayLoadDescriptor* did, uint64_t offset, const char* dll_name)
 {
+    char ts[32];
+    formatTimeStampD(did->TimeDateStamp, ts, sizeof(ts));
+
     printf(" -%s %s (0x%x)\n", fillOffset(PeImageDelayLoadDescriptorOffsets.DllNameRVA, offset, 0), dll_name, did->DllNameRVA);
     printf("   - Attributes%s: 0x%x\n", fillOffset(PeImageDelayLoadDescriptorOffsets.Attributes, offset, 0), did->Attributes.AllAttributes);
     printf("   - ModuleHandle%s: 0x%x\n", fillOffset(PeImageDelayLoadDescriptorOffsets.ModuleHandleRVA, offset, 0), did->ModuleHandleRVA);
@@ -978,7 +981,7 @@ void PE_printImageDelayImportDescriptor(PeImageDelayLoadDescriptor* did, uint64_
     printf("   - ImportNameTable%s: 0x%x\n", fillOffset(PeImageDelayLoadDescriptorOffsets.ImportNameTableRVA, offset, 0), did->ImportNameTableRVA);
     printf("   - BoundImportAddressTable%s: 0x%x\n", fillOffset(PeImageDelayLoadDescriptorOffsets.BoundImportAddressTableRVA, offset, 0), did->BoundImportAddressTableRVA);
     printf("   - UnloadInformationTable%s: 0x%x\n", fillOffset(PeImageDelayLoadDescriptorOffsets.UnloadInformationTableRVA, offset, 0), did->UnloadInformationTableRVA);
-    printf("   - TimeDateStamp%s: %u\n", fillOffset(PeImageDelayLoadDescriptorOffsets.TimeDateStamp, offset, 0), did->TimeDateStamp);
+    printf("   - TimeDateStamp%s: %s (0x%x)\n", fillOffset(PeImageDelayLoadDescriptorOffsets.TimeDateStamp, offset, 0), ts, did->TimeDateStamp);
 }
 
 

@@ -140,6 +140,8 @@ For PE files there is an extended parser available.
 size_t offset = 0;
 PEHeaderData* data = getPEHeaderData("a/file.path", offset);
 // do stuff handling data
+// ...
+// clean up
 freePEHeaderData(data);
 ```
 

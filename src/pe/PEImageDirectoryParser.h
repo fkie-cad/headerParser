@@ -561,7 +561,7 @@ void PE_parseImageBoundImportTable(PE64OptHeader* oh,
         printf("No Bound Import Table!\n\n");
         return;
     }
-    // not an rva !!
+    // not an rva, but plain fo !!
     table_fo = vaddr;
     offset = table_fo;
 
@@ -666,6 +666,11 @@ void PE_fillBoundForwarderRef(PE_IMAGE_BOUND_FORWARDER_REF* bfr,
     bfr->OffsetModuleName = *((uint16_t*)&ptr[PeImageBoundForwarderRefOffsets.OffsetModuleName]);
     bfr->Reserved= *((uint16_t*)&ptr[PeImageBoundForwarderRefOffsets.Reserved]);
 }
+
+
+
+
+
 
 /**
  * Parse ImageExportTable, i.e. DataDirectory[EXPORT]
@@ -1110,6 +1115,10 @@ int PE_fillImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
     return 0;
 }
 
+
+
+
+
 /**
  * Parse ImageResourceTable, i.e. DataDirectory[RESOURCE]
  *
@@ -1269,7 +1278,6 @@ int PE_fillImageResourceDirectoryEntry(PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
     if ( !checkFileSpace(offset, start_file_offset, PE_RESOURCE_ENTRY_SIZE, file_size))
         return 1;
 
-//	size = readCustomBlock(file_name, offset, BLOCKSIZE, block_s);
     size = readFile(fp, offset, BLOCKSIZE, block_s);
     if ( size == 0 )
         return 2;
@@ -1337,6 +1345,10 @@ uint64_t PE_getDataDirectoryEntryFileOffset(PEDataDirectory* data_directory,
 
     return table_fo;
 }
+
+
+
+
 
 int PE_parseImageBaseRelocationTable(PE64OptHeader* oh,
                                      uint16_t nr_of_sections,
