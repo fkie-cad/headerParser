@@ -427,7 +427,7 @@ void PE_printImageImportDescriptor(PEImageImportDescriptor* impd, uint64_t offse
 
 void PE_printHintFunctionHeader(int bound)
 {
-    char* col0_l = (bound) ? "Address" : "Ordinal";
+    const char* col0_l = (bound) ? "Address" : "Ordinal";
     printf("   - %s | Function\n", col0_l);
     printf("     --------+-----------\n");
 }
