@@ -60,6 +60,7 @@ TEST_F(HeaderParserLibTest, testBasicInfo)
 	EXPECT_EQ(data->code_regions_size, 1);
 	EXPECT_EQ(data->headertype, HEADER_TYPE_PE);
 	EXPECT_EQ(data->h_bitness, 64);
+	EXPECT_EQ(data->i_bitness, 64);
 	EXPECT_EQ(data->CPU_arch, ARCH_INTEL);
 	EXPECT_STREQ(data->Machine, "AMD x64");
 

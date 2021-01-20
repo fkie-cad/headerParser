@@ -628,8 +628,8 @@ typedef struct PE_IMAGE_LOAD_CONFIG_DIRECTORY32 {
     uint32_t LockPrefixTable;                // VA [x86 only] The VA of a list of addresses where the LOCK prefix is used so that they can be replaced with NOP on single processor machines.
     uint32_t MaximumAllocationSize; // Maximum allocation size, in bytes.
     uint32_t VirtualMemoryThreshold; // Maximum virtual memory size, in bytes.
-    uint32_t ProcessHeapFlags; // Process heap flags that correspond to the first argument of the HeapCreate function.These flags apply to the process heap that is created during process startup.
     uint32_t ProcessAffinityMask; // Setting this field to a non - zero value is equivalent to calling SetProcessAffinityMask with this value during process startup(.exe only)
+    uint32_t ProcessHeapFlags; // Process heap flags that correspond to the first argument of the HeapCreate function.These flags apply to the process heap that is created during process startup.
     uint16_t CSDVersion; // The service pack version identifier.
     uint16_t DependentLoadFlags; // 
     uint32_t EditList;                       // VA Reserved for use by the system.

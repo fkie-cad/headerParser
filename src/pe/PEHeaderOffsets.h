@@ -600,8 +600,8 @@ struct PE_IMAGE_LOAD_CONFIG_DIRECTORY_OFFSETS {
     uint16_t LockPrefixTable;
     uint16_t MaximumAllocationSize;
     uint16_t VirtualMemoryThreshold;
-    uint16_t ProcessHeapFlags;
     uint16_t ProcessAffinityMask;
+    uint16_t ProcessHeapFlags;
     uint16_t CSDVersion;
     uint16_t DependentLoadFlags;
     uint16_t EditList;
@@ -647,8 +647,8 @@ static const struct PE_IMAGE_LOAD_CONFIG_DIRECTORY_OFFSETS PeImageLoadConfigDire
     .LockPrefixTable = 32,
     .MaximumAllocationSize = 36,
     .VirtualMemoryThreshold = 40,
-    .ProcessHeapFlags = 44,
-    .ProcessAffinityMask = 48,
+    .ProcessAffinityMask = 44,
+    .ProcessHeapFlags = 48,
     .CSDVersion = 52,
     .DependentLoadFlags = 54,
     .EditList = 56,
