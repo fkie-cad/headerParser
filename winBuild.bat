@@ -28,25 +28,25 @@ GOTO :ParseParams
     if [%1]==[/help] goto help
 
     IF "%~1"=="/t" (
-		SET target=%2
-		SHIFT
-		goto reParseParams
-	)
+        SET target=%2
+        SHIFT
+        goto reParseParams
+    )
     IF "%~1"=="/b" (
-		SET bitness=%~2
-		SHIFT
-		goto reParseParams
-	)
+        SET bitness=%~2
+        SHIFT
+        goto reParseParams
+    )
     IF "%~1"=="/m" (
-		SET mode=%~2
-		SHIFT
-		goto reParseParams
-	)
+        SET mode=%~2
+        SHIFT
+        goto reParseParams
+    )
     IF "%~1"=="/bt" (
-		SET buildTools=%~2
-		SHIFT
-		goto reParseParams
-	)
+        SET buildTools=%~2
+        SHIFT
+        goto reParseParams
+    )
     IF /i "%~1"=="/mt" (
         SET mt=%~2
         SHIFT
@@ -56,10 +56,10 @@ GOTO :ParseParams
         SET pdb=1
         goto reParseParams
     )
-	
-	:reParseParams
+    
+    :reParseParams
     SHIFT
-	if [%1]==[] goto main
+    if [%1]==[] goto main
 
 GOTO :ParseParams
 
@@ -90,15 +90,15 @@ set vcvars="%buildTools:~1,-1%\VC\Auxiliary\Build\vcvars%bitness%.bat"
     @echo Usage: %prog_name% [/t %target%^|%target%_shared] [/b 32^|64] [/m Debug^|Release] [/d C:\Build\Tools\] [/mt=no^|Debug^|Release] [/pdb] [/h]
     @echo Default: %prog_name% [/t %target% /b %bitness% /m %mode% /bt %buildTools%]
     exit /B 0
-	
+    
 :help
     call :usage
     @echo.
     @echo Options:
-	@echo /t The target name to build. Default: headerParser.
-	@echo /b The target bitness. Default: 64.
-	@echo /m The mode (Debug^|Release) to build in. Default: Release.
-	@echo /bt Custom path to Microsoft Visual Studio BuildTools
+    @echo /t The target name to build. Default: headerParser.
+    @echo /b The target bitness. Default: 64.
+    @echo /m The mode (Debug^|Release) to build in. Default: Release.
+    @echo /bt Custom path to Microsoft Visual Studio BuildTools
     @echo /mt Statically include LIBCMT.lib. May be needed if a "VCRUNTIMExxx.dll not found Error" occurs on the target system. Default: no.
     @echo /pdb Include pdb symbols into release build.
     exit /B 0
