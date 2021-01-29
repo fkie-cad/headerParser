@@ -200,8 +200,6 @@ uint8_t Elf_readFileHeader(Elf64FileHeader* file_header, unsigned char* block_l,
 	file_header->e_shnum = *((uint16_t*) &ptr[fh_offsets.e_shnum]);
 	file_header->e_shstrndx = *((uint16_t*) &ptr[fh_offsets.e_shstrndx]);
 
-	printf("flags: 0x%x\n", file_header->e_flags);
-
 	if ( file_header->EI_DATA == ELFDATA2MSB )
 	{
 		Elf_swapFileHeaderEntries(file_header);
