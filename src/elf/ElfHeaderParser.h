@@ -186,21 +186,19 @@ uint8_t Elf_readFileHeader(Elf64FileHeader* file_header, unsigned char* block_l,
     file_header->EI_OSABI = *(&ptr[fh_offsets.EI_OSABI]);
     file_header->EI_ABIVERSION = *(&ptr[fh_offsets.EI_ABIVERSION]),
 //	file_header->EI_PAD = {0,0,0,0;0,0,0},
-    file_header->e_type = *((uint16_t*) &ptr[fh_offsets.e_type]);
-    file_header->e_machine = *((uint16_t*) &ptr[fh_offsets.e_machine]);
-    file_header->e_version = *((uint32_t*) &ptr[fh_offsets.e_version]);
+    file_header->e_type = GetIntXValueAtOffset(uint16_t, ptr, fh_offsets.e_type); *((uint16_t*) &ptr[fh_offsets.e_type]);
+    file_header->e_machine = GetIntXValueAtOffset(uint16_t, ptr, fh_offsets.e_machine);
+    file_header->e_version = GetIntXValueAtOffset(uint32_t, ptr, fh_offsets.e_version);
     file_header->e_entry = Elf_parseBitnessedValue(file_header, ptr, fh_offsets.e_entry);
     file_header->e_phoff = Elf_parseBitnessedValue(file_header, ptr, fh_offsets.e_phoff);
     file_header->e_shoff = Elf_parseBitnessedValue(file_header, ptr, fh_offsets.e_shoff);
-    file_header->e_flags = *((uint32_t*) &ptr[fh_offsets.e_flags]);
-    file_header->e_ehsize = *((uint16_t*) &ptr[fh_offsets.e_ehsize]);
-    file_header->e_phentsize = *((uint16_t*) &ptr[fh_offsets.e_phentsize]);
-    file_header->e_phnum = *((uint16_t*) &ptr[fh_offsets.e_phnum]);
-    file_header->e_shentsize = *((uint16_t*) &ptr[fh_offsets.e_shentsize]);
-    file_header->e_shnum = *((uint16_t*) &ptr[fh_offsets.e_shnum]);
-    file_header->e_shstrndx = *((uint16_t*) &ptr[fh_offsets.e_shstrndx]);
-
-    printf("flags: 0x%x\n", file_header->e_flags);
+    file_header->e_flags = GetIntXValueAtOffset(uint32_t, ptr, fh_offsets.e_flags);
+    file_header->e_ehsize = GetIntXValueAtOffset(uint16_t, ptr, fh_offsets.e_ehsize);
+    file_header->e_phentsize = GetIntXValueAtOffset(uint16_t, ptr, fh_offsets.e_phentsize);
+    file_header->e_phnum = GetIntXValueAtOffset(uint16_t, ptr, fh_offsets.e_phnum);
+    file_header->e_shentsize = GetIntXValueAtOffset(uint16_t, ptr, fh_offsets.e_shentsize);
+    file_header->e_shnum = GetIntXValueAtOffset(uint16_t, ptr, fh_offsets.e_shnum);
+    file_header->e_shstrndx = GetIntXValueAtOffset(uint16_t, ptr, fh_offsets.e_shstrndx);
 
     if ( file_header->EI_DATA == ELFDATA2MSB )
     {
