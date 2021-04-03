@@ -45,7 +45,6 @@ set(HEADER_PARSER_SRC
 	src/pe/PEWindowsSubsystem.h
 	src/utils/blockio.h
 	src/utils/common_fileio.h
-	src/utils/common_fileio.c
 	src/utils/Converter.h
 	src/utils/Converter.c
 	src/utils/Helper.h

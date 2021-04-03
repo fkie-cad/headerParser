@@ -145,7 +145,7 @@ void DirectoryRunner::printHelp()
 	printf(" -d:string : One or more source directories\n");
 	printf(" -f:string : One or more source files\n");
 	printf(" -t:uint16 : Number of threads\n");
-	printf(" -r:int : recursive directory iteration: 0: no, 1: yes\n");
+	printf(" -r:int : recursive directory iteration\n");
 	printf("\n");
 	printf("Examples:\n");
 	printf("$ %s -d a/dir/path\n", runner_name.c_str());
@@ -231,4 +231,12 @@ int DirectoryRunner::parseArgs(int argc, char** argv)
 void DirectoryRunner::setRunnerName(const std::string& name)
 {
 	runner_name = name;
+}
+
+const char* DirectoryRunner::getComparResult(bool r) const
+{
+    if ( r )
+        return "passed";
+    else
+        return "failed";
 }

@@ -63,7 +63,7 @@ int PE_getNumberOfCertificates(PE64OptHeader* oh,
  * @param oh PE64OptHeader* an PE64OptHeader received from getPEHeaderData()
  * @return int success status
  */
-int PE_fillCertificateTable(PE64OptHeader* oh,
+uint8_t PE_fillCertificateTable(PE64OptHeader* oh,
                             size_t start_file_offset,
                             size_t file_size,
                             FILE* fp,

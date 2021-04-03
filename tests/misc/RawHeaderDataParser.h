@@ -17,7 +17,8 @@ class RawHeaderDataParser
 		HeaderData* parseRawBasicData(const std::vector<std::string>& output)
 		{
 			std::string headertype;
-			uint8_t bitness = 0;
+			uint8_t i_bitness = 0;
+			uint8_t h_bitness = 0;
 			uint8_t endian = 0;
 			std::string cpu_arch;
 			std::string machine;
@@ -78,13 +79,17 @@ class RawHeaderDataParser
 				}
 				if ( !l.compare(0, 10, "headertype") )
 				{
-					headertype = l.substr(12);
+					headertype = l.substr(sizeof("headertype")+1);
+				    size_t h = headertype.find('(');
+				    string temp = headertype.substr(h+1, headertype.size()-2);
+				    h_bitness = strtoul(temp.c_str(), nullptr, 10);
+				    headertype = headertype.substr(0, h-1);
 					code_regions_started = 2;
 				}
 				else if ( !l.compare(0, 7, "bitness") )
 				{
 					std::string t = l.substr(9, 2);
-					bitness = stoul(t, nullptr, 10);
+                    i_bitness = stoul(t, nullptr, 10);
 				}
 				else if ( !l.compare(0, 6, "endian") )
 				{
@@ -113,7 +118,8 @@ class RawHeaderDataParser
 
 			HeaderData* data = new HeaderData;
 			data->headertype = findHeaderTypeId(&headertype[0]);
-			data->h_bitness = bitness;
+			data->h_bitness = h_bitness;
+			data->i_bitness = i_bitness;
 			data->endian = endian;
 			data->CPU_arch = findCPUArchId(&cpu_arch[0]);
 			data->Machine = machine_c;

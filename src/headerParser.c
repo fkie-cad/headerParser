@@ -47,7 +47,11 @@ const char* last_changed = "01.04.2021";
 #ifdef DILLER
 __declspec(dllexport)
 #endif
-int __cdecl main(int argc, char** argv)
+int
+#ifdef _WIN32
+__cdecl
+#endif
+main(int argc, char** argv)
 {
     size_t n = 0;
     int errsv = 0;

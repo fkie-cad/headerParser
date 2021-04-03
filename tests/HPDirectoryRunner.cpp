@@ -118,17 +118,17 @@ class HeaderParserDirectoryRunner : public DirectoryRunner
 		{
 			cout << " raw | lib "<<endl;
 			cout << " - headertype: " << +raw_data->headertype << " : " << +data->headertype << " :: "
-				 << (raw_data->headertype == data->headertype) << endl;
+				 << getComparResult((raw_data->headertype == data->headertype)) << endl;
 			cout << " - bitness: " << +raw_data->h_bitness << " : " << +data->h_bitness << " :: "
-                 << (raw_data->endian == data->endian) << endl;
+                 << getComparResult(raw_data->endian == data->endian) << endl;
 			cout << " - endian: " << +raw_data->endian << " : " << +data->endian << " :: "
-                 << (raw_data->h_bitness == data->h_bitness) << endl;
+                 << getComparResult(raw_data->h_bitness == data->h_bitness) << endl;
 			cout << " - cpu_arch: " << +raw_data->CPU_arch << " : " << +data->CPU_arch << " :: "
-				 << (raw_data->CPU_arch == data->CPU_arch) << endl;
+				 << getComparResult(raw_data->CPU_arch == data->CPU_arch) << endl;
 			cout << " - machine: " << raw_data->Machine << " : " << data->Machine << " :: "
-				 << (strcmp(raw_data->Machine, data->Machine) == 0) << endl;
+				 << getComparResult(strcmp(raw_data->Machine, data->Machine) == 0) << endl;
 			cout << " - code_regions_size: " << +raw_data->code_regions_size << " : " << +data->code_regions_size
-				 << " :: " << (raw_data->code_regions_size == data->code_regions_size) << endl;
+				 << " :: " << getComparResult(raw_data->code_regions_size == data->code_regions_size) << endl;
 			for ( uint16_t i = 0; i < raw_data->code_regions_size; i++ )
 			{
 				const CodeRegionData& cr0 = raw_data->code_regions[i];
@@ -137,8 +137,8 @@ class HeaderParserDirectoryRunner : public DirectoryRunner
 				cout << " - - " << i << " : "
 					 << cr0.name << " : " << cr0.start << "-" << cr0.end << " : "
 					 << cr1.name << " : " << cr1.start << "-" << cr1.end << " :: "
-					 << (strcmp(cr0.name, cr1.name) == 0) << "," << (cr0.start == cr1.start) << ","
-					 << (cr0.end == cr1.end) << endl;
+					 << getComparResult(strcmp(cr0.name, cr1.name) == 0) << "," << getComparResult(cr0.start == cr1.start) << ","
+					 << getComparResult(cr0.end == cr1.end) << endl;
 			}
 		}
 

@@ -71,6 +71,7 @@ class DirectoryRunner
 		void printActFileInfo();
 		void printFileInfo(const std::string& file);
 
+        const char* getComparResult(bool r) const;
 };
 
 #endif
