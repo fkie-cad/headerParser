@@ -10,7 +10,7 @@
 #include "../Globals.h"
 
 void expandFilePath(const char* src, char* dest);
-uint8_t blockIsTooSmall(uint64_t);
+uint8_t blockIsTooSmall(size_t);
 int checkBytes(const unsigned char* bytes, const uint8_t size, const unsigned char* block);
 uint8_t countHexWidth64(uint64_t value);
 uint8_t hasFlag64(uint64_t present, uint64_t expected);
@@ -20,7 +20,7 @@ void printFlag16(uint16_t present, uint16_t expected, const char* label);
 void printFlag32(uint32_t present, uint32_t expected, const char* label);
 void printFlag32F(uint32_t present, uint32_t expected, const char* label, const char* pre, const char post);
 void printFlag64(uint64_t present, uint64_t expected, const char* label);
-char* fillOffset(uint64_t rel_offset, uint64_t abs_offset, uint64_t file_offset);
+char* fillOffset(size_t rel_offset, size_t abs_offset, size_t file_offset);
 
 char offset_buffer[256];
 
@@ -34,34 +34,36 @@ char offset_buffer[256];
  */
 void expandFilePath(const char* src, char* dest)
 {
-	const char* env_home;
-	if ( strlen(src) == 0 ) return;
+    const char* env_home;
+    if ( strlen(src) == 0 ) return;
 
-	if ( src[0] == '~' )
-	{
-		env_home = getenv("HOME");
-		if ( env_home != NULL )
-		{
-			snprintf(dest, PATH_MAX, "%s/%s", env_home, &src[2]);
-		}
-		else
-		{
-			snprintf(dest, PATH_MAX, "%s", src);
-		}
-	}
-	else
-	{
-		snprintf(dest, PATH_MAX, "%s", src);
-	}
-	dest[PATH_MAX-1] = 0;
+    if ( src[0] == '~' )
+    {
+#if defined(__linux__) || defined(__linux) || defined(linux)
+        env_home = getenv("HOME");
+        if ( env_home != NULL )
+        {
+            snprintf(dest, PATH_MAX, "%s/%s", env_home, &src[2]);
+        }
+        else
+        {
+            snprintf(dest, PATH_MAX, "%s", src);
+        }
+#endif
+    }
+    else
+    {
+        snprintf(dest, PATH_MAX, "%s", src);
+    }
+    dest[PATH_MAX-1] = 0;
 }
 
-uint8_t blockIsTooSmall(const uint64_t header_end)
+uint8_t blockIsTooSmall(const size_t header_end)
 {
-	debug_info("blockIsTooSmall()\n");
-	debug_info(" - BLOCKSIZE_LARGE: %u\n", BLOCKSIZE_LARGE);
-	debug_info(" - header_end: %"PRIu64"\n", header_end);
-	return BLOCKSIZE_LARGE < header_end;
+    debug_info("blockIsTooSmall()\n");
+    debug_info(" - BLOCKSIZE_LARGE: %u\n", BLOCKSIZE_LARGE);
+    debug_info(" - header_end: %zx\n", header_end);
+    return BLOCKSIZE_LARGE < header_end;
 }
 
 /**
@@ -74,103 +76,104 @@ uint8_t blockIsTooSmall(const uint64_t header_end)
  */
 int checkBytes(const unsigned char* bytes, const uint8_t size, const unsigned char* block)
 {
-	uint64_t i;
+    size_t i;
 
-	for ( i = 0; i < size; i++ )
-	{
-		if ( block[i] != bytes[i] )
-			return 0;
-	}
+    for ( i = 0; i < size; i++ )
+    {
+        if ( block[i] != bytes[i] )
+            return 0;
+    }
 
-	return 1;
+    return 1;
 }
 
 uint8_t countHexWidth64(uint64_t value)
 {
-	uint8_t width = 16;
-	uint8_t t8;
-	uint16_t t16;
-	uint32_t t32 = (uint32_t) (value >> 32u);
-	if ( t32 == 0 )
-	{
-		width -= 8;
-		t32 = (uint32_t) value;
-	}
-	t16 = (uint16_t) (t32 >> 16u);
-	if ( t16 == 0 )
-	{
-		width -= 4;
-		t16 = (uint16_t) t32;
-	}
-	t8 = (uint8_t) (t16 >> 8u);
-	if ( t8 == 0 )
-	{
-		width -= 2;
-	}
-	return width;
+    uint8_t width = 16;
+    uint8_t t8;
+    uint16_t t16;
+    uint32_t t32 = (uint32_t) (value >> 32u);
+    if ( t32 == 0 )
+    {
+        width -= 8;
+        t32 = (uint32_t) value;
+    }
+    t16 = (uint16_t) (t32 >> 16u);
+    if ( t16 == 0 )
+    {
+        width -= 4;
+        t16 = (uint16_t) t32;
+    }
+    t8 = (uint8_t) (t16 >> 8u);
+    if ( t8 == 0 )
+    {
+        width -= 2;
+    }
+    return width;
 }
 
 uint8_t hasFlag64(uint64_t present, uint64_t expected)
 {
-	uint64_t mask = expected & present;
-	return mask == expected;
+    uint64_t mask = expected & present;
+    return mask == expected;
 }
 
 uint8_t hasFlag32(uint32_t present, uint32_t expected)
 {
-	uint32_t mask = expected & present;
-	return mask == expected;
+    uint32_t mask = expected & present;
+    return mask == expected;
 }
 
 uint8_t hasFlag16(uint16_t present, uint16_t expected)
 {
-	uint16_t mask = expected & present;
-	return mask == expected;
+    uint16_t mask = expected & present;
+    return mask == expected;
 }
 
 void printFlag16(uint16_t present, uint16_t expected, const char* label)
 {
-	if ( hasFlag16(present, expected) )
-		printf(" %s |", label);
+    if ( hasFlag16(present, expected) )
+        printf(" %s |", label);
 }
 
 void printFlag32(uint32_t present, uint32_t expected, const char* label)
 {
-	printFlag32F(present, expected, label, " ", '|');
+    printFlag32F(present, expected, label, " ", '|');
 }
 
 void printFlag32F(uint32_t present, uint32_t expected, const char* label, const char* pre, const char post)
 {
-	if ( hasFlag32(present, expected) )
-		printf("%s%s %c", pre, label, post);
+    if ( hasFlag32(present, expected) )
+        printf("%s%s %c", pre, label, post);
 }
 
 void printFlag64(uint64_t present, uint64_t expected, const char* label)
 {
-	if ( hasFlag64(present, expected) )
-		printf(" %s |", label);
+    if ( hasFlag64(present, expected) )
+        printf(" %s |", label);
 }
 
 /**
  * Fill up file offset value of value for printing.
+ * 
  * @param rel_offset 
  * @param abs_offset 
  * @param file_offset 
  * @return 
  */
-char* fillOffset(uint64_t rel_offset, uint64_t abs_offset, uint64_t file_offset)
+char* fillOffset(size_t rel_offset, size_t abs_offset, size_t file_offset)
 {
-	if ( info_level == INFO_LEVEL_FULL_WITH_OFFSETS )
+    if ( info_level == INFO_LEVEL_FULL_WITH_OFFSETS )
 //#if defined(_WIN32)
 //		sprintf(offset_buffer, " (0x%llx)", abs_offset+rel_offset+file_offset);
 //#else
 //		sprintf(offset_buffer, " (0x%lx)", abs_offset+rel_offset+file_offset);
 //#endif
-		sprintf(offset_buffer, " (0x%"PRIx64")", abs_offset+rel_offset+file_offset);
-	else
-		offset_buffer[0] = 0;
+        sprintf(offset_buffer, " (0x%zx)", abs_offset+rel_offset+file_offset);
+    else
+        offset_buffer[0] = 0;
 
-	return offset_buffer;
+    return offset_buffer;
 }
 
 #endif

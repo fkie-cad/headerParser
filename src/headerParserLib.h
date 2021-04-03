@@ -30,7 +30,7 @@ extern "C"{
  * @return HeaderData* filled with info or NULL if file does not exist or reading its bytes failed.
  */
 HeaderData* getBasicHeaderParserInfo(const char* file,
-                                     uint64_t start,
+                                     size_t start,
                                      uint8_t force);
 
 /**

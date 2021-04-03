@@ -10,22 +10,22 @@ const unsigned char MAGIC_MACH_O_BYTES_64[4] = { 0xFE, 0xED, 0xFA, 0xCF };
 const unsigned char MAGIC_MACH_O_BYTES_32_RV[4] = { 0xCE, 0xFA, 0xED, 0xFE };
 const unsigned char MAGIC_MACH_O_BYTES_64_RV[4] = { 0xCF, 0xFA, 0xED, 0xFE };
 
-const uint8_t MAGIC_MACH_O_BYTES_LN = 4;
-const uint8_t SIZE_OF_MACHO_O_HEADER = 28;
-const uint8_t SIZE_OF_MACHO_O_HEADER_64 = 32;
-const uint8_t SIZE_OF_MACHO_O_LOAD_COMMAND = 8;
-const uint8_t SIZE_OF_MACHO_O_SEGMENT_HEADER_32 = 56;
-const uint8_t SIZE_OF_MACHO_O_SEGMENT_HEADER_64 = 72;
-const uint8_t SIZE_OF_MACHO_O_SECTEION_HEADER_32 = 68;
-const uint8_t SIZE_OF_MACHO_O_SECTEION_HEADER_64 = 80;
+#define MAGIC_MACH_O_BYTES_LN (4)
+#define SIZE_OF_MACHO_O_HEADER (28)
+#define SIZE_OF_MACHO_O_HEADER_64 (32)
+#define SIZE_OF_MACHO_O_LOAD_COMMAND (8)
+#define SIZE_OF_MACHO_O_SEGMENT_HEADER_32 (56)
+#define SIZE_OF_MACHO_O_SEGMENT_HEADER_64 (72)
+#define SIZE_OF_MACHO_O_SECTEION_HEADER_32 (68)
+#define SIZE_OF_MACHO_O_SECTEION_HEADER_64 (80)
 
 typedef uint32_t cpu_type_t;
 typedef uint32_t cpu_subtype_t;
 typedef uint32_t vm_prot_t;
 
 struct load_command {
-	uint32_t cmd;
-	uint32_t cmdsize;
+    uint32_t cmd;
+    uint32_t cmdsize;
 };
 
 /*
@@ -33,13 +33,13 @@ struct load_command {
  * is the same for both 32-bit and 64-bit architectures.
  */
 typedef struct mach_header {
-	uint32_t magic;		/* mach magic number identifier */
-	cpu_type_t cputype;	/* cpu specifier */
-	cpu_subtype_t cpusubtype;	/* machine specifier */
-	uint32_t filetype;	/* type of file */
-	uint32_t ncmds;		/* number of load commands */
-	uint32_t sizeofcmds;	/* the size of all the load commands */
-	uint32_t flags;		/* flags */
+    uint32_t magic;		/* mach magic number identifier */
+    cpu_type_t cputype;	/* cpu specifier */
+    cpu_subtype_t cpusubtype;	/* machine specifier */
+    uint32_t filetype;	/* type of file */
+    uint32_t ncmds;		/* number of load commands */
+    uint32_t sizeofcmds;	/* the size of all the load commands */
+    uint32_t flags;		/* flags */
 } MachHeader;
 
 // file types
@@ -139,9 +139,9 @@ typedef struct mach_header {
 #define LC_BUILD_VERSION 0x32 // build for platform min OS version
 
 typedef struct version_32 {
-	uint16_t v0;
-	uint8_t v1;
-	uint8_t v2;
+    uint16_t v0;
+    uint8_t v1;
+    uint8_t v2;
 } Version32;
 
 /*
@@ -149,57 +149,57 @@ typedef struct version_32 {
  * 64-bit architectures.
  */
 typedef struct mach_header_64 {
-	uint32_t	magic;		/* mach magic number identifier */
-	cpu_type_t	cputype;	/* cpu specifier */
-	cpu_subtype_t	cpusubtype;	/* machine specifier */
-	uint32_t	filetype;	/* type of file */
-	uint32_t	ncmds;		/* number of load commands */
-	uint32_t	sizeofcmds;	/* the size of all the load commands */
-	uint32_t	flags;		/* flags */
-	uint32_t	reserved;	/* reserved */
+    uint32_t magic;		/* mach magic number identifier */
+    cpu_type_t cputype;	/* cpu specifier */
+    cpu_subtype_t cpusubtype;	/* machine specifier */
+    uint32_t filetype;	/* type of file */
+    uint32_t ncmds;		/* number of load commands */
+    uint32_t sizeofcmds;	/* the size of all the load commands */
+    uint32_t flags;		/* flags */
+    uint32_t reserved;	/* reserved */
 } MachHeader64;
 
 typedef struct mach_0_load_command
 {
-	uint32_t cmd;
-	uint32_t cmdsize;
+    uint32_t cmd;
+    uint32_t cmdsize;
 } LoadCommand;
 
 #define MACH_O_UUID_LN 16
 
 typedef struct UuidCommand
 {
-	uint32_t cmd;
-	uint32_t cmdsize;
-	uint8_t uuid[MACH_O_UUID_LN];
+    uint32_t cmd;
+    uint32_t cmdsize;
+    uint8_t uuid[MACH_O_UUID_LN];
 } UuidCommand;
 
 typedef struct SegmentCommand32 {
-	uint32_t  cmd;
-	uint32_t  cmdsize;
-	char      segname[MACH_O_SEG_NAME_LN];
-	uint32_t  vmaddr;
-	uint32_t  vmsize;
-	uint32_t  fileoff;
-	uint32_t  filesize;
-	vm_prot_t maxprot;
-	vm_prot_t initprot;
-	uint32_t  nsects;
-	uint32_t  flags;
+    uint32_t  cmd;
+    uint32_t  cmdsize;
+    char      segname[MACH_O_SEG_NAME_LN];
+    uint32_t  vmaddr;
+    uint32_t  vmsize;
+    uint32_t  fileoff;
+    uint32_t  filesize;
+    vm_prot_t maxprot;
+    vm_prot_t initprot;
+    uint32_t  nsects;
+    uint32_t  flags;
 } SegmentCommand32;
 
 typedef struct SegmentCommand64 {
-	uint32_t  cmd;
-	uint32_t  cmdsize;
-	char      segname[MACH_O_SEG_NAME_LN];
-	uint64_t  vmaddr;
-	uint64_t  vmsize;
-	uint64_t  fileoff;
-	uint64_t  filesize;
-	vm_prot_t maxprot;
-	vm_prot_t initprot;
-	uint32_t  nsects;
-	uint32_t  flags;
+    uint32_t  cmd;
+    uint32_t  cmdsize;
+    char      segname[MACH_O_SEG_NAME_LN];
+    uint64_t  vmaddr;
+    uint64_t  vmsize;
+    uint64_t  fileoff;
+    uint64_t  filesize;
+    vm_prot_t maxprot;
+    vm_prot_t initprot;
+    uint32_t  nsects;
+    uint32_t  flags;
 } SegmentCommand64;
 
 /* Constants for the flags field of the segment_command */
@@ -210,32 +210,32 @@ typedef struct SegmentCommand64 {
 
 typedef struct MachOSection
 {
-	char sectname[16];
-	char segname[16];
-	uint32_t addr;
-	uint32_t size;
-	uint32_t offset;
-	uint32_t align;
-	uint32_t reloff;
-	uint32_t nreloc;
-	uint32_t flags;
-	uint32_t reserved1;
-	uint32_t reserved2;
+    char sectname[16];
+    char segname[16];
+    uint32_t addr;
+    uint32_t size;
+    uint32_t offset;
+    uint32_t align;
+    uint32_t reloff;
+    uint32_t nreloc;
+    uint32_t flags;
+    uint32_t reserved1;
+    uint32_t reserved2;
 } MachOSection;
 
 typedef struct section_64 { /* for 64-bit architectures */
-	char		sectname[16];	/* name of this section */
-	char		segname[16];	/* segment this section goes in */
-	uint64_t	addr;		/* memory address of this section */
-	uint64_t	size;		/* size in bytes of this section */
-	uint32_t	offset;		/* file offset of this section */
-	uint32_t	align;		/* section alignment (power of 2) */
-	uint32_t	reloff;		/* file offset of relocation entries */
-	uint32_t	nreloc;		/* number of relocation entries */
-	uint32_t	flags;		/* flags (section type and attributes)*/
-	uint32_t	reserved1;	/* reserved (for offset or index) */
-	uint32_t	reserved2;	/* reserved (for count or sizeof) */
-	uint32_t	reserved3;	/* reserved */
+    char		sectname[16];	/* name of this section */
+    char		segname[16];	/* segment this section goes in */
+    uint64_t	addr;		/* memory address of this section */
+    uint64_t	size;		/* size in bytes of this section */
+    uint32_t	offset;		/* file offset of this section */
+    uint32_t	align;		/* section alignment (power of 2) */
+    uint32_t	reloff;		/* file offset of relocation entries */
+    uint32_t	nreloc;		/* number of relocation entries */
+    uint32_t	flags;		/* flags (section type and attributes)*/
+    uint32_t	reserved1;	/* reserved (for offset or index) */
+    uint32_t	reserved2;	/* reserved (for count or sizeof) */
+    uint32_t	reserved3;	/* reserved */
 } MachOSection64;
 
 /*
@@ -315,10 +315,10 @@ typedef struct section_64 { /* for 64-bit architectures */
 
 typedef struct twolevel_hints_command
 {
-	uint32_t cmd;
-	uint32_t cmdsize;
-	uint32_t offset;
-	uint32_t nhints;
+    uint32_t cmd;
+    uint32_t cmdsize;
+    uint32_t offset;
+    uint32_t nhints;
 } TwolevelHintsCommand;
 
 //struct twolevel_hint
@@ -329,81 +329,81 @@ typedef struct twolevel_hints_command
 
 union lc_str
 {
-	uint32_t offset;
+    uint32_t offset;
 #ifndef __LP64__
-	char *ptr;
+    char *ptr;
 #endif
 };
 
 typedef struct dylib
 {
-	union lc_str name;
-	uint32_t timestamp;
-	uint32_t current_version;
-	uint32_t compatibility_version;
+    union lc_str name;
+    uint32_t timestamp;
+    uint32_t current_version;
+    uint32_t compatibility_version;
 } Dylib;
 
 typedef struct dylib_command
 {
-	uint32_t cmd;
-	uint32_t cmdsize;
-	struct dylib dylib;
+    uint32_t cmd;
+    uint32_t cmdsize;
+    struct dylib dylib;
 } DylibCommand;
 
 typedef struct prebound_dylib_command
 {
-	uint32_t cmd;
-	uint32_t cmdsize;
-	union lc_str name;
-	uint32_t nmodules;
-	union lc_str linked_modules;
+    uint32_t cmd;
+    uint32_t cmdsize;
+    union lc_str name;
+    uint32_t nmodules;
+    union lc_str linked_modules;
 } PreboundDylibCommand;
 
 // LC_THREAD | LC_UNIXTHREAD
 typedef struct thread_command
 {
-	uint32_t cmd;
-	uint32_t cmdsize;
-	uint32_t flavor;
-	uint32_t count;
+    uint32_t cmd;
+    uint32_t cmdsize;
+    uint32_t flavor;
+    uint32_t count;
 //	struct cpu_thread_state state;
 } ThreadCommand;
 
 // LC_ROUTINES
 typedef struct routines_command
 {
-	uint32_t cmd;
-	uint32_t cmdsize;
-	uint32_t init_address;
-	uint32_t init_module;
-	uint32_t reserved1;
-	uint32_t reserved2;
-	uint32_t reserved3;
-	uint32_t reserved4;
-	uint32_t reserved5;
-	uint32_t reserved6;
+    uint32_t cmd;
+    uint32_t cmdsize;
+    uint32_t init_address;
+    uint32_t init_module;
+    uint32_t reserved1;
+    uint32_t reserved2;
+    uint32_t reserved3;
+    uint32_t reserved4;
+    uint32_t reserved5;
+    uint32_t reserved6;
 } RoutinesCommand;
 
 // LC_ROUTINES_64
 typedef struct routines_command_64
 {
-	uint32_t cmd;
-	uint32_t cmdsize;
-	uint64_t init_address;
-	uint64_t init_module;
-	uint64_t reserved1;
-	uint64_t reserved2;
-	uint64_t reserved3;
-	uint64_t reserved4;
-	uint64_t reserved5;
-	uint64_t reserved6;
+    uint32_t cmd;
+    uint32_t cmdsize;
+    uint64_t init_address;
+    uint64_t init_module;
+    uint64_t reserved1;
+    uint64_t reserved2;
+    uint64_t reserved3;
+    uint64_t reserved4;
+    uint64_t reserved5;
+    uint64_t reserved6;
 } RoutinesCommand64;
 
 typedef struct sub_command
 {
-	uint32_t cmd;
-	uint32_t cmdsize;
-	union lc_str name;
+    uint32_t cmd;
+    uint32_t cmdsize;
+    union lc_str name;
 } SubCommand;
 
 typedef SubCommand SubFrameworkCommand; // LC_SUB_FRAMEWORK
@@ -415,102 +415,102 @@ typedef SubCommand DyLinkerCommand; // LC_SUB_CLIENT
 // LC_SYMTAB
 typedef struct symtab_command
 {
-	uint32_t cmd;
-	uint32_t cmdsize;
-	uint32_t symoff;
-	uint32_t nsyms;
-	uint32_t stroff;
-	uint32_t strsize;
+    uint32_t cmd;
+    uint32_t cmdsize;
+    uint32_t symoff;
+    uint32_t nsyms;
+    uint32_t stroff;
+    uint32_t strsize;
 } SymtabCommand;
 
 // entry of symtab
 struct nlist
 {
-	union {
+    union {
 #ifndef __LP64__
-		char *n_name; // The n_name field is not used in Mach-O files
+        char *n_name; // The n_name field is not used in Mach-O files
 #endif
-		int32_t n_strx; // index into string table
-	} n_un;
-	uint8_t n_type;
-	uint8_t n_sect;
-	int16_t n_desc;
-	uint32_t n_value;
+        int32_t n_strx; // index into string table
+    } n_un;
+    uint8_t n_type;
+    uint8_t n_sect;
+    int16_t n_desc;
+    uint32_t n_value;
 };
 
 struct nlist_64 {
-	union {
-		uint32_t  n_strx; /* index into the string table */
-	} n_un;
-	uint8_t n_type;        /* type flag, see below */
-	uint8_t n_sect;        /* section number or NO_SECT */
-	uint16_t n_desc;       /* see <mach-o/stab.h> */
-	uint64_t n_value;      /* value of this symbol (or stab offset) */
+    union {
+        uint32_t  n_strx; /* index into the string table */
+    } n_un;
+    uint8_t n_type;        /* type flag, see below */
+    uint8_t n_sect;        /* section number or NO_SECT */
+    uint16_t n_desc;       /* see <mach-o/stab.h> */
+    uint64_t n_value;      /* value of this symbol (or stab offset) */
 };
 
 // LC_DYSYMTAB
 typedef struct dysymtab_command
 {
-	uint32_t cmd;
-	uint32_t cmdsize;
-	uint32_t ilocalsym;
-	uint32_t nlocalsym;
-	uint32_t iextdefsym;
-	uint32_t nextdefsym;
-	uint32_t iundefsym;
-	uint32_t nundefsym;
-	uint32_t tocoff;
-	uint32_t ntoc;
-	uint32_t modtaboff;
-	uint32_t nmodtab;
-	uint32_t extrefsymoff;
-	uint32_t nextrefsyms;
-	uint32_t indirectsymoff;
-	uint32_t nindirectsyms;
-	uint32_t extreloff;
-	uint32_t nextrel;
-	uint32_t locreloff;
-	uint32_t nlocrel;
+    uint32_t cmd;
+    uint32_t cmdsize;
+    uint32_t ilocalsym;
+    uint32_t nlocalsym;
+    uint32_t iextdefsym;
+    uint32_t nextdefsym;
+    uint32_t iundefsym;
+    uint32_t nundefsym;
+    uint32_t tocoff;
+    uint32_t ntoc;
+    uint32_t modtaboff;
+    uint32_t nmodtab;
+    uint32_t extrefsymoff;
+    uint32_t nextrefsyms;
+    uint32_t indirectsymoff;
+    uint32_t nindirectsyms;
+    uint32_t extreloff;
+    uint32_t nextrel;
+    uint32_t locreloff;
+    uint32_t nlocrel;
 } DySymtabCommand;
 
 struct dylib_table_of_contents
 {
-	uint32_t symbol_index;
-	uint32_t module_index;
+    uint32_t symbol_index;
+    uint32_t module_index;
 };
 
 struct dylib_module
 {
-	uint32_t module_name;
-	uint32_t iextdefsym;
-	uint32_t nextdefsym;
-	uint32_t irefsym;
-	uint32_t nrefsym;
-	uint32_t ilocalsym;
-	uint32_t nlocalsym;
-	uint32_t iextrel;
-	uint32_t nextrel;
-	uint32_t iinit_iterm;
-	uint32_t ninit_nterm;
-	uint32_t objc_module_info_addr;
-	uint32_t objc_module_info_size;
+    uint32_t module_name;
+    uint32_t iextdefsym;
+    uint32_t nextdefsym;
+    uint32_t irefsym;
+    uint32_t nrefsym;
+    uint32_t ilocalsym;
+    uint32_t nlocalsym;
+    uint32_t iextrel;
+    uint32_t nextrel;
+    uint32_t iinit_iterm;
+    uint32_t ninit_nterm;
+    uint32_t objc_module_info_addr;
+    uint32_t objc_module_info_size;
 };
 
 struct dylib_module_64
 {
-	uint32_t module_name;
-	uint32_t iextdefsym;
-	uint32_t nextdefsym;
-	uint32_t irefsym;
-	uint32_t nrefsym;
-	uint32_t ilocalsym;
-	uint32_t nlocalsym;
-	uint32_t iextrel;
-	uint32_t nextrel;
-	uint32_t iinit_iterm;
-	uint32_t ninit_nterm;
-	uint32_t objc_module_info_size;
-	uint64_t objc_module_info_addr;
+    uint32_t module_name;
+    uint32_t iextdefsym;
+    uint32_t nextdefsym;
+    uint32_t irefsym;
+    uint32_t nrefsym;
+    uint32_t ilocalsym;
+    uint32_t nlocalsym;
+    uint32_t iextrel;
+    uint32_t nextrel;
+    uint32_t iinit_iterm;
+    uint32_t ninit_nterm;
+    uint32_t objc_module_info_size;
+    uint64_t objc_module_info_addr;
 };
 
 /*
@@ -519,18 +519,18 @@ struct dylib_module_64
  */
 // LC_VERSION_MIN_MACOSX | LC_VERSION_MIN_IPHONEOS
 typedef struct version_min_command {
-	uint32_t cmd;
-	uint32_t cmdsize;	/* sizeof(struct min_version_command) */
-	uint32_t version;	/* X.Y.Z is encoded in nibbles xxxx.yy.zz */
-	uint32_t reserved;	/* zero */
+    uint32_t cmd;
+    uint32_t cmdsize;	/* sizeof(struct min_version_command) */
+    uint32_t version;	/* X.Y.Z is encoded in nibbles xxxx.yy.zz */
+    uint32_t reserved;	/* zero */
 } VersionMinCommand;
 
 typedef struct linked_it_data_command
 {
-	uint32_t cmd;
-	uint32_t cmdsize;
-	uint32_t offset;
-	uint32_t size;
+    uint32_t cmd;
+    uint32_t cmdsize;
+    uint32_t offset;
+    uint32_t size;
 } LinkedItDataCommand;
 
 typedef LinkedItDataCommand CodeSignatureCommand; // LC_CODE_SIGNATURE
@@ -541,51 +541,51 @@ typedef LinkedItDataCommand DylibCodeSignDRSCommand; // LC_DYLIB_CODE_SIGN_DRS
 typedef LinkedItDataCommand LinkeOptimizationHintCommand; // LC_LINKER_OPTIMIZATION_HINT
 
 typedef struct dyld_info_command {
-	uint32_t   cmd;      /* LC_DYLD_INFO or LC_DYLD_INFO_ONLY */
-	uint32_t   cmdsize;      /* sizeof(struct dyld_info_command) */
-	uint32_t   rebase_off;  /* file offset to rebase info  */
-	uint32_t   rebase_size; /* size of rebase info   */
-	uint32_t   bind_off;    /* file offset to binding info   */
-	uint32_t   bind_size;   /* size of binding info  */
-	uint32_t   weak_bind_off;   /* file offset to weak binding info   */
-	uint32_t   weak_bind_size;  /* size of weak binding info  */
-	uint32_t   lazy_bind_off;   /* file offset to lazy binding info */
-	uint32_t   lazy_bind_size;  /* size of lazy binding infs */
-	uint32_t   export_off;  /* file offset to lazy binding info */
-	uint32_t   export_size; /* size of lazy binding infos */
+    uint32_t   cmd;      /* LC_DYLD_INFO or LC_DYLD_INFO_ONLY */
+    uint32_t   cmdsize;      /* sizeof(struct dyld_info_command) */
+    uint32_t   rebase_off;  /* file offset to rebase info  */
+    uint32_t   rebase_size; /* size of rebase info   */
+    uint32_t   bind_off;    /* file offset to binding info   */
+    uint32_t   bind_size;   /* size of binding info  */
+    uint32_t   weak_bind_off;   /* file offset to weak binding info   */
+    uint32_t   weak_bind_size;  /* size of weak binding info  */
+    uint32_t   lazy_bind_off;   /* file offset to lazy binding info */
+    uint32_t   lazy_bind_size;  /* size of lazy binding infs */
+    uint32_t   export_off;  /* file offset to lazy binding info */
+    uint32_t   export_size; /* size of lazy binding infos */
 } DyldInfoCommand;
 
 typedef struct source_version_command
 {
-	uint32_t cmd;
-	uint32_t cmdsize;
-	uint64_t version;
+    uint32_t cmd;
+    uint32_t cmdsize;
+    uint64_t version;
 } SourceVersionCommand;
 
 typedef struct main_dylib_command
 {
-	uint32_t cmd;
-	uint32_t cmdsize;
-	uint64_t entry_off;
-	uint64_t stack_size;
+    uint32_t cmd;
+    uint32_t cmdsize;
+    uint64_t entry_off;
+    uint64_t stack_size;
 } MainDylibCommand;
 
 typedef struct
 {
-	uint32_t tool;      // enum for the tool
-	uint32_t version;   // version of the tool
+    uint32_t tool;      // enum for the tool
+    uint32_t version;   // version of the tool
 } build_tool_version;
 
 // LC_BUILD_VERSION
 typedef struct build_version_command
 {
-	uint32_t cmd;
-	uint32_t cmdsize;
-	uint32_t platform;  // platform
-	uint32_t minos;     // X.Y.Z is encoded in nibbles xxxx.yy.zz
-	uint32_t sdk;       // X.Y.Z is encoded in nibbles xxxx.yy.zz
-	uint32_t ntools;
-	build_tool_version* tools; // [ntools]
+    uint32_t cmd;
+    uint32_t cmdsize;
+    uint32_t platform;  // platform
+    uint32_t minos;     // X.Y.Z is encoded in nibbles xxxx.yy.zz
+    uint32_t sdk;       // X.Y.Z is encoded in nibbles xxxx.yy.zz
+    uint32_t ntools;
+    build_tool_version* tools; // [ntools]
 } BuildVersionCommand;
 
 #endif

@@ -26,7 +26,7 @@ extern "C"{
  * @param start
  * @return PEHeaderData* filled with info or NULL if file does not exist or reading its bytes failed.
  */
-PEHeaderData* getPEHeaderData(const char* file, uint64_t start);
+PEHeaderData* getPEHeaderData(const char* file, size_t start);
 
 /**
  * Free PEHeaderData object and its inner structs.
@@ -50,10 +50,10 @@ uint8_t PE_hasCertificate(PE64OptHeader* oh);
  * @return int the number of certificates
  */
 int PE_getNumberOfCertificates(PE64OptHeader* oh,
-							   uint64_t start_file_offset,
-							   size_t file_size,
+                               size_t start_file_offset,
+                               size_t file_size,
                                FILE* fp,
-							   unsigned char* block_s);
+                               unsigned char* block_s);
 
 /**
  * Fill a PeAttributeCertificateTable with values from file.
@@ -64,10 +64,10 @@ int PE_getNumberOfCertificates(PE64OptHeader* oh,
  * @return int success status
  */
 int PE_fillCertificateTable(PE64OptHeader* oh,
-							uint64_t start_file_offset,
-							size_t file_size,
+                            size_t start_file_offset,
+                            size_t file_size,
                             FILE* fp,
-							unsigned char* block_s,
+                            unsigned char* block_s,
                             PeAttributeCertificateTable* table,
                             uint8_t table_size);
 
@@ -86,11 +86,11 @@ int PE_fillCertificateTable(PE64OptHeader* oh,
  * @return int status code: 0: success, -1: dir does not exist
  */
 int PE_writeCertificatesToFile(PeAttributeCertificateTable* table,
-							   uint8_t table_size,
-							   const char* dir,
-							   size_t file_size,
+                               uint8_t table_size,
+                               const char* dir,
+                               size_t file_size,
                                FILE* fp,
-							   unsigned char* block_s);
+                               unsigned char* block_s);
 
 /**
  * Write one certificates to file in DER format.
@@ -107,11 +107,11 @@ int PE_writeCertificatesToFile(PeAttributeCertificateTable* table,
  * @return int success status
  */
 int PE_writeCertificateToFile(PeAttributeCertificateTable* table,
-							  uint8_t id,
-							  const char* file,
-							  size_t file_size,
-							  FILE* src,
-							  unsigned char* block_s);
+                              uint8_t id,
+                              const char* file,
+                              size_t file_size,
+                              FILE* src,
+                              unsigned char* block_s);
 
 /**
  * Parse ImageImportTable, i.e. DataDirectory[IMPORT]
@@ -123,8 +123,8 @@ void PE_parseImageImportTable(PE64OptHeader* optional_header,
                               uint16_t nr_of_sections,
                               SVAS* svas,
                               uint8_t bitness,
-                              uint64_t start_file_offset,
-                              uint64_t* abs_file_offset,
+                              size_t start_file_offset,
+                              size_t* abs_file_offset,
                               size_t file_size,
                               FILE* fp,
                               unsigned char* block_l,

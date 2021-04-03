@@ -12,9 +12,9 @@ const unsigned char MAGIC_LX_SIGNATURE[2] = { 0x4C, 0x58 };
 //const unsigned char MAGIC_NE_SIGNATURE[4] = { 0x4E, 0x45, 0x05, 0x3C };
 //const unsigned char MAGIC_NE_SIGNATURE[4] = { 0x4E, 0x45, 0x06, 0x01 };
 const unsigned char MAGIC_DOS_STUB_BEGINNING[] = { 0xB4, 0x09, 0xCD, 0x21, 0xB8, 0x01, 0x4C, 0xCD, 0x21 };
-const uint8_t MAGIC_DOS_STUB_BEGINNING_LN = 9;
+#define MAGIC_DOS_STUB_BEGINNING_LN (9)
 
-uint8_t PE_DOS_STUB_OFFSET = 0x45;
+#define PE_DOS_STUB_OFFSET (0x45)
 
 #ifndef IMAGE_ORDINAL_FLAG64
 #define IMAGE_ORDINAL_FLAG64 0x8000000000000000
@@ -68,7 +68,7 @@ typedef struct PEImageDosHeader
     uint32_t e_lfanew; // Offset to the 'PE\0\0' signature relative to the beginning of the file
 } PEImageDosHeader;
 
-const uint8_t PE_COFF_FILE_HEADER_SIZE = 20;
+#define PE_COFF_FILE_HEADER_SIZE (20)
 
 typedef struct PECoffFileHeader
 {
@@ -101,7 +101,7 @@ typedef struct PECoffFileHeader
 // This size includes the size field itself, so that the value in this location would be 4 if no strings were present.
 //
 // Following the size are null-terminated strings that are pointed to by symbols in the COFF symbol table.
-const uint32_t PE_STRING_TABLE_SIZE_INFO_SIZE = 4;
+#define PE_STRING_TABLE_SIZE_INFO_SIZE (4)
 
 typedef struct pe_data_directory
 {

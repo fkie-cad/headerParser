@@ -1,10 +1,11 @@
 #ifndef COMMON_FILEIO_H
 #define COMMON_FILEIO_H
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <stdint.h>
+
+#include <stdio.h>
+#include <string.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -13,13 +14,60 @@
 
 // Contains : lowlevel fileio support.
 
+// Get file size.
+// Returns actual size in bytes.
 static size_t getSize(const char* finame);
+
 static size_t getSizeFP(FILE* fi);
+
+// Uses MALLOC.
+// Caller is responsible for freeing this!
 static size_t readCharArrayFile(const char* finame, unsigned char ** pData, size_t begin, size_t stopAt);
+
+/**
+ * Read from fi at begin size bytes into data[size]
+ *
+ * @param fi
+ * @param begin
+ * @param size
+ * @param data
+ * @return
+ */
 static size_t readFile(FILE* fi, size_t begin, size_t size, unsigned char* data);
+
+/**
+ * Read from fi at begin size bytes into data**
+ * (Caller is responsible for allocation)
+ *
+ * @param fi FILE* opened FILE*
+ * @param begin size_t offset into file
+ * @param size size_t size to read
+ * @param data unsigned char**
+ * @return size_t number of read bytes
+ */
 static size_t readFileA(FILE* fi, size_t begin, size_t size, unsigned char** data);
+
+/**
+ * Read from finame at offset size bytes into data[size]
+ *
+ * @param finame
+ * @param offset
+ * @param size
+ * @param data
+ * @return
+ */
 static size_t readCustomBlock(const char* finame, size_t offset, size_t size, unsigned char* data);
+
+/**
+ * Check if dir exists.
+ * 
+ * @param path The path to check
+ * @return 1 : true, or 0 : false
+ */
 static uint8_t dirExists(const char* path);
+
+
+
 
 // Get file size.
 // Returns actual size in bytes.
@@ -28,15 +76,15 @@ size_t getSize(const char* finame)
     // Read in file
     FILE * fi;
     size_t pos=0,Filesize=0;
-	int errsv;
+    int errsv;
     errno = 0;
     fi = fopen (finame, "rb" );
-	errsv = errno;
-	if (!fi)
-	{
-		printf("ERROR (0x%x): Could not open file: \"%s\"\n", errsv, finame);
-		return 0;
-	}
+    errsv = errno;
+    if (!fi)
+    {
+        printf("ERROR (0x%x): Could not open file: \"%s\"\n", errsv, finame);
+        return 0;
+    }
 
     pos = ftell(fi);
     fseek(fi,0,SEEK_END);
@@ -54,11 +102,11 @@ size_t getSizeFP(FILE* fi)
     size_t pos=0,Filesize=0;
 //    int errsv;
 //    errno = 0;
-	if (!fi)
-	{
-		printf("ERROR (0x%x): Passed file pointer is NULL.\n", 1);
-		return 0;
-	}
+    if (!fi)
+    {
+        printf("ERROR (0x%x): Passed file pointer is NULL.\n", 1);
+        return 0;
+    }
 
     pos = ftell(fi);
     fseek(fi,0,SEEK_END);
@@ -95,7 +143,7 @@ size_t readCharArrayFile(const char* finame, unsigned char ** pData, size_t begi
     {
 //		prog_error("End offset '0x%x' is beyond filesize 0x%x!\n", begin,Filesize);
 //        return 0;
-		stopAt = Filesize;
+        stopAt = Filesize;
     }
     
     // 'begin' defaults to zero and 'stopAt' defaults to Filesize.
@@ -138,12 +186,12 @@ size_t readCharArrayFile(const char* finame, unsigned char ** pData, size_t begi
     // Read I/O
     errno = 0;
     fi = fopen(finame, "rb" );
-	errsv = errno;
-	if (!fi)
-	{
-		printf("ERROR (0x%x): Could not open file: \"%s\"\n", errsv, finame);
-		return 0;
-	}
+    errsv = errno;
+    if (!fi)
+    {
+        printf("ERROR (0x%x): Could not open file: \"%s\"\n", errsv, finame);
+        return 0;
+    }
 
     if (begin)
     {
@@ -170,16 +218,16 @@ size_t readCharArrayFile(const char* finame, unsigned char ** pData, size_t begi
  */
 size_t readFile(FILE* fi, size_t begin, size_t size, unsigned char* data)
 {
-	size_t n = 0;
+    size_t n = 0;
 
 //	if ( begin )
-	{
-		fseek(fi, begin, SEEK_SET);
-	}
+    {
+        fseek(fi, begin, SEEK_SET);
+    }
 
-	n = fread(data, 1, size, fi);
+    n = fread(data, 1, size, fi);
 
-	return n;
+    return n;
 }
 
 /**
@@ -194,7 +242,7 @@ size_t readFile(FILE* fi, size_t begin, size_t size, unsigned char* data)
  */
 size_t readFileA(FILE* fi, size_t begin, size_t size, unsigned char** data)
 {
-	size_t n = 0;
+    size_t n = 0;
 
     *data = (unsigned char *) malloc(size);
     if (!(*data))
@@ -204,13 +252,13 @@ size_t readFileA(FILE* fi, size_t begin, size_t size, unsigned char** data)
     }
 
 //	if ( begin )
-	{
-		fseek(fi, begin, SEEK_SET);
-	}
+    {
+        fseek(fi, begin, SEEK_SET);
+    }
 
-	n = fread(*data, 1, size, fi);
+    n = fread(*data, 1, size, fi);
 
-	return n;
+    return n;
 }
 
 /**
@@ -224,37 +272,38 @@ size_t readFileA(FILE* fi, size_t begin, size_t size, unsigned char** data)
  */
 size_t readCustomBlock(const char* finame, size_t offset, size_t size, unsigned char* data)
 {
-	FILE * fi;
-	size_t n = 0;
-	int errsv;
-	errno = 0;
-	fi = fopen (finame, "rb");
-	errsv = errno;
-	if (!fi)
-	{
-		printf("ERROR (0x%x): Could not open file: \"%s\"\n", errsv, finame);
-		return 0;
-	}
-	
-	if ( offset )
-		fseek(fi, offset, SEEK_SET);
+    FILE * fi;
+    size_t n = 0;
+    int errsv;
+    errno = 0;
+    fi = fopen (finame, "rb");
+    errsv = errno;
+    if (!fi)
+    {
+        printf("ERROR (0x%x): Could not open file: \"%s\"\n", errsv, finame);
+        return 0;
+    }
+    
+    if ( offset )
+        fseek(fi, offset, SEEK_SET);
 
-	n = fread(data, 1, size, fi);
-	fclose(fi);
+    n = fread(data, 1, size, fi);
+    fclose(fi);
 
-	return n;
+    return n;
 }
 
 uint8_t dirExists(const char* path)
 {
-	struct stat s;
-	if ( stat(path, &s) == 0 )
-	{
-		if ( s.st_mode & S_IFDIR )
-			return 1;
-	}
+    struct stat s;
+    if ( stat(path, &s) == 0 )
+    {
+        if ( s.st_mode & S_IFDIR )
+            return 1;
+    }
 
-	return 0;
+    return 0;
 }
+
 
 #endif

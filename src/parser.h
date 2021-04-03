@@ -39,96 +39,89 @@ void parseHeader(uint8_t force, PHeaderData hd, PGlobalParams gp, PPEParams pep)
 {
     info_level = gp->info_level;
 
-	if ( gp->abs_file_offset + MIN_FILE_SIZE > gp->file_size )
-	{
-//#if defined(_WIN32)
-//		header_error("ERROR: filesize (%zu) is too small for a start offset of %llu!\n",
-//					 gp->file_size, gp->abs_file_offset);
-//#else
-//		header_error("ERROR: filesize (%zu) is too small for a start offset of %lu!\n",
-//					 gp->file_size, gp->abs_file_offset);
-//#endif
-        header_error("ERROR: filesize (%zu) is too small for a start offset of %"PRIu64"!\n",
+    if ( gp->abs_file_offset + MIN_FILE_SIZE > gp->file_size )
+    {
+        header_error("ERROR: filesize (0x%zx) is too small for a start offset of 0x%zx!\n",
                      gp->file_size, gp->abs_file_offset);
-		hd->headertype = HEADER_TYPE_NONE;
-	}
-	else if ( force == FORCE_PE )
-	{
-		parsePEHeaderData(FORCE_PE, hd, gp, pep);
-	}
-	else if ( isELF(gp->block_large) )
-	{
-		parseELFHeader(hd, gp);
-	}
-	else if ( isPE(gp->block_large) )
-	{
-		parsePEHeaderData(FORCE_NONE, hd, gp, pep);
-	}
-	else if ( isDEX(gp->block_large) )
-	{
-		parseDexHeader(hd, gp);
-	}
-	else if ( isMachO(gp->block_large) )
-	{
-		parseMachOHeader(hd, gp);
-	}
-	else if ( isMSI(gp->block_large) )
-	{
-		parseMSIHeader(hd, gp, pep);
-	}
+        hd->headertype = HEADER_TYPE_NONE;
+    }
+    else if ( force == FORCE_PE )
+    {
+        parsePEHeaderData(FORCE_PE, hd, gp, pep);
+    }
+    else if ( isELF(gp->block_large) )
+    {
+        parseELFHeader(hd, gp);
+    }
+    else if ( isPE(gp->block_large) )
+    {
+        parsePEHeaderData(FORCE_NONE, hd, gp, pep);
+    }
+    else if ( isDEX(gp->block_large) )
+    {
+        parseDexHeader(hd, gp);
+    }
+    else if ( isMachO(gp->block_large) )
+    {
+        parseMachOHeader(hd, gp);
+    }
+    else if ( isMSI(gp->block_large) )
+    {
+        parseMSIHeader(hd, gp, pep);
+    }
 //	else if ( isPEArchive(gp->block_large))
 //	{
 //		header_info("INFO: Archive\n");
 //	}
-	else if ( isJavaClass(gp->block_large) )
-	{
-		parseJavaClassHeader(hd, gp);
-	}
-	else if ( isZipArchive(gp->block_large) )
-	{
-		parseZip(hd, gp);
-	}
-	else if ( isART(gp->block_large) )
-	{
-		parseArtHeader(hd, gp);
-	}
-	else
-	{
-		hd->headertype = HEADER_TYPE_NONE;
-	}
+    else if ( isJavaClass(gp->block_large) )
+    {
+        parseJavaClassHeader(hd, gp);
+    }
+    else if ( isZipArchive(gp->block_large) )
+    {
+        parseZip(hd, gp);
+    }
+    else if ( isART(gp->block_large) )
+    {
+        parseArtHeader(hd, gp);
+    }
+    else
+    {
+        hd->headertype = HEADER_TYPE_NONE;
+    }
 }
 
 int isART(unsigned char* block)
 {
-	return checkBytes(MAGIC_ART_BYTES, MAGIC_ART_BYTES_LN, block);
+    return checkBytes(MAGIC_ART_BYTES, MAGIC_ART_BYTES_LN, block);
 }
 
 int isELF(unsigned char* block)
 {
-	return checkBytes(MAGIC_ELF_BYTES, MAGIC_ELF_BYTES_LN, block);
+    return checkBytes(MAGIC_ELF_BYTES, MAGIC_ELF_BYTES_LN, block);
 }
 
 int isPE(unsigned char* block)
 {
-	return checkBytes(MAGIC_PE_BYTES, MAGIC_PE_BYTES_LN, block);
+    return checkBytes(MAGIC_PE_BYTES, MAGIC_PE_BYTES_LN, block);
 }
 
 int isDEX(unsigned char* block)
 {
-	return checkBytes(MAGIC_DEX_BYTES, MAGIC_DEX_BYTES_LN, block);
+    return checkBytes(MAGIC_DEX_BYTES, MAGIC_DEX_BYTES_LN, block);
 }
 
 int isMachO(unsigned char* block)
 {
-	return checkBytes(MAGIC_MACH_O_BYTES_32, MAGIC_MACH_O_BYTES_LN, block)
-			|| checkBytes(MAGIC_MACH_O_BYTES_64, MAGIC_MACH_O_BYTES_LN, block)
-			|| checkBytes(MAGIC_MACH_O_BYTES_32_RV, MAGIC_MACH_O_BYTES_LN, block)
-			|| checkBytes(MAGIC_MACH_O_BYTES_64_RV, MAGIC_MACH_O_BYTES_LN, block);
+    return checkBytes(MAGIC_MACH_O_BYTES_32, MAGIC_MACH_O_BYTES_LN, block)
+            || checkBytes(MAGIC_MACH_O_BYTES_64, MAGIC_MACH_O_BYTES_LN, block)
+            || checkBytes(MAGIC_MACH_O_BYTES_32_RV, MAGIC_MACH_O_BYTES_LN, block)
+            || checkBytes(MAGIC_MACH_O_BYTES_64_RV, MAGIC_MACH_O_BYTES_LN, block);
 }
 
 int isMSI(unsigned char* block)
 {
-	return checkBytes(MAGIC_MSI_BYTES, MAGIC_MSI_BYTES_LN, block);
+    return checkBytes(MAGIC_MSI_BYTES, MAGIC_MSI_BYTES_LN, block);
 }
 
 //int isPEArchive(unsigned char* block)
@@ -138,10 +131,10 @@ int isMSI(unsigned char* block)
 
 int isJavaClass(unsigned char* block)
 {
-	return checkBytes(MAGIC_JAVA_CLASS_BYTES, MAGIC_JAVA_CLASS_BYTES_LN, block);
+    return checkBytes(MAGIC_JAVA_CLASS_BYTES, MAGIC_JAVA_CLASS_BYTES_LN, block);
 }
 
 int isZipArchive(unsigned char* block)
 {
-	return checkBytes(MAGIC_ZIP_FILE_ENTRY_BYTES, MAGIC_ZIP_BYTES_LN, block);
+    return checkBytes(MAGIC_ZIP_FILE_ENTRY_BYTES, MAGIC_ZIP_BYTES_LN, block);
 }

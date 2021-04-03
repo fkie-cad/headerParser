@@ -38,7 +38,7 @@ static int parsePEHeader(uint8_t force,
                          PPEParams pep);
 
 static int PE_readImageDosHeader(PEImageDosHeader* idh,
-                                 uint64_t file_offset,
+                                 size_t file_offset,
                                  size_t file_size,
                                  unsigned char* block_l);
 
@@ -46,16 +46,16 @@ static unsigned char PE_checkDosHeader(const PEImageDosHeader* idh,
                                        size_t file_size);
 
 static uint8_t PE_checkPESignature(uint32_t e_lfanew,
-                                   uint64_t file_offset,
-                                   uint64_t* abs_file_offset,
+                                   size_t file_offset,
+                                   size_t* abs_file_offset,
                                    size_t file_size,
                                    FILE* fp,
                                    unsigned char* block_s,
                                    unsigned char* block_l);
-static uint8_t PE_readCoffHeader(uint64_t offset,
+static uint8_t PE_readCoffHeader(size_t offset,
                                  PECoffFileHeader* ch,
-                                 uint64_t start_file_offset,
-                                 uint64_t* abs_file_offset,
+                                 size_t start_file_offset,
+                                 size_t* abs_file_offset,
                                  size_t file_size,
                                  FILE* fp,
                                  unsigned char* block_l);
@@ -63,21 +63,21 @@ static void PE_fillHeaderDataWithCoffHeader(PECoffFileHeader* ch,
                                             PHeaderData hd);
 static unsigned char PE_checkCoffHeader(const PECoffFileHeader* ch,
                                         PHeaderData hd);
-static uint8_t PE_readOptionalHeader(uint64_t offset,
+static uint8_t PE_readOptionalHeader(size_t offset,
                                      PE64OptHeader* oh,
-                                     uint64_t start_file_offset,
-                                     uint64_t* abs_file_offset,
+                                     size_t start_file_offset,
+                                     size_t* abs_file_offset,
                                      size_t file_size,
                                      FILE* fp,
                                      unsigned char* block_l);
 static void PE_fillHeaderDataWithOptHeader(PE64OptHeader* oh,
                                            PHeaderData hd);
-static void PE_readSectionHeader(uint64_t header_start,
+static void PE_readSectionHeader(size_t header_start,
                                  PECoffFileHeader* ch,
-                                 uint64_t start_file_offset,
-                                 uint64_t* abs_file_offset,
+                                 size_t start_file_offset,
+                                 size_t* abs_file_offset,
                                  size_t file_size,
-                                 uint8_t info_level,
+                                 uint8_t ilevel,
                                  FILE* fp,
                                  unsigned char* block_s,
                                  unsigned char* block_l,
@@ -90,26 +90,26 @@ static int PE_isNullSectionHeader(const PEImageSectionHeader* sh);
 static int PE_checkSectionHeader(const PEImageSectionHeader* sh,
                                            uint16_t idx,
                                            const char* name,
-                                           uint64_t start_file_offset,
+                                           size_t start_file_offset,
                                            size_t file_size);
-//void PE_readSectionHeaderEntries(PECoffFileHeader* ch, unsigned char* section_block, const uint64_t header_start);
+//void PE_readSectionHeaderEntries(PECoffFileHeader* ch, unsigned char* section_block, const size_t header_start);
 static uint8_t PE_isExecutableSectionHeader(const PEImageSectionHeader* sh);
 static CodeRegionData PE_fillCodeRegion(const PEImageSectionHeader* sh,
                                         PECoffFileHeader* ch,
-                                        uint64_t start_file_offset,
+                                        size_t start_file_offset,
                                         size_t file_size,
                                         FILE* fp,
                                         unsigned char* block_s,
                                         PStringTable st);
 static uint32_t PE_calculateSectionSize(const PEImageSectionHeader* sh);
-static uint8_t PE_hasHeaderAtOffset(uint64_t offset,
-                                    uint64_t* abs_file_offset,
+static uint8_t PE_hasHeaderAtOffset(size_t offset,
+                                    size_t* abs_file_offset,
                                     size_t file_size,
                                     FILE* fp,
                                     unsigned char* block_s,
                                     unsigned char* block_l);
 static void PE_parseCertificates(PE64OptHeader* opt_header,
-                                 uint64_t start_file_offset,
+                                 size_t start_file_offset,
                                  size_t file_size,
                                  const char* certificate_directory,
                                  FILE* fp,
@@ -186,8 +186,8 @@ int parsePEHeader(uint8_t force,
     PECoffFileHeader* coff_header = NULL;
     PE64OptHeader* opt_header = NULL;
 
-    uint64_t optional_header_offset = 0;
-    uint64_t section_header_offset = 0;
+    size_t optional_header_offset = 0;
+    size_t section_header_offset = 0;
 
     uint8_t pe_header_type = 0;
     int parse_svas = 0;
@@ -265,18 +265,18 @@ int parsePEHeader(uint8_t force,
     hd->headertype = HEADER_TYPE_PE;
     hd->endian = ENDIAN_LITTLE;
 
-    s = PE_readCoffHeader((uint64_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE, coff_header, gp->start_file_offset,
+    s = PE_readCoffHeader((size_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE, coff_header, gp->start_file_offset,
                        &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large);
     if ( s != 0 ) return 4;
 
     if ( LIB_MODE == 0 && gp->info_level >= INFO_LEVEL_FULL )
-        PE_printCoffFileHeader(coff_header, (uint64_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE, gp->start_file_offset);
+        PE_printCoffFileHeader(coff_header, (size_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE, gp->start_file_offset);
     PE_fillHeaderDataWithCoffHeader(coff_header, hd);
     if ( !PE_checkCoffHeader(coff_header, hd) )
         return 5;
 
-    optional_header_offset = (uint64_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE + PE_COFF_FILE_HEADER_SIZE;
-    debug_info(" - optional_header_offset: #%"PRIx64" (%"PRIu64")\n", optional_header_offset, optional_header_offset);
+    optional_header_offset = (size_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE + PE_COFF_FILE_HEADER_SIZE;
+    debug_info(" - optional_header_offset: #%zx (%zu)\n", optional_header_offset, optional_header_offset);
     s = PE_readOptionalHeader(optional_header_offset, opt_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large);
     if ( s != 0 ) return 6;
 
@@ -285,13 +285,13 @@ int parsePEHeader(uint8_t force,
 
     PE_fillHeaderDataWithOptHeader(opt_header, hd);
 
-    section_header_offset = (uint64_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE + PE_COFF_FILE_HEADER_SIZE + coff_header->SizeOfOptionalHeader;
+    section_header_offset = (size_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE + PE_COFF_FILE_HEADER_SIZE + coff_header->SizeOfOptionalHeader;
 //#if defined(_WIN32)
 //	debug_info(" - section_header_offset: #%llx (%llu)\n", section_header_offset, section_header_offset);
 //#else
-//	debug_info(" - section_header_offset: #%"PRIx64" (%lu)\n", section_header_offset, section_header_offset);
+//	debug_info(" - section_header_offset: #%zx (%lu)\n", section_header_offset, section_header_offset);
 //#endif
-    debug_info(" - section_header_offset: #%"PRIx64" (%"PRIu64")\n", section_header_offset, section_header_offset);
+    debug_info(" - section_header_offset: #%zx (%zu)\n", section_header_offset, section_header_offset);
     PE_readSectionHeader(section_header_offset, coff_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->info_level,
                          gp->fp, gp->block_standard, gp->block_large, &pehd->st, parse_svas, &pehd->svas, hd);
 
@@ -304,8 +304,7 @@ int parsePEHeader(uint8_t force,
             &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
 
     if (pep->info_level_bimp == 1)
-        PE_parseImageBoundImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
-            &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
+        PE_parseImageBoundImportTable(opt_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
 
     if ( pep->info_level_exp == 1 )
         PE_parseImageExportTable(opt_header, coff_header->NumberOfSections, gp->start_file_offset, gp->file_size, gp->fp, gp->block_standard, pehd->svas);
@@ -354,7 +353,7 @@ void PE_cleanUp(PEHeaderData* pehd)
 }
 
 int PE_readImageDosHeader(PEImageDosHeader* idh,
-                          uint64_t file_offset,
+                          size_t file_offset,
                           size_t file_size,
                           unsigned char* block_l)
 {
@@ -363,7 +362,7 @@ int PE_readImageDosHeader(PEImageDosHeader* idh,
     unsigned char *ptr;
 
     debug_info("readImageDosHeader()\n");
-    debug_info(" - file_offset: %"PRIx64"\n", file_offset);
+    debug_info(" - file_offset: %zx\n", file_offset);
 
     if ( !checkFileSpace(0, file_offset, sizeof(PEImageDosHeader), file_size) )
         return 1;
@@ -411,8 +410,8 @@ unsigned char PE_checkDosHeader(const PEImageDosHeader *idh,
  * @return
  */
 uint8_t PE_checkPESignature(const uint32_t e_lfanew,
-                            uint64_t file_offset,
-                            uint64_t* abs_file_offset,
+                            size_t file_offset,
+                            size_t* abs_file_offset,
                             size_t file_size,
                             FILE* fp,
                             unsigned char* block_s,
@@ -469,10 +468,10 @@ uint8_t PE_checkPESignature(const uint32_t e_lfanew,
     return 0;
 }
 
-uint8_t PE_readCoffHeader(uint64_t offset,
+uint8_t PE_readCoffHeader(size_t offset,
                           PECoffFileHeader* ch,
-                          uint64_t start_file_offset,
-                          uint64_t* abs_file_offset,
+                          size_t start_file_offset,
+                          size_t* abs_file_offset,
                           size_t file_size,
                           FILE* fp,
                           unsigned char* block_l)
@@ -554,10 +553,10 @@ unsigned char PE_checkCoffHeader(const PECoffFileHeader *ch,
  * @param offset
  * @param oh
  */
-uint8_t PE_readOptionalHeader(uint64_t offset,
+uint8_t PE_readOptionalHeader(size_t offset,
                               PE64OptHeader* oh,
-                              uint64_t start_file_offset,
-                              uint64_t* abs_file_offset,
+                              size_t start_file_offset,
+                              size_t* abs_file_offset,
                               size_t file_size,
                               FILE* fp,
                               unsigned char* block_l)
@@ -567,7 +566,7 @@ uint8_t PE_readOptionalHeader(uint64_t offset,
     size_t size;
     uint32_t i;
     uint8_t size_of_data_entry = sizeof(PEDataDirectory);
-    uint64_t data_entry_offset;
+    size_t data_entry_offset;
     uint8_t nr_of_rva_to_read;
     debug_info("readPEOptionalHeader()\n");
 
@@ -576,7 +575,6 @@ uint8_t PE_readOptionalHeader(uint64_t offset,
 
     *abs_file_offset = offset + start_file_offset;
     // read new large block, to ease up offsetting
-//	size = readCustomBlock(file_name, *abs_file_offset, BLOCKSIZE_LARGE, block_l);
     size = readFile(fp, *abs_file_offset, BLOCKSIZE_LARGE, block_l);
     if ( size == 0 )
         return 2;
@@ -598,44 +596,55 @@ uint8_t PE_readOptionalHeader(uint64_t offset,
 
     if ( oh->Magic == PeOptionalHeaderSignature.IMAGE_NT_OPTIONAL_HDR32_MAGIC )
     {
-        oh->ImageBase = *((uint32_t*) &ptr[offsets.ImageBase]);
-        oh->BaseOfData = *((uint32_t*) &ptr[offsets.BaseOfData]);
-        oh->SizeOfStackReserve = *((uint32_t*) &ptr[offsets.SizeOfStackReserve]);
-        oh->SizeOfStackCommit = *((uint32_t*) &ptr[offsets.SizeOfStackCommit]);
-        oh->SizeOfHeapReserve = *((uint32_t*) &ptr[offsets.SizeOfHeapReserve]);
-        oh->SizeOfHeapCommit = *((uint32_t*) &ptr[offsets.SizeOfHeapCommit]);
+        oh->ImageBase = GetIntXValueAtOffset(uint32_t, ptr, offsets.ImageBase);
+        oh->BaseOfData = GetIntXValueAtOffset(uint32_t, ptr, offsets.BaseOfData);
+        oh->SizeOfStackReserve = GetIntXValueAtOffset(uint32_t, ptr, offsets.SizeOfStackReserve);
+        oh->SizeOfStackCommit = GetIntXValueAtOffset(uint32_t, ptr, offsets.SizeOfStackCommit);
+        oh->SizeOfHeapReserve = GetIntXValueAtOffset(uint32_t, ptr, offsets.SizeOfHeapReserve);
+        oh->SizeOfHeapCommit = GetIntXValueAtOffset(uint32_t, ptr, offsets.SizeOfHeapCommit);
+        //oh->ImageBase = *((uint32_t*) &ptr[offsets.ImageBase]);
+        //oh->BaseOfData = *((uint32_t*) &ptr[offsets.BaseOfData]);
+        //oh->SizeOfStackReserve = *((uint32_t*) &ptr[offsets.SizeOfStackReserve]);
+        //oh->SizeOfStackCommit = *((uint32_t*) &ptr[offsets.SizeOfStackCommit]);
+        //oh->SizeOfHeapReserve = *((uint32_t*) &ptr[offsets.SizeOfHeapReserve]);
+        //oh->SizeOfHeapCommit = *((uint32_t*) &ptr[offsets.SizeOfHeapCommit]);
     }
     else
     {
-        oh->ImageBase = *((uint64_t*) &ptr[offsets.ImageBase]);
-        oh->SizeOfStackReserve = *((uint64_t*) &ptr[offsets.SizeOfStackReserve]);
-        oh->SizeOfStackCommit = *((uint64_t*) &ptr[offsets.SizeOfStackCommit]);
-        oh->SizeOfHeapReserve = *((uint64_t*) &ptr[offsets.SizeOfHeapReserve]);
-        oh->SizeOfHeapCommit = *((uint64_t*) &ptr[offsets.SizeOfHeapCommit]);
+        oh->ImageBase = GetIntXValueAtOffset(uint64_t, ptr, offsets.ImageBase);
+        oh->SizeOfStackReserve = GetIntXValueAtOffset(uint64_t, ptr, offsets.SizeOfStackReserve);
+        oh->SizeOfStackCommit = GetIntXValueAtOffset(uint64_t, ptr, offsets.SizeOfStackCommit);
+        oh->SizeOfHeapReserve = GetIntXValueAtOffset(uint64_t, ptr, offsets.SizeOfHeapReserve);
+        oh->SizeOfHeapCommit = GetIntXValueAtOffset(uint64_t, ptr, offsets.SizeOfHeapCommit);
+        //oh->ImageBase = *((uint64_t*) &ptr[offsets.ImageBase]);
+        //oh->SizeOfStackReserve = *((uint64_t*) &ptr[offsets.SizeOfStackReserve]);
+        //oh->SizeOfStackCommit = *((uint64_t*) &ptr[offsets.SizeOfStackCommit]);
+        //oh->SizeOfHeapReserve = *((uint64_t*) &ptr[offsets.SizeOfHeapReserve]);
+        //oh->SizeOfHeapCommit = *((uint64_t*) &ptr[offsets.SizeOfHeapCommit]);
     }
-    oh->MajorLinkerVersion = *((uint8_t*) &ptr[offsets.MajorLinkerVersion]);
-    oh->MinorLinkerVersion = *((uint8_t*) &ptr[offsets.MinorLinkerVersion]);
-    oh->SizeOfCode = *((uint32_t*) &ptr[offsets.SizeOfCode]);
-    oh->SizeOfInitializedData = *((uint32_t*) &ptr[offsets.SizeOfInitializedData]);
-    oh->SizeOfUninitializedData = *((uint32_t*) &ptr[offsets.SizeOfUninitializedData]);
-    oh->AddressOfEntryPoint = *((uint32_t*) &ptr[offsets.AddressOfEntryPoint]);
-    oh->BaseOfCode = *((uint32_t*) &ptr[offsets.BaseOfCode]);
-    oh->SectionAlignment = *((uint32_t*) &ptr[offsets.SectionAlignment]);
-    oh->FileAlignment = *((uint32_t*) &ptr[offsets.FileAlignment]);
-    oh->MajorOSVersion = *((uint16_t*) &ptr[offsets.MajorOperatingSystemVersion]);
-    oh->MinorOSVersion = *((uint16_t*) &ptr[offsets.MinorOperatingSystemVersion]);
-    oh->MajorImageVersion = *((uint16_t*) &ptr[offsets.MajorImageVersion]);
-    oh->MinorImageVersion = *((uint16_t*) &ptr[offsets.MinorImageVersion]);
-    oh->MajorSubsystemVersion = *((uint16_t*) &ptr[offsets.MajorSubsystemVersion]);
-    oh->MinorSubsystemVersion = *((uint16_t*) &ptr[offsets.MinorSubsystemVersion]);
-    oh->Win32VersionValue = *((uint32_t*) &ptr[offsets.Win32VersionValue]);
-    oh->SizeOfImage = *((uint32_t*) &ptr[offsets.SizeOfImage]);
-    oh->SizeOfHeaders = *((uint32_t*) &ptr[offsets.SizeOfHeaders]);
-    oh->Checksum = *((uint32_t*) &ptr[offsets.CheckSum]);
-    oh->Subsystem = *((uint16_t*) &ptr[offsets.Subsystem]);
-    oh->DLLCharacteristics = *((uint16_t*) &ptr[offsets.DllCharacteristics]);
-    oh->LoaderFlags = *((uint32_t*) &ptr[offsets.LoaderFlags]);
-    oh->NumberOfRvaAndSizes = *((uint32_t*) &ptr[offsets.NumberOfRvaAndSizes]);
+    oh->MajorLinkerVersion = GetIntXValueAtOffset(uint8_t, ptr, offsets.MajorLinkerVersion);
+    oh->MinorLinkerVersion = GetIntXValueAtOffset(uint8_t, ptr, offsets.MinorLinkerVersion);
+    oh->SizeOfCode = GetIntXValueAtOffset(uint32_t, ptr, offsets.SizeOfCode);
+    oh->SizeOfInitializedData = GetIntXValueAtOffset(uint32_t, ptr, offsets.SizeOfInitializedData);
+    oh->SizeOfUninitializedData = GetIntXValueAtOffset(uint32_t, ptr, offsets.SizeOfUninitializedData);
+    oh->AddressOfEntryPoint = GetIntXValueAtOffset(uint32_t, ptr, offsets.AddressOfEntryPoint);
+    oh->BaseOfCode = GetIntXValueAtOffset(uint32_t, ptr, offsets.BaseOfCode);
+    oh->SectionAlignment = GetIntXValueAtOffset(uint32_t, ptr, offsets.SectionAlignment);
+    oh->FileAlignment = GetIntXValueAtOffset(uint32_t, ptr, offsets.FileAlignment);
+    oh->MajorOSVersion = GetIntXValueAtOffset(uint16_t, ptr, offsets.MajorOperatingSystemVersion);
+    oh->MinorOSVersion = GetIntXValueAtOffset(uint16_t, ptr, offsets.MinorOperatingSystemVersion);
+    oh->MajorImageVersion = GetIntXValueAtOffset(uint16_t, ptr, offsets.MajorImageVersion);
+    oh->MinorImageVersion = GetIntXValueAtOffset(uint16_t, ptr, offsets.MinorImageVersion);
+    oh->MajorSubsystemVersion = GetIntXValueAtOffset(uint16_t, ptr, offsets.MajorSubsystemVersion);
+    oh->MinorSubsystemVersion = GetIntXValueAtOffset(uint16_t, ptr, offsets.MinorSubsystemVersion);
+    oh->Win32VersionValue = GetIntXValueAtOffset(uint32_t, ptr, offsets.Win32VersionValue);
+    oh->SizeOfImage = GetIntXValueAtOffset(uint32_t, ptr, offsets.SizeOfImage);
+    oh->SizeOfHeaders = GetIntXValueAtOffset(uint32_t, ptr, offsets.SizeOfHeaders);
+    oh->Checksum = GetIntXValueAtOffset(uint32_t, ptr, offsets.CheckSum);
+    oh->Subsystem = GetIntXValueAtOffset(uint16_t, ptr, offsets.Subsystem);
+    oh->DLLCharacteristics = GetIntXValueAtOffset(uint16_t, ptr, offsets.DllCharacteristics);
+    oh->LoaderFlags = GetIntXValueAtOffset(uint32_t, ptr, offsets.LoaderFlags);
+    oh->NumberOfRvaAndSizes = GetIntXValueAtOffset(uint32_t, ptr, offsets.NumberOfRvaAndSizes);
 
     data_entry_offset = offsets.DataDirectories;
 
@@ -644,11 +653,10 @@ uint8_t PE_readOptionalHeader(uint64_t offset,
     if ( oh->NumberOfRvaAndSizes == 0 )
         return 0;
 
-    nr_of_rva_to_read = oh->NumberOfRvaAndSizes;
+    nr_of_rva_to_read = (oh->NumberOfRvaAndSizes > MAX_NR_OF_RVA_TO_READ) ? MAX_NR_OF_RVA_TO_READ : (uint8_t)oh->NumberOfRvaAndSizes;
     if ( oh->NumberOfRvaAndSizes > NUMBER_OF_RVA_AND_SIZES )
     {
         header_info("INFO: unusual value of NumberOfRvaAndSizes: %u\n", oh->NumberOfRvaAndSizes);
-        nr_of_rva_to_read = (oh->NumberOfRvaAndSizes > MAX_NR_OF_RVA_TO_READ) ? MAX_NR_OF_RVA_TO_READ : oh->NumberOfRvaAndSizes;
     }
 
     oh->DataDirectory = (PEDataDirectory*) malloc(sizeof(PEDataDirectory) * nr_of_rva_to_read);
@@ -721,12 +729,12 @@ void PE_fillHeaderDataWithOptHeader(PE64OptHeader* oh,
  * @param ch
  * @param finame
  */
-void PE_readSectionHeader(uint64_t header_start,
+void PE_readSectionHeader(size_t header_start,
                           PECoffFileHeader* ch,
-                          uint64_t start_file_offset,
-                          uint64_t* abs_file_offset,
+                          size_t start_file_offset,
+                          size_t* abs_file_offset,
                           size_t file_size,
-                          uint8_t info_level,
+                          uint8_t ilevel,
                           FILE* fp,
                           unsigned char* block_s,
                           unsigned char* block_l,
@@ -736,7 +744,7 @@ void PE_readSectionHeader(uint64_t header_start,
                           PHeaderData hd)
 {
     unsigned char *ptr = NULL;
-    uint64_t offset;
+    size_t offset;
     PEImageSectionHeader s_header;
     CodeRegionData code_region_data;
     uint16_t nr_of_sections = ch->NumberOfSections;
@@ -757,7 +765,7 @@ void PE_readSectionHeader(uint64_t header_start,
         return;
     offset = 0;
 
-    if ( LIB_MODE == 0 && info_level >= INFO_LEVEL_FULL )
+    if ( LIB_MODE == 0 && ilevel >= INFO_LEVEL_FULL )
         printf("Section Header:\n");
 
     for ( i = 0; i < nr_of_sections; i++ )
@@ -774,7 +782,7 @@ void PE_readSectionHeader(uint64_t header_start,
 
         PE_fillSectionHeader(ptr, &s_header);
 
-        if ( LIB_MODE == 0 && info_level >= INFO_LEVEL_FULL )
+        if ( LIB_MODE == 0 && ilevel >= INFO_LEVEL_FULL )
             PE_printImageSectionHeader(&s_header, i, nr_of_sections, ch, *abs_file_offset+offset, start_file_offset, file_size, fp, block_s, st);
 
         if ( PE_isNullSectionHeader(&s_header) )
@@ -802,7 +810,7 @@ void PE_readSectionHeader(uint64_t header_start,
 
         offset += PE_SECTION_HEADER_SIZE;
     }
-    if ( LIB_MODE == 0 && info_level >= INFO_LEVEL_FULL )
+    if ( LIB_MODE == 0 && ilevel >= INFO_LEVEL_FULL )
         printf("\n");
 }
 
@@ -838,7 +846,7 @@ int PE_isNullSectionHeader(const PEImageSectionHeader* sh)
 int PE_checkSectionHeader(const PEImageSectionHeader* sh,
                                     uint16_t idx,
                                     const char* name,
-                                    uint64_t start_file_offset,
+                                    size_t start_file_offset,
                                     size_t file_size)
 {
     debug_info("PE_checkSectionHeader()\n");
@@ -897,15 +905,15 @@ uint8_t PE_isExecutableSectionHeader(const PEImageSectionHeader* sh)
 
 CodeRegionData PE_fillCodeRegion(const PEImageSectionHeader* sh,
                                  PECoffFileHeader* ch,
-                                 uint64_t start_file_offset,
+                                 size_t start_file_offset,
                                  size_t file_size,
                                  FILE* fp,
                                  unsigned char* block_s,
                                  PStringTable st)
 {
-    uint64_t end_of_raw_data = 0;
+    size_t end_of_raw_data = 0;
     char *name = NULL;
-    uint64_t size = PE_calculateSectionSize(sh);
+    size_t size = PE_calculateSectionSize(sh);
     end_of_raw_data = sh->PointerToRawData + size;
     CodeRegionData code_region_data;
 
@@ -972,8 +980,8 @@ uint32_t PE_calculateSectionSize(const PEImageSectionHeader* sh)
  * @param offset
  * @return
  */
-uint8_t PE_hasHeaderAtOffset(uint64_t offset,
-                             uint64_t* abs_file_offset,
+uint8_t PE_hasHeaderAtOffset(size_t offset,
+                             size_t* abs_file_offset,
                              size_t file_size,
                              FILE* fp,
                              unsigned char* block_s,
@@ -1015,7 +1023,7 @@ uint8_t PE_hasHeaderAtOffset(uint64_t offset,
 }
 
 void PE_parseCertificates(PE64OptHeader* opt_header,
-                          uint64_t start_file_offset,
+                          size_t start_file_offset,
                           size_t file_size,
                           const char* certificate_directory,
                           FILE* fp,

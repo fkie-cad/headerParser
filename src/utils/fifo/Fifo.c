@@ -11,8 +11,8 @@ static void FifoEntry_print(PFifoEntry e);
 
 bool Fifo_init(PFifo fifo)
 {
-	fifo->front = NULL;
-	fifo->head = NULL;
+    fifo->front = NULL;
+    fifo->head = NULL;
     fifo->size = 0;
     fifo->entry_header_size = 2 * sizeof(size_t);
 
@@ -23,14 +23,14 @@ bool Fifo_clear(PFifo fifo)
 {
     PFifoEntry act = fifo->front;
     PFifoEntry tmp = NULL;
-	
+    
     while ( act != NULL )
     {
-		tmp = act;
-		act = act->next;
+        tmp = act;
+        act = act->next;
         free(tmp);
     }
-	
+    
     memset(fifo, 0, sizeof(fifo));
 
     return true;
@@ -56,22 +56,22 @@ size_t Fifo_push(PFifo fifo, const void* data, size_t data_size)
     }
     memset(entry, 0, fifo->entry_header_size + data_size);
     memcpy(entry->data.bytes, data, data_size);
-	
-	entry->data.size = data_size;
-	entry->next = NULL;
-		
-	if ( fifo->size == 0 )
-	{
-		fifo->front = entry;
+    
+    entry->data.size = data_size;
+    entry->next = NULL;
+        
+    if ( fifo->size == 0 )
+    {
+        fifo->front = entry;
         //fifo->front->last = NULL;
-	}
-	else
-	{
-		fifo->head->next = entry;
-		//entry->last = fifo->head;
-	}
-	
-	fifo->head = entry;
+    }
+    else
+    {
+        fifo->head->next = entry;
+        //entry->last = fifo->head;
+    }
+    
+    fifo->head = entry;
     fifo->size++;
 
     return fifo->size;
@@ -97,22 +97,22 @@ PFifoEntryData Fifo_front(PFifo fifo)
 
 bool Fifo_pop_front(PFifo fifo)
 {
-	PFifoEntry f;
+    PFifoEntry f;
     if (fifo->size == 0)
     {
         return false;
     }
 
-	f = fifo->front;
-	fifo->front = f->next;
+    f = fifo->front;
+    fifo->front = f->next;
     //if ( f->next != NULL)
-	    //f->next->last = NULL;
+        //f->next->last = NULL;
 
     free(f);
 
     fifo->size--;
     
-	return true;
+    return true;
 }
 
 void Fifo_print(PFifo fifo)

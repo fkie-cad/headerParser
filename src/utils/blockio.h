@@ -1,40 +1,84 @@
 #ifndef BLOCK_IO_H
 #define BLOCK_IO_H
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
 #include "../Globals.h"
-#include "../../src/utils/common_fileio.h"
+#include "common_fileio.h"
 
 
-
-static uint8_t checkFileSpace(uint64_t rel_offset,
-                              uint64_t abs_offset,
+/**
+ * Check space left in file, depending on offset and needed size.
+ *
+ * @param rel_offset size_t
+ * @param abs_offset size_t
+ * @param needed uint16_t
+ * @param file_size size_t
+ * @return uint8_t bool success value
+ */
+static uint8_t checkFileSpace(size_t rel_offset,
+                              size_t abs_offset,
                               size_t needed,
                               size_t file_size);
 
-static uint8_t checkLargeBlockSpace(uint64_t* rel_offset,
-                                    uint64_t* abs_offset,
+/**
+ * Check space left in large block, depending on offset and needed size.
+ * If block_large is too small, read in new bytes starting form offset and adjust abs_file_offset and rel_offset.
+ *
+ * @param rel_offset size_t*
+ * @param abs_offset size_t*
+ * @param needed  uint16_t
+ * @param block_l  unsigned char[BLOCKSIZE_LARGE]
+ * @param file_name  const char*
+ * @return uint8_t bool success value
+ */
+static uint8_t checkLargeBlockSpace(size_t* rel_offset,
+                                    size_t* abs_offset,
                                     size_t needed,
                                     unsigned char* block_l,
                                     FILE* fp);
 
-static uint8_t checkStandardBlockSpace(uint64_t* rel_offset,
-                                       uint64_t* abs_offset,
+/**
+ * Check space left in standard block, depending on offset and needed size.
+ * If block_standard is too small, read in new bytes starting form offset and adjust abs_file_offset.
+ *
+ * @param rel_offset size_t*
+ * @param abs_offset size_t*
+ * @param needed uint16_t
+ * @param block_s unsigned char[BLOCKSIZE]
+ * @param file_name const char*
+ * @return uint8_t bool success value
+ */
+static uint8_t checkStandardBlockSpace(size_t* rel_offset,
+                                       size_t* abs_offset,
                                        size_t needed,
                                        unsigned char* block_s,
                                        FILE* fp);
 
-static uint8_t readStandardBlockIfLargeBlockIsExceeded(uint64_t rel_offset,
-                                                       uint64_t abs_offset,
-                                                        size_t needed,
+/**
+ * Check space left in large block, depending on offset and needed size.
+ * If block_large is too small, read in new bytes into block_standard.
+ * abs_file_offset is not adjusted.
+ *
+ * @param rel_offset size_t*
+ * @param abs_offset size_t*
+ * @param needed  uint16_t
+ * @param block_s unsigned char[BLOCKSIZE]
+ * @param file_name const char*
+ * @return uint8_t 0: failed, 1: nothing happend (enough space), 2: block_standard filled.
+ */
+static uint8_t readStandardBlockIfLargeBlockIsExceeded(size_t rel_offset,
+                                                       size_t abs_offset,
+                                                       size_t needed,
                                                        unsigned char* block_s,
                                                        FILE* fp);
+
+
 
 
 
@@ -47,8 +91,8 @@ static uint8_t readStandardBlockIfLargeBlockIsExceeded(uint64_t rel_offset,
  * @param file_size size_t
  * @return uint8_t bool success value
  */
-uint8_t checkFileSpace(uint64_t rel_offset,
-                       uint64_t abs_offset,
+uint8_t checkFileSpace(size_t rel_offset,
+                       size_t abs_offset,
                        size_t needed,
                        size_t file_size)
 {
@@ -71,8 +115,8 @@ uint8_t checkFileSpace(uint64_t rel_offset,
  * @param file_name  const char*
  * @return uint8_t bool success value
  */
-uint8_t checkLargeBlockSpace(uint64_t* rel_offset,
-                             uint64_t* abs_offset,
+uint8_t checkLargeBlockSpace(size_t* rel_offset,
+                             size_t* abs_offset,
                              size_t needed,
                              unsigned char* block_l,
                              FILE* fp)
@@ -109,8 +153,8 @@ uint8_t checkLargeBlockSpace(uint64_t* rel_offset,
  * @param file_name const char*
  * @return uint8_t bool success value
  */
-uint8_t checkStandardBlockSpace(uint64_t* rel_offset,
-                                uint64_t* abs_offset,
+uint8_t checkStandardBlockSpace(size_t* rel_offset,
+                                size_t* abs_offset,
                                 size_t needed,
                                 unsigned char* block_s,
                                 FILE* fp)
@@ -148,8 +192,8 @@ uint8_t checkStandardBlockSpace(uint64_t* rel_offset,
  * @param file_name const char*
  * @return uint8_t 0: failed, 1: nothing happend (enough space), 2: block_standard filled.
  */
-uint8_t readStandardBlockIfLargeBlockIsExceeded(uint64_t rel_offset,
-                                                uint64_t abs_offset,
+uint8_t readStandardBlockIfLargeBlockIsExceeded(size_t rel_offset,
+                                                size_t abs_offset,
                                                 size_t needed,
                                                 unsigned char* block_s,
                                                 FILE* fp)
