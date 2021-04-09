@@ -45,7 +45,7 @@ void parseDexHeader(PHeaderData hd, PGlobalParams gp)
 {
     uint32_t i;
     uint8_t s;
-    DEXFileHeader file_header;
+    DEXFileHeader file_header = {0};
     DEX_fillVersion(gp->start_file_offset, gp->block_large, gp->file_size);
     DEX_readFileHeader(&file_header, gp->block_large, gp->start_file_offset, gp->file_size);
     char** strings = NULL;
@@ -414,7 +414,8 @@ void DEX_fillCodeRegion(DexMapItem* item,
     name = (char*) calloc(9, sizeof(char));
     if (name)
     {
-        strncpy(name, "bytecode", 8);
+        strcpy(name, "bytecode");
+        name[8] = 0;
         code_region_data.name = name;
     }
     code_region_data.start = item->offset;

@@ -40,9 +40,9 @@ HeaderData* getBasicHeaderParserInfo(const char* file, size_t start, uint8_t for
 int getBasicInfoA(const char* file, size_t start, uint8_t force, HeaderData* hd)
 {
     uint32_t n = 0;
-    int s = 0;
+    int s;
     GlobalParams gp;
-    int errsv = 0;
+    int errsv;
     PEParams pep;
     char file_name[PATH_MAX];
 

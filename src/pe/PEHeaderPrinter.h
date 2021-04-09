@@ -416,7 +416,8 @@ void PE_printImageImportDescriptor(PEImageImportDescriptor* impd, size_t offset,
     if (impd->TimeDateStamp != (uint32_t)-1)
         formatTimeStampD(impd->TimeDateStamp, date, sizeof(date));
     else
-        strncpy(date, "-1 (check bound import)", 23);
+        strcpy(date, "-1 (check bound import)");
+    date[31] = 0;
 
     printf(" -%s %s (0x%x)\n", fillOffset(PEImageImportDescriptorOffsets.Name, offset, 0), impd_name, impd->Name);
     printf("   - OriginalFirstThunk%s: 0x%x\n", fillOffset(PEImageImportDescriptorOffsets.Union, offset, 0), impd->OriginalFirstThunk);

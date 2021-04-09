@@ -14,31 +14,33 @@ OsX may work too.
 
 
 ## Version ##
-1.10.7  
-Last changed: 01.04.2021
+1.10.8  
+Last changed: 09.04.2021
 
 ## REQUIREMENTS ##
-- A decent c compiler (gcc or msbuild) is required.  
-- Building with cmake requires cmake.  
+- Linux
+   - Gcc
+   - Building with cmake requires cmake.
+- Windows
+   - msbuild
 
 ## BUILD ##
-### Linux & cmake ###
+### Linux (gcc) & cmake ###
 ```bash
 $ ./linuxBuild.sh [-t headerParser] [-m Release|Debug] [-h]  
 ```
 
-### GCC & Linux commandline ###
+### Linux (gcc) ###
 ```bash
 $ mkdir build
-$ gcc -o build/headerParser -Wl,-z,relro,-z,now -D_FILE_OFFSET_BITS=64 -Ofast src/headerParser.c  
+$ gcc -o build/headerParser -Wl,-z,relro,-z,now -D_FILE_OFFSET_BITS=64 -Ofast src/headerParser.c src/utils/Converter.c  
 ```
 
-### MsBuild & Windows & cmake ###
+### Windows (MsBuild) ###
 ```bash
-$ ./winBuild.bat [/t headerParser] [/b 32|64] [/m Release|Debug] [/h]
+$ winBuild.bat [/t headerParser] [/m Release|Debug] [/b 32|64] [/rt] [/pdb] [/bt a\path] [/h]
 ```
 The correct path to your build tools may be passed as a parameter or changed in the script [winBuild.bat](winBuild.bat) itself.  
-Thats the place to correct the path to your cmake installation as well.
 
  
 
@@ -110,7 +112,8 @@ Currently tested only on Linux.
 ```
 or plain:
 ```bash
-gcc -fPIC -shared -O2 -o libheaderparser.so  headerParserLib.c -Wall 
+mkdir build
+gcc -fPIC -shared -O2 -o build/libheaderparser.so src/headerParserLib.c src/utils/Converter.c -Wall 
 ```
 
 ### Usage ###

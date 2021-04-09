@@ -186,7 +186,7 @@ uint8_t Elf_readFileHeader(Elf64FileHeader* file_header, unsigned char* block_l,
     file_header->EI_OSABI = *(&ptr[fh_offsets.EI_OSABI]);
     file_header->EI_ABIVERSION = *(&ptr[fh_offsets.EI_ABIVERSION]),
 //	file_header->EI_PAD = {0,0,0,0;0,0,0},
-    file_header->e_type = GetIntXValueAtOffset(uint16_t, ptr, fh_offsets.e_type); *((uint16_t*) &ptr[fh_offsets.e_type]);
+    file_header->e_type = GetIntXValueAtOffset(uint16_t, ptr, fh_offsets.e_type);
     file_header->e_machine = GetIntXValueAtOffset(uint16_t, ptr, fh_offsets.e_machine);
     file_header->e_version = GetIntXValueAtOffset(uint32_t, ptr, fh_offsets.e_version);
     file_header->e_entry = Elf_parseBitnessedValue(file_header, ptr, fh_offsets.e_entry);
