@@ -76,7 +76,7 @@ if [%bitness%] == [32] (
         set valid=1
     )
 )
-if [valid] == [0] (
+if [%valid%] == [0] (
     goto help
 )
 
@@ -90,7 +90,7 @@ if /i [%target%] == [%name%] (
         set valid=1
     )
 )
-if [valid] == [0] (
+if [%valid%] == [0] (
     goto help
 )
 
@@ -110,7 +110,7 @@ if /i [%mode%] == [debug] (
         set valid=1
     )
 )
-if [valid] == [0] (
+if [%valid%] == [0] (
     goto help
 )
 
