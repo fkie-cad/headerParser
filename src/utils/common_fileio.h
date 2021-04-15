@@ -76,6 +76,7 @@ size_t getSize(const char* finame)
     // Read in file
     FILE * fi;
     size_t pos=0,Filesize=0;
+    int s;
     int errsv;
     errno = 0;
     fi = fopen (finame, "rb" );
@@ -87,12 +88,31 @@ size_t getSize(const char* finame)
     }
 
     pos = ftell(fi);
+    errno = 0;
     fseek(fi,0,SEEK_END);
+    errsv = errno;
+    if ( s != 0 )
+    {
+        printf("ERROR (0x%x): FSeek in \"%s\".\n", errsv, finame);
+        Filesize = 0;
+        goto clean;
+    }
+    errno = 0;
     Filesize = ftell(fi);
+    errsv = errno;
+    if ( errsv != 0 )
+    {
+        printf("ERROR (0x%x): FTell in \"%s\".\n", errsv, finame);
+        if ( errsv == 0x16 )
+        {
+            printf("The file may be too big.\n");
+        }
+        Filesize = 0;
+    }
     fseek(fi,pos,SEEK_SET);
-    fclose(fi);
 
-    // prog_error("Filesize: 0x%x (dez. %d)\n",Filesize,Filesize);
+    clean:
+    fclose(fi);
 
     return Filesize;
 }
