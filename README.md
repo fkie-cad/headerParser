@@ -14,8 +14,8 @@ OsX may work too.
 
 
 ## Version ##
-1.10.8  
-Last changed: 09.04.2021
+1.10.9  
+Last changed: 15.04.2021
 
 ## REQUIREMENTS ##
 - Linux
@@ -113,7 +113,7 @@ Currently tested only on Linux.
 or plain:
 ```bash
 mkdir build
-gcc -fPIC -shared -O2 -o build/libheaderparser.so src/headerParserLib.c src/utils/Converter.c -Wall 
+gcc -fPIC -Wl,-z,relro,-z,now -shared -Ofast -D_FILE_OFFSET_BITS=64 -o build/libheaderparser.so src/headerParserLib.c src/utils/Converter.c -Wall 
 ```
 
 ### Usage ###
