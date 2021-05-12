@@ -752,8 +752,15 @@ void PE_readSectionHeader(size_t header_start,
     size_t size;
 
     if ( parse_svas == 1 )
+    {
+        errno = 0;
         *svas = (SVAS*) calloc(nr_of_sections, sizeof(SVAS));
-    
+        if ( *svas == NULL )
+        {
+            header_error("ERROR (0x%x): Alloc failed!\n", errno);
+            return;
+        }
+    }
     // read new large block to ease up offsetting
     if ( !checkFileSpace(header_start, start_file_offset, PE_SECTION_HEADER_SIZE, file_size) )
         return;

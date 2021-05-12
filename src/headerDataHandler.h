@@ -19,15 +19,12 @@ static void addCodeRegionDataToHeaderData(CodeRegionData* data, HeaderData* head
 
 int initHeaderData(HeaderData* header_data, size_t code_regions_capacity)
 {
+    memset(header_data, 0, sizeof(HeaderData));
+    
     header_data->code_regions_capacity = code_regions_capacity;
     header_data->code_regions = (CodeRegionData*) calloc(1, sizeof(CodeRegionData)*header_data->code_regions_capacity);
     if ( !header_data->code_regions )
         return -1;
-    header_data->code_regions_size = 0;
-    header_data->headertype = 0;
-    header_data->h_bitness = 0;
-    header_data->endian = 0;
-    header_data->CPU_arch = 0;
     header_data->Machine = MACHINE_NONE;
 
     return 0;

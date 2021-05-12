@@ -89,7 +89,7 @@ size_t getSize(const char* finame)
 
     pos = ftell(fi);
     errno = 0;
-    fseek(fi,0,SEEK_END);
+    s = fseek(fi,0,SEEK_END);
     errsv = errno;
     if ( s != 0 )
     {

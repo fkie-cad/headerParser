@@ -960,7 +960,7 @@ const char* PeBaseRelocationTypeStrings[] = {
     "IMAGE_REL_BASED_MIPS_JMPADDR16",
     "IMAGE_REL_BASED_DIR64",
 };
-#define PeBaseRelocationTypeStrings_SIZE (sizeof(PeBaseRelocationTypeStrings))
+#define PeBaseRelocationTypeStrings_SIZE (sizeof(PeBaseRelocationTypeStrings)/sizeof(char*))
 
 void PE_printImageBaseRelocationBlockEntry(PE_BASE_RELOCATION_ENTRY* e)
 {

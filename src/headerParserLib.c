@@ -65,9 +65,9 @@ int getBasicInfoA(const char* file, size_t start, uint8_t force, HeaderData* hd)
     }
     expandFilePath(file, file_name);
 
-    debug_info("abs_file_offset: %lu\n", gp.abs_file_offset);
-    debug_info("start_file_offset: %lu\n", gp.start_file_offset);
-    debug_info("file_name: %s\n", file_name);
+    //debug_info("abs_file_offset: 0x%zx\n", gp.abs_file_offset);
+    //debug_info("start_file_offset: 0x%zx\n", gp.start_file_offset);
+    //debug_info("file_name: %s\n", file_name);
 
     errno = 0;
     gp.fp = fopen(file_name, "rb");
@@ -92,7 +92,6 @@ int getBasicInfoA(const char* file, size_t start, uint8_t force, HeaderData* hd)
         goto exit;
     }
 
-//	n = readCustomBlock(gp.file_name, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
     n = readFile(gp.fp, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
     if ( !n )
     {
@@ -176,9 +175,9 @@ int getPEHeaderDataA(const char* file, size_t start, PEHeaderData* pehd)
 //	initExtendedPEHeaderData(HD, DEFAULT_CODE_REGION_CAPACITY);
     expandFilePath(file, file_name);
 
-    debug_info("abs_file_offset: %lu\n", gp.abs_file_offset);
-    debug_info("start_file_offset: %lu\n", gp.start_file_offset);
-    debug_info("file_name: %s\n", file_name);
+    //debug_info("abs_file_offset: 0x%lx\n", gp.abs_file_offset);
+    //debug_info("start_file_offset: 0x%lx\n", gp.start_file_offset);
+    //debug_info("file_name: %s\n", file_name);
 
     errno = 0;
     gp.fp = fopen(file_name, "rb");
@@ -202,7 +201,6 @@ int getPEHeaderDataA(const char* file, size_t start, PEHeaderData* pehd)
         goto exit;
     }
 
-//	n = readCustomBlock(gp.file_name, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
     n = readFile(gp.fp, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
     if ( !n )
     {
@@ -212,7 +210,7 @@ int getPEHeaderDataA(const char* file, size_t start, PEHeaderData* pehd)
 
     if ( gp.abs_file_offset + MIN_FILE_SIZE > gp.file_size )
     {
-        header_error("ERROR: filesize (%zu) is too small for a start offset of %lu!\n", gp.file_size, gp.abs_file_offset);
+        header_error("ERROR: filesize (0x%zx) is too small for a start offset of 0x%zx!\n", gp.file_size, gp.abs_file_offset);
         s = -6;
         goto exit;
     }
@@ -226,7 +224,7 @@ int getPEHeaderDataA(const char* file, size_t start, PEHeaderData* pehd)
         goto exit;
     }
 
-    exit:
+exit:
     if ( gp.fp != NULL )
         fclose(gp.fp);
 

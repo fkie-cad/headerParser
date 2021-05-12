@@ -193,7 +193,7 @@ size_t ZIP_handleFileRecord(size_t offset,
     ZIP_checkNeedles(&fr, offset, found_needles, record_count, *abs_file_offset, file_size, fp, block_s, block_l);
 
     debug_info(" - - - frDataDescr.ddCompressedSize: 0x%x (%u)\n", fr.dataDescr.ddCompressedSize, fr.dataDescr.ddCompressedSize);
-    offset += fr.compressedSize + fr.fileNameLength + fr.extraFieldLength + size_of_entry;
+    offset += (size_t)fr.compressedSize + fr.fileNameLength + fr.extraFieldLength + size_of_entry;
 //	offset += size_of_entry + ((fr.compressedSize > 0) ? fr.compressedSize : fr.uncompressedSize) + fr.fileNameLength + fr.extraFieldLength;
     debug_info(" - abs_file_offset+offset: 0x%zx + 0x%zx =  0x%zx\n", *abs_file_offset, offset, (*abs_file_offset+offset));
     if ( ZIP_usesDataDescritpor(&fr) )

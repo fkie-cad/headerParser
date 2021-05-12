@@ -224,8 +224,11 @@ void DEX_fillStringIdItem(uint32_t offset,
 //	data.data = item.offset;
 
     string = (char*) malloc((data.utf16_size.val+1)*sizeof(char));
-    memcpy(string, &ptr[utf16_size_ln], data.utf16_size.val);
-    string[data.utf16_size.val] = 0;
+    if ( string != NULL )
+    {
+        memcpy(string, &ptr[utf16_size_ln], data.utf16_size.val);
+        string[data.utf16_size.val] = 0;
+    }
     strings[idx] = string;
 
     if ( gp->info_level >= INFO_LEVEL_FULL )
