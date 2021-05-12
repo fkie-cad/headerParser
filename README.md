@@ -41,7 +41,7 @@ $ gcc -o build/headerParser -Wl,-z,relro,-z,now -D_FILE_OFFSET_BITS=64 -Ofast sr
 $ winBuild.bat [/t headerParser] [/m Release|Debug] [/b 32|64] [/rt] [/pdb] [/bt a\path] [/h]
 ```
 The correct path to your build tools may be passed as a parameter or changed in the script [winBuild.bat](winBuild.bat) itself.  
-```
+
 
 ### Windows Context Menu ###
 It may be convenient to add HeaderParser to the context menu to be able to right-click a file and header parse it.
@@ -174,7 +174,7 @@ data = header_parser.get_basic_info('a/file.src', 10, header_parser.FORCE_PE)
 # convert cpu id and header type id into strings
 cpu = header_parser.lib_header_parser.getHeaderDataHeaderType(data['cpu'])
 header_type = header_parser.lib_header_parser.getHeaderDataArchitecture(data['headertype'])
-
+```
 
 ## COPYRIGHT, CREDITS & CONTACT ## 
 Published under [GNU GENERAL PUBLIC LICENSE](LICENSE).
