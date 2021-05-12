@@ -121,7 +121,7 @@ Currently tested only on Linux.
 or plain:
 ```bash
 mkdir build
-gcc -fPIC -shared -O2 -o build/libheaderparser.so src/headerParserLib.c src/utils/Converter.c -Wall 
+gcc -fPIC -Wl,-z,relro,-z,now -shared -Ofast -D_FILE_OFFSET_BITS=64 -o build/libheaderparser.so src/headerParserLib.c src/utils/Converter.c -Wall 
 ```
 
 ### Usage ###
