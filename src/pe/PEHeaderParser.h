@@ -77,7 +77,7 @@ static void PE_readSectionHeader(size_t header_start,
                                  size_t start_file_offset,
                                  size_t* abs_file_offset,
                                  size_t file_size,
-                                 uint8_t ilevel,
+                                 uint8_t p_sec_h,
                                  FILE* fp,
                                  unsigned char* block_s,
                                  unsigned char* block_l,
@@ -205,14 +205,14 @@ int parsePEHeader(uint8_t force,
         return -1;
     }
 
-    if ( pep->info_level_exp ||
-         pep->info_level_imp ||
-         pep->info_level_res || 
-         pep->info_level_rel || 
-         pep->info_level_tls ||
-         pep->info_level_lcfg ||
-         pep->info_level_bimp ||
-         pep->info_level_dimp )
+    if ( pep->info_level & INFO_LEVEL_PE_EXP ||
+         pep->info_level & INFO_LEVEL_PE_IMP ||
+         pep->info_level & INFO_LEVEL_PE_RES || 
+         pep->info_level & INFO_LEVEL_PE_REL || 
+         pep->info_level & INFO_LEVEL_PE_TLS ||
+         pep->info_level & INFO_LEVEL_PE_LCFG ||
+         pep->info_level & INFO_LEVEL_PE_BIMP ||
+         pep->info_level & INFO_LEVEL_PE_DIMP )
     {
         parse_svas = 1;
     }
@@ -223,12 +223,12 @@ int parsePEHeader(uint8_t force,
     if ( s != 0 )
         return 1;
 
-    if ( LIB_MODE == 0 && gp->info_level >= INFO_LEVEL_FULL )
+    if ( LIB_MODE == 0 && pep->info_level & INFO_LEVEL_PE_DOS_H )
         PE_printImageDosHeader(image_dos_header, gp->start_file_offset);
 
     if ( !checkBytes(MAGIC_DOS_STUB_BEGINNING, MAGIC_DOS_STUB_BEGINNING_LN, &gp->block_large[PE_DOS_STUB_OFFSET]) )
     {
-        if ( LIB_MODE == 0 && gp->info_level >= INFO_LEVEL_FULL )
+        if ( LIB_MODE == 0 && pep->info_level & INFO_LEVEL_PE_DOS_H )
             header_info("INFO: No DOS stub found.\n");
     }
 
@@ -269,7 +269,7 @@ int parsePEHeader(uint8_t force,
                        &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large);
     if ( s != 0 ) return 4;
 
-    if ( LIB_MODE == 0 && gp->info_level >= INFO_LEVEL_FULL )
+    if ( LIB_MODE == 0 && pep->info_level & INFO_LEVEL_PE_COFF_H )
         PE_printCoffFileHeader(coff_header, (size_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE, gp->start_file_offset);
     PE_fillHeaderDataWithCoffHeader(coff_header, hd);
     if ( !PE_checkCoffHeader(coff_header, hd) )
@@ -280,7 +280,7 @@ int parsePEHeader(uint8_t force,
     s = PE_readOptionalHeader(optional_header_offset, opt_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large);
     if ( s != 0 ) return 6;
 
-    if ( LIB_MODE == 0 && gp->info_level >= INFO_LEVEL_FULL )
+    if ( LIB_MODE == 0 && pep->info_level & INFO_LEVEL_PE_OPT_H )
         PE_printOptionalHeader(opt_header, optional_header_offset, gp->start_file_offset, hd->h_bitness);
 
     PE_fillHeaderDataWithOptHeader(opt_header, hd);
@@ -292,36 +292,36 @@ int parsePEHeader(uint8_t force,
 //	debug_info(" - section_header_offset: #%zx (%lu)\n", section_header_offset, section_header_offset);
 //#endif
     debug_info(" - section_header_offset: #%zx (%zu)\n", section_header_offset, section_header_offset);
-    PE_readSectionHeader(section_header_offset, coff_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->info_level,
+    PE_readSectionHeader(section_header_offset, coff_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, pep->info_level&INFO_LEVEL_PE_SEC_H,
                          gp->fp, gp->block_standard, gp->block_large, &pehd->st, parse_svas, &pehd->svas, hd);
 
-    if ( pep->info_level_imp == 1 )
+    if ( pep->info_level & INFO_LEVEL_PE_IMP )
         PE_parseImageImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
                                  &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
 
-    if (pep->info_level_dimp == 1)
+    if (pep->info_level & INFO_LEVEL_PE_DIMP )
         PE_parseImageDelayImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
             &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
 
-    if (pep->info_level_bimp == 1)
+    if (pep->info_level & INFO_LEVEL_PE_BIMP )
         PE_parseImageBoundImportTable(opt_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
 
-    if ( pep->info_level_exp == 1 )
+    if ( pep->info_level & INFO_LEVEL_PE_EXP )
         PE_parseImageExportTable(opt_header, coff_header->NumberOfSections, gp->start_file_offset, gp->file_size, gp->fp, gp->block_standard, pehd->svas);
 
-    if ( pep->info_level_res == 1 )
+    if ( pep->info_level & INFO_LEVEL_PE_RES )
         PE_parseImageResourceTable(opt_header, coff_header->NumberOfSections, gp->start_file_offset, gp->file_size, gp->fp, gp->block_standard, pehd->svas);
 
-    if (pep->info_level_rel == 1)
+    if (pep->info_level & INFO_LEVEL_PE_REL )
         PE_parseImageBaseRelocationTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
 
-    if ( pep->info_level_crt == 1 )
+    if ( pep->info_level & INFO_LEVEL_PE_CRT )
         PE_parseCertificates(opt_header, gp->start_file_offset, gp->file_size, pep->certificate_directory, gp->fp, gp->block_standard);
 
-    if (pep->info_level_tls == 1)
+    if (pep->info_level & INFO_LEVEL_PE_TLS )
         PE_parseImageTLSTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
     
-    if (pep->info_level_lcfg == 1)
+    if (pep->info_level & INFO_LEVEL_PE_LCFG )
         PE_parseImageLoadConfigTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
                                       &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_standard);
 
@@ -734,7 +734,7 @@ void PE_readSectionHeader(size_t header_start,
                           size_t start_file_offset,
                           size_t* abs_file_offset,
                           size_t file_size,
-                          uint8_t ilevel,
+                          uint8_t p_sec_h,
                           FILE* fp,
                           unsigned char* block_s,
                           unsigned char* block_l,
@@ -772,7 +772,7 @@ void PE_readSectionHeader(size_t header_start,
         return;
     offset = 0;
 
-    if ( LIB_MODE == 0 && ilevel >= INFO_LEVEL_FULL )
+    if ( LIB_MODE == 0 && p_sec_h )
         printf("Section Header:\n");
 
     for ( i = 0; i < nr_of_sections; i++ )
@@ -789,7 +789,7 @@ void PE_readSectionHeader(size_t header_start,
 
         PE_fillSectionHeader(ptr, &s_header);
 
-        if ( LIB_MODE == 0 && ilevel >= INFO_LEVEL_FULL )
+        if ( LIB_MODE == 0 && p_sec_h )
             PE_printImageSectionHeader(&s_header, i, nr_of_sections, ch, *abs_file_offset+offset, start_file_offset, file_size, fp, block_s, st);
 
         if ( PE_isNullSectionHeader(&s_header) )
@@ -817,7 +817,7 @@ void PE_readSectionHeader(size_t header_start,
 
         offset += PE_SECTION_HEADER_SIZE;
     }
-    if ( LIB_MODE == 0 && ilevel >= INFO_LEVEL_FULL )
+    if ( LIB_MODE == 0 && p_sec_h )
         printf("\n");
 }
 

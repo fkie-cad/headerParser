@@ -156,7 +156,7 @@ int getPEHeaderDataA(const char* file, size_t start, PEHeaderData* pehd)
     memset(&gp, 0, sizeof(GlobalParams));
     memset(&pep, 0, sizeof(PEParams));
 
-    gp.info_level = INFO_LEVEL_FULL;
+    gp.info_level = INFO_LEVEL_EXTENDED;
     gp.abs_file_offset = start;
     gp.start_file_offset = start;
     gp.file_size = 0;

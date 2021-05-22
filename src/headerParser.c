@@ -39,8 +39,8 @@ static void printHeaderData(uint8_t, PHeaderData hd, unsigned char* block);
 static void printHeaderData1(PHeaderData hd);
 static uint8_t getForceOption(const char* arg);
 
-const char* vs = "1.10.9";
-const char* last_changed = "12.05.2021";
+const char* vs = "1.11.0";
+const char* last_changed = "22.05.2021";
 
 
 
@@ -153,19 +153,24 @@ void printHelp()
         "Options:\n"
             " * -h Print this.\n"
             " * -s:size_t Start offset. Default = 0.\n"
-            " * -i:uint8_t Level of output info. Default = 1 : minimal output. 2 : Full output. 3 : Full output with offsets.\n"
+            " * -i:uint8_t Level of output info. Default = 1 : minimal output. 2 : Extended output (print basic header).\n"
             " * -f:string Force a headertype to be parsed skipping magic value validity checks. Supported types are: pe.\n"
+            //" * -offs: show file offsets of the printed values.\n"
             " * PE only options:\n"
-            "   * -exp: Print the Image Export Table (IMAGE_DIRECTORY_ENTRY_EXPORT) (Currently needs -i > 1).\n"
-            "   * -imp: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT) (Currently needs -i > 1).\n"
-            "   * -res: Print the Image Resource Table (IMAGE_DIRECTORY_ENTRY_RESOURCE) (Currently needs -i > 1).\n"
-            "   * -crt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE) (Currently needs -i > 1).\n"
-            "   * -cod: Directory to save found certificates in (Needs -icrt).\n"
-            "   * -rel: Print the Image Base Relocation Table (IMAGE_DIRECTORY_ENTRY_BASE_RELOC) (Currently needs -i > 1).\n"
-            "   * -tls: Print the Image TLS Table (IMAGE_DIRECTORY_ENTRY_TLS) (Currently needs -i > 1).\n"
-            "   * -lcfg: Print the Image Load Config Table (IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG) (Currently needs -i > 1).\n"
-            "   * -bimp: Print the Image Bound Import Table (IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT) (Currently needs -i > 1).\n"
-            "   * -dimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT) (Currently needs -i > 1).\n"
+            "   * -dosh: Print DOS header.\n"
+            "   * -coffh: Print COFF header.\n"
+            "   * -opth: Print Optional header.\n"
+            "   * -sech: Print Section headers.\n"
+            "   * -exp: Print the Image Export Table (IMAGE_DIRECTORY_ENTRY_EXPORT).\n"
+            "   * -imp: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT).\n"
+            "   * -res: Print the Image Resource Table (IMAGE_DIRECTORY_ENTRY_RESOURCE).\n"
+            "   * -crt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE).\n"
+            "   * -cod: Directory to save found certificates in (Needs -crt).\n"
+            "   * -rel: Print the Image Base Relocation Table (IMAGE_DIRECTORY_ENTRY_BASE_RELOC).\n"
+            "   * -tls: Print the Image TLS Table (IMAGE_DIRECTORY_ENTRY_TLS).\n"
+            "   * -lcfg: Print the Image Load Config Table (IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG).\n"
+            "   * -bimp: Print the Image Bound Import Table (IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT).\n"
+            "   * -dimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT).\n"
     );
     printf("\n");
     printf("Examples:\n");
@@ -230,29 +235,45 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_t* f
                 i++;
             }
         }
+        else if ( isArgOfType(argv[i], "-dosh") )
+        {
+            pep->info_level |= INFO_LEVEL_PE_DOS_H;
+        }
+        else if ( isArgOfType(argv[i], "-coffh") )
+        {
+            pep->info_level |= INFO_LEVEL_PE_COFF_H;
+        }
+        else if ( isArgOfType(argv[i], "-opth") )
+        {
+            pep->info_level |= INFO_LEVEL_PE_OPT_H;
+        }
+        else if ( isArgOfType(argv[i], "-sech") )
+        {
+            pep->info_level |= INFO_LEVEL_PE_SEC_H;
+        }
         else if ( isArgOfType(argv[i], "-imp") )
         {
-            pep->info_level_imp = true;
+            pep->info_level |= INFO_LEVEL_PE_IMP;
         }
         else if ( isArgOfType(argv[i], "-exp") )
         {
-            pep->info_level_exp = true;
+            pep->info_level |= INFO_LEVEL_PE_EXP;
         }
         else if (isArgOfType(argv[i], "-res"))
         {
-            pep->info_level_res = true;
+            pep->info_level |= INFO_LEVEL_PE_RES;
         }
         else if (isArgOfType(argv[i], "-tls"))
         {
-            pep->info_level_tls = true;
+            pep->info_level |= INFO_LEVEL_PE_TLS;
         }
         else if (isArgOfType(argv[i], "-rel"))
         {
-            pep->info_level_rel = true;
+            pep->info_level |= INFO_LEVEL_PE_REL;
         }
         else if ( isArgOfType(argv[i], "-crt") )
         {
-            pep->info_level_crt = true;
+            pep->info_level |= INFO_LEVEL_PE_CRT;
         }
         else if ( isArgOfType(argv[i], "-cod") )
         {
@@ -265,15 +286,15 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_t* f
         }
         else if (isArgOfType(argv[i], "-dimp"))
         {
-            pep->info_level_dimp = true;
+            pep->info_level |= INFO_LEVEL_PE_DIMP;
         }
         else if (isArgOfType(argv[i], "-bimp"))
         {
-            pep->info_level_bimp = true;
+            pep->info_level |= INFO_LEVEL_PE_BIMP;
         }
         else if (isArgOfType(argv[i], "-lcfg"))
         {
-            pep->info_level_lcfg = true;
+            pep->info_level |= INFO_LEVEL_PE_LCFG;
         }
         else
         {
@@ -284,12 +305,17 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_t* f
     if ( start_i == 1 )
         expandFilePath(argv[i], file_name);
 
-    if ( gp->info_level < 2 )
+    // maybe move to pe parsing
+    if ( gp->info_level >= INFO_LEVEL_EXTENDED )
     {
-        pep->info_level_imp = false;
-        pep->info_level_exp = false;
-        pep->info_level_res = false;
-        pep->info_level_crt = false;
+        pep->info_level |= INFO_LEVEL_PE_DOS_H;
+        pep->info_level |= INFO_LEVEL_PE_COFF_H;
+        pep->info_level |= INFO_LEVEL_PE_OPT_H;
+        pep->info_level |= INFO_LEVEL_PE_SEC_H;
+    }
+    if ( pep->info_level > 0 && gp->info_level < INFO_LEVEL_EXTENDED )
+    {
+        gp->info_level = INFO_LEVEL_EXTENDED;
     }
 
     if ( pep->certificate_directory!=NULL )
@@ -370,7 +396,7 @@ uint8_t getInfoLevel(char* arg)
         level = INFO_LEVEL_BASIC;
     }
 
-    if ( level > INFO_LEVEL_FULL_WITH_OFFSETS || level == INFO_LEVEL_NONE )
+    if ( level > INFO_LEVEL_EXTENDED_WITH_OFFSETS || level == INFO_LEVEL_NONE )
         level = INFO_LEVEL_BASIC;
 
     return level;
@@ -382,7 +408,7 @@ void printHeaderData(uint8_t level, PHeaderData hd, unsigned char* block)
 
     if ( level == INFO_LEVEL_BASIC )
         printHeaderData1(hd);
-    else if ( level >= INFO_LEVEL_FULL )
+    else if ( level >= INFO_LEVEL_EXTENDED )
     {
         if ( hd->headertype == HEADER_TYPE_NONE )
         {

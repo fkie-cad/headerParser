@@ -59,10 +59,10 @@ void parseDexHeader(PHeaderData hd, PGlobalParams gp)
     hd->h_bitness = 32;
     hd->i_bitness = 32;
 
-    if ( gp->info_level >= INFO_LEVEL_FULL )
+    if ( gp->info_level >= INFO_LEVEL_EXTENDED )
         DEX_printFileHeader(&file_header, hd->endian, gp->start_file_offset);
 
-    if ( gp->info_level >= INFO_LEVEL_FULL )
+    if ( gp->info_level >= INFO_LEVEL_EXTENDED )
     {
         strings = (char**) malloc(file_header.string_ids_size*sizeof(char*));
         if ( strings == NULL )
@@ -176,7 +176,7 @@ uint8_t DEX_readItemIds(size_t offset,
     gp->abs_file_offset = offset+gp->start_file_offset;
     offset = 0;
 
-    if ( gp->info_level >= INFO_LEVEL_FULL )
+    if ( gp->info_level >= INFO_LEVEL_EXTENDED )
         printf("%s (%u):\n", item_label, size);
 
     for ( i = 0; i < size; i++ )
@@ -231,7 +231,7 @@ void DEX_fillStringIdItem(uint32_t offset,
     }
     strings[idx] = string;
 
-    if ( gp->info_level >= INFO_LEVEL_FULL )
+    if ( gp->info_level >= INFO_LEVEL_EXTENDED )
         DEX_printStringIdItem(&item, &data, strings, idx + 1, size, gp->abs_file_offset+offset, gp->start_file_offset, gp->block_standard);
 }
 
@@ -246,7 +246,7 @@ void DEX_fillTypeIdItem(uint32_t offset,
 
     item.descriptor_idx = *((uint32_t*) &ptr[DexTypeIdItemOffsets.descriptor_idx]);
 
-    if ( gp->info_level >= INFO_LEVEL_FULL )
+    if ( gp->info_level >= INFO_LEVEL_EXTENDED )
         DEX_printTypeIdItem(&item, strings, idx + 1, size, gp->abs_file_offset+offset);
 }
 
@@ -264,7 +264,7 @@ void DEX_fillProtoIdItem(uint32_t offset,
     item.return_type_idx = *((uint32_t*) &ptr[DexProtoIdItemOffsets.return_type_idx]);
     item.parameters_off = *((uint32_t*) &ptr[DexProtoIdItemOffsets.parameters_off]);
 
-    if ( gp->info_level >= INFO_LEVEL_FULL )
+    if ( gp->info_level >= INFO_LEVEL_EXTENDED )
         DEX_printProtoIdItem(&item, idx + 1, size, gp->abs_file_offset+offset);
 }
 
@@ -281,7 +281,7 @@ void DEX_fillFieldIdItem(uint32_t offset,
     item.type_idx = *((uint16_t*) &ptr[DexFieldIdItemOffsets.type_idx]);
     item.name_idx = *((uint32_t*) &ptr[DexFieldIdItemOffsets.name_idx]);
 
-    if ( gp->info_level >= INFO_LEVEL_FULL )
+    if ( gp->info_level >= INFO_LEVEL_EXTENDED )
         DEX_printFieldIdItem(&item, strings, idx + 1, size, gp->abs_file_offset+offset);
 }
 
@@ -298,7 +298,7 @@ void DEX_fillMethodIdItem(uint32_t offset,
     item.proto_idx = *((uint16_t*) &ptr[DexMethodIdItemOffsets.proto_idx]);
     item.name_idx = *((uint32_t*) &ptr[DexMethodIdItemOffsets.name_idx]);
 
-    if ( gp->info_level >= INFO_LEVEL_FULL )
+    if ( gp->info_level >= INFO_LEVEL_EXTENDED )
         DEX_printMethodIdItem(&item, strings, idx + 1, size, gp->abs_file_offset+offset);
 }
 
@@ -322,7 +322,7 @@ void DEX_fillClassDefItem(uint32_t offset,
 
     // jump to class_data_off, fill class_data_item
 
-    if ( gp->info_level >= INFO_LEVEL_FULL )
+    if ( gp->info_level >= INFO_LEVEL_EXTENDED )
         DEX_printClassDefItem(&item, strings, idx + 1, size, gp->abs_file_offset+offset);
 }
 
@@ -357,7 +357,7 @@ uint8_t DEX_readMap(DEXFileHeader *fh,
 
     l.size = *((uint32_t*) &ptr[DexMapListOffsets.size]);
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         DEX_printMapList(&l, *abs_file_offset+offset);
 
     offset = DexMapListOffsets.map_item_list;
@@ -395,7 +395,7 @@ size_t DEX_readMapItem(size_t offset,
     item.size = *((uint32_t*) &ptr[DexMapItemOffsets.size]);
     item.offset = *((uint32_t*) &ptr[DexMapItemOffsets.offset]);
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         DEX_printMapItem(&item, idx, ln, abs_file_offset+offset);
 
     if ( item.type == TYPE_CODE_ITEM )

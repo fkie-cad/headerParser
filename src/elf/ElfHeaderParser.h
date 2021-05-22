@@ -148,10 +148,10 @@ void parseELFHeader(PHeaderData hd, PGlobalParams gp)
     if ( s != 0 ) return;
 
     Elf_fillHeaderDataWithFileHeader(&file_header, hd);
-    if ( gp->info_level >= INFO_LEVEL_FULL )
+    if ( gp->info_level >= INFO_LEVEL_EXTENDED )
         Elf_printFileHeader(&file_header, gp->start_file_offset);
 
-    if ( gp->info_level >= INFO_LEVEL_FULL )
+    if ( gp->info_level >= INFO_LEVEL_EXTENDED )
         Elf_readProgramHeaderTable(&file_header, &gp->abs_file_offset, gp->start_file_offset, gp->file_size, gp->info_level,
                              bitness, gp->fp, gp->block_large);
 
@@ -320,7 +320,7 @@ void Elf_readProgramHeaderTableEntries(const Elf64FileHeader* file_header,
     ElfProgramHeaderOffsets ph_offsets = Elf_getProgramHeaderOffsets(file_header);
     Elf64ProgramHeader program_header;
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         printf("Program Header Table:\n");
 
     for ( i = 0; i < file_header->e_phnum; i++ )
@@ -337,7 +337,7 @@ void Elf_readProgramHeaderTableEntries(const Elf64FileHeader* file_header,
 
         Elf_readProgramHeaderTableEntry(ptr, &ph_offsets, file_header, &program_header);
 
-        if ( ilevel >= INFO_LEVEL_FULL )
+        if ( ilevel >= INFO_LEVEL_EXTENDED )
             Elf_printProgramHeaderTableEntry(&program_header, i, file_header->e_phnum, *abs_file_offset+offset, bitness);
 
         if ( !Elf_checkProgramHeaderTableEntry(&program_header, i, start_file_offset, file_size))
@@ -348,7 +348,7 @@ void Elf_readProgramHeaderTableEntries(const Elf64FileHeader* file_header,
 
         offset += file_header->e_phentsize;
     }
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         printf("\n");
 }
 
@@ -553,7 +553,7 @@ void Elf_readSectionHeaderEntries(const Elf64FileHeader* fh,
     Elf64SectionHeader sht_entry;
     CodeRegionData code_region_data;
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         printf("Section Header Table:\n");
 
     for ( i = 0; i < fh->e_shnum; i++ )
@@ -572,7 +572,7 @@ void Elf_readSectionHeaderEntries(const Elf64FileHeader* fh,
 
         s_name = ( sht_entry.sh_name < string_table_size-1 ) ? (char*) &string_table[sht_entry.sh_name] : "";
 
-        if ( ilevel >= INFO_LEVEL_FULL )
+        if ( ilevel >= INFO_LEVEL_EXTENDED )
             Elf_printSectionHeaderTableEntry(&sht_entry, i, fh->e_shnum, s_name, *abs_file_offset+offset, hd->h_bitness);
 
         if ( !Elf_checkSectionHeaderTableEntry(&sht_entry, i, s_name, start_file_offset, file_size) )
@@ -594,7 +594,7 @@ void Elf_readSectionHeaderEntries(const Elf64FileHeader* fh,
 
         offset += fh->e_shentsize;
     }
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         printf("\n");
 }
 

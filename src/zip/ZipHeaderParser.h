@@ -187,7 +187,7 @@ size_t ZIP_handleFileRecord(size_t offset,
 
     dd_offset = ZIP_fillRecored(&fr, ptr, offset, *abs_file_offset, file_size, fp, block_s);
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         ZIP_printFileEntry(&fr, ptr, record_count, *abs_file_offset + offset, dd_offset, file_size, fp, block_s);
 
     ZIP_checkNeedles(&fr, offset, found_needles, record_count, *abs_file_offset, file_size, fp, block_s, block_l);
@@ -417,7 +417,7 @@ size_t ZIP_handleDirEntry(size_t offset,
 
     ZIP_fillDirEntry(&de, ptr);
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         ZIP_printDirEntry(&de, ptr, record_count, *abs_file_offset + offset, file_size, fp, block_s);
 
     offset += size_of_entry + de.fileNameLength + de.fileCommentLength + de.extraFieldLength;
@@ -478,7 +478,7 @@ size_t ZIP_handleEndLocator(size_t offset,
 
     debug_info(" - abs_file_offset+offset: 0x%zx (%zx)\n", *abs_file_offset+offset, *abs_file_offset+offset);
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         ZIP_printEndLocator(&el, ptr, *abs_file_offset + offset, file_size, fp, block_s);
 
     return offset;

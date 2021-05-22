@@ -31,7 +31,7 @@ void parseMSIHeader(PHeaderData hd,
 
     s = MSI_readStructuredHeader(&ssh, gp->start_file_offset, gp->file_size, gp->block_large);
     if ( s != 0 ) return;
-    if ( gp->info_level >= INFO_LEVEL_FULL )
+    if ( gp->info_level >= INFO_LEVEL_EXTENDED )
         MSI_printStructuredStorageHeader(&ssh);
 
     if ( MSI_searchPEs(&ssh, hd, gp, pep) )
@@ -126,7 +126,7 @@ uint8_t MSI_searchPEs(MSIStructuredStorageHeader* ssh,
 
     if ( first_pe_offset != 0 )
     {
-        if ( gp->info_level >= INFO_LEVEL_FULL )
+        if ( gp->info_level >= INFO_LEVEL_EXTENDED )
         {
             printf("PE file %u/%u at offset 0x%zx:\n", 1, pe_count, first_pe_offset);
         }

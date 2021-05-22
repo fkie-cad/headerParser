@@ -973,7 +973,7 @@ void PE_parseImageLoadConfigTable(PE64OptHeader* oh,
     size_t e_size = (bitness == 32) ? PE_IMAGE_LOAD_CONFIG_DIRECTORY32_SIZE : PE_IMAGE_LOAD_CONFIG_DIRECTORY64_SIZE;
     if (oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].Size != e_size)
     {
-        printf("LOAD_CONFIG size missmatch: expected %zx but got %"PRIu32"\n", e_size, oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].Size);
+        printf("LOAD_CONFIG size missmatch: expected 0x%zx but got 0x%"PRIx32"\n", e_size, oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].Size);
     }
 
     // fill PE_IMAGE_EXPORT_DIRECTORY info

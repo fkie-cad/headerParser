@@ -30,7 +30,7 @@ void parseArtHeader(PHeaderData hd, PGlobalParams gp)
 
     ARTreadFileHeader(&file_header, gp->start_file_offset, gp->file_size, gp->block_large);
 
-    if ( gp->info_level >= INFO_LEVEL_FULL )
+    if ( gp->info_level >= INFO_LEVEL_EXTENDED )
         ARTprintFileHeader009012(&file_header, gp->start_file_offset);
 }
 

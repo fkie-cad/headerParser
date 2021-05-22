@@ -330,7 +330,7 @@ void MachO_printDylibCommand(DylibCommand* c, uint32_t name_ln, unsigned char* p
     printf("Dynamic Library (%s)\n", type);
     MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
     printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
-    if ( ilevel == INFO_LEVEL_FULL_WITH_OFFSETS )
+    if ( ilevel == INFO_LEVEL_EXTENDED_WITH_OFFSETS )
         printf(" - dylib.name.offset%s: 0x%x (%u)\n", fillOffset((size_t)offsets.dylib+DylibOffsets.name, offset, 0), c->dylib.name.offset, c->dylib.name.offset);
     printf(" - dylib.name%s: ", fillOffset(c->dylib.name.offset, offset, 0));
     for ( i = 0; i < name_ln; i++ )

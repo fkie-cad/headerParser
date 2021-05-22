@@ -160,7 +160,7 @@ void parseMachOHeader(PHeaderData hd, PGlobalParams gp)
     s = MachO_fillMachHeader(&mach_header, gp->start_file_offset, gp->file_size, hd->h_bitness, hd->endian, gp->block_large);
     if ( s != 0 ) return;
 
-    if ( gp->info_level >= INFO_LEVEL_FULL )
+    if ( gp->info_level >= INFO_LEVEL_EXTENDED )
         MachO_printFileHeader(&mach_header, hd->h_bitness, hd->endian, gp->start_file_offset);
 
     arch = getArchitecture(mach_header.cputype, mach_o_arch_id_mapper, mach_o_arch_id_mapper_size);
@@ -259,7 +259,7 @@ void MachO_readCommands(uint32_t ncmds,
         seg_offsets = SegmentCommandOffsets32;
     }
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         printf("SegmentCommands (%u):\n", ncmds);
 
     for ( i = 0; i < ncmds; i++ )
@@ -267,7 +267,7 @@ void MachO_readCommands(uint32_t ncmds,
         debug_info("%u/%u:\n", i+1,ncmds);
         debug_info(" - sc_offset: 0x%zx (%zu)\n", sc_offset, sc_offset);
 
-        if ( ilevel >= INFO_LEVEL_FULL )
+        if ( ilevel >= INFO_LEVEL_EXTENDED )
             printf("(%u/%u):\n", i+1, ncmds);
 
         if ( !checkFileSpace(sc_offset, *abs_file_offset, SIZE_OF_MACHO_O_LOAD_COMMAND, file_size) )
@@ -479,7 +479,7 @@ void MachO_readCommands(uint32_t ncmds,
         else
         {
             debug_info("else load segment\n");
-            if ( ilevel >= INFO_LEVEL_FULL )
+            if ( ilevel >= INFO_LEVEL_EXTENDED )
                 MachO_printLoadCommand(&lc, *abs_file_offset+sc_offset);
             sc_offset += lc.cmdsize;
         }
@@ -565,7 +565,7 @@ size_t MachO_fillSegmentCommand(size_t sc_offset,
     debug_info(" -  sec_offset: %u\n", sec_offset);
     debug_info(" -  sc->nsects: %u\n", sc->nsects);
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         MachO_printSegmentCommand(sc, *abs_file_offset+sc_offset, hd->h_bitness);
 
     sc_offset = MachO_readSections(sc, sec_offset, abs_file_offset, file_size, ilevel, hd, fp, block_l);
@@ -617,7 +617,7 @@ size_t MachO_readSections(SegmentCommand64* c,
             addCodeRegionDataToHeaderData(&code_region_data, hd);
         }
 
-        if ( ilevel >= INFO_LEVEL_FULL )
+        if ( ilevel >= INFO_LEVEL_EXTENDED )
             MachO_printSection(&sec, i + 1, c->nsects, *abs_file_offset+offset, hd->h_bitness);
 
         offset += sect_size;
@@ -732,7 +732,7 @@ void MachO_fillUuidCommand(UuidCommand* c,
         c->uuid[i] = ptr[UuidCommandOffsets.uuid+i];
     }
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         MachO_printUuidCommand(c, abs_file_offset+offset);
 }
 
@@ -762,7 +762,7 @@ void MachO_fillDylibCommand(DylibCommand* c,
 
     name_ln = c->cmdsize - c->dylib.name.offset;
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         MachO_printDylibCommand(c, name_ln, ptr, abs_file_offset+offset, ilevel);
 }
 
@@ -791,7 +791,7 @@ void MachO_fillPreboundDylibCommand(PreboundDylibCommand* c,
 
     name_ln = c->cmdsize - c->name.offset;
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         MachO_printPreboundDylibCommand(c, name_ln, ptr, abs_file_offset+offset);
 }
 
@@ -815,7 +815,7 @@ void MachO_fillSubCommand(SubCommand* c,
 
     name_ln = c->cmdsize - c->name.offset;
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         MachO_printSubCommand(c, name_ln, ptr, abs_file_offset+offset);
 }
 
@@ -842,7 +842,7 @@ void MachO_fillSymtabCommand(SymtabCommand* c,
         c->strsize = swapUint32(c->strsize);
     }
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         MachO_printSymtabCommand(c, abs_file_offset+offset);
 }
 
@@ -897,7 +897,7 @@ void MachO_fillDySymtabCommand(DySymtabCommand* c,
         c->nlocrel = swapUint32(c->nlocrel);
     }
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         MachO_printDySymtabCommand(c, abs_file_offset+offset);
 }
 
@@ -947,7 +947,7 @@ void MachO_fillRoutinesCommand(RoutinesCommand64* c,
         c->reserved6 = swapUint64(c->reserved6);
     }
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         MachO_printRoutinesCommand(c, abs_file_offset+offset, hd->h_bitness);
 }
 
@@ -970,7 +970,7 @@ void MachO_fillVersionMinCommand(VersionMinCommand* c,
         c->reserved = swapUint32(c->reserved);
     }
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         MachO_printVersionMinCommand(c, abs_file_offset+offset);
 }
 
@@ -993,7 +993,7 @@ void MachO_fillThreadCommand(ThreadCommand* c,
         c->count = swapUint32(c->count);
     }
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         MachO_printThreadCommand(c, abs_file_offset+offset);
 }
 
@@ -1017,7 +1017,7 @@ void MachO_fillLinkedItDataCommand(LinkedItDataCommand* c,
         c->size = swapUint32(c->size);
     }
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         MachO_printLinkedItDataCommand(c, abs_file_offset + offset);
 }
 
@@ -1057,7 +1057,7 @@ void MachO_fillDyldInfoCommand(DyldInfoCommand* c,
         c->export_size = swapUint32(c->export_size);
     }
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         MachO_printDyldInfoCommand(c, abs_file_offset+offset);
 }
 
@@ -1079,7 +1079,7 @@ void MachO_fillSourceVersionCommand(SourceVersionCommand* c,
         c->version = swapUint64(c->version);
     }
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         MachO_printSourceVersionCommand(c, abs_file_offset+offset);
 }
 
@@ -1103,7 +1103,7 @@ void MachO_fillMainDylibCommand(MainDylibCommand* c,
         c->stack_size = swapUint64(c->stack_size);
     }
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         MachO_printMainDylibCommand(c, abs_file_offset+offset);
 }
 
@@ -1133,7 +1133,7 @@ void MachO_fillBuildVersionCommand(BuildVersionCommand* c,
 //		c->tools = swapUint32(c->tools);
     }
 
-    if ( ilevel >= INFO_LEVEL_FULL )
+    if ( ilevel >= INFO_LEVEL_EXTENDED )
         MachO_printBuildVersionCommand(c, abs_file_offset+offset);
 }
 

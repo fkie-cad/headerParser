@@ -66,7 +66,7 @@ const unsigned char MAGIC_PE_ARCHIV_BYTES[] = { 0x21, 0x3C, 0x61, 0x72, 0x63, 0x
 const unsigned char MAGIC_JAVA_CLASS_BYTES[] = { 0xCA, 0xFE, 0xBA, 0xBE };
 #define MAGIC_JAVA_CLASS_BYTES_LN (sizeof(MAGIC_JAVA_CLASS_BYTES))
 
-enum InfoLevel { INFO_LEVEL_NONE=0, INFO_LEVEL_BASIC=1, INFO_LEVEL_FULL=2, INFO_LEVEL_FULL_WITH_OFFSETS=3, INFO_LEVEL_EXTENDED=4 };
+enum InfoLevel { INFO_LEVEL_NONE=0, INFO_LEVEL_BASIC=1, INFO_LEVEL_EXTENDED=2, INFO_LEVEL_EXTENDED_WITH_OFFSETS=3 };
 
 
 uint8_t info_level; // may be global.
@@ -90,17 +90,23 @@ typedef struct GlobalParams
     uint8_t info_level; // may be global. TODO: delete this or the global one
 } GlobalParams, *PGlobalParams;
 
+#define INFO_LEVEL_PE_DOS_H (0x01)
+#define INFO_LEVEL_PE_COFF_H (0x02)
+#define INFO_LEVEL_PE_OPT_H (0x04)
+#define INFO_LEVEL_PE_SEC_H (0x08)
+#define INFO_LEVEL_PE_IMP (0x10)
+#define INFO_LEVEL_PE_EXP (0x20)
+#define INFO_LEVEL_PE_RES (0x40)
+#define INFO_LEVEL_PE_TLS (0x80)
+#define INFO_LEVEL_PE_REL (0x100)
+#define INFO_LEVEL_PE_CRT (0x200)
+#define INFO_LEVEL_PE_DIMP (0x400)
+#define INFO_LEVEL_PE_BIMP (0x800)
+#define INFO_LEVEL_PE_LCFG (0x1000)
+
 typedef struct PEParams
 {
-    bool info_level_imp;
-    bool info_level_exp;
-    bool info_level_res;
-    bool info_level_tls;
-    bool info_level_rel;
-    bool info_level_crt;
-    bool info_level_dimp;
-    bool info_level_bimp;
-    bool info_level_lcfg;
+    uint32_t info_level;
 
     const char* certificate_directory;
 } PEParams, *PPEParams;
