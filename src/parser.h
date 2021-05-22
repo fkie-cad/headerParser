@@ -38,6 +38,7 @@ int isZipArchive(unsigned char* block);
 void parseHeader(uint8_t force, PHeaderData hd, PGlobalParams gp, PPEParams pep)
 {
     info_level = gp->info_level;
+    info_show_offsets = gp->info_show_offsets;
 
     if ( gp->abs_file_offset + MIN_FILE_SIZE > gp->file_size )
     {

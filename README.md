@@ -14,7 +14,7 @@ OsX may work too.
 
 
 ## Version ##
-1.11.0  
+1.11.1  
 Last changed: 22.05.2021
 
 ## REQUIREMENTS ##
@@ -60,19 +60,24 @@ $ ./headerParser [options] a/file/name
 Options:  
  * -h Print help.
  * -s:uint64_t Start offset in file. Default = 1.
- * -i:uint8_t Level of output info. 1 : minimal output (Default), 2 : extended output, 3 : extended output with offset info.
+ * -i:uint8_t Level of output info. 1 : minimal output (Default), 2 : extended output (basic header).
  * -f:string Force parsing a specific type, skipping magic value checks. Currently only "pe" is supported.
+ * -offs: show file offsets of the printed values (for -i 2 or PE options).
  * PE only options:
-   * -exp: Print the Image Export Table (IMAGE_DIRECTORY_ENTRY_EXPORT). (Needs -i > 1.)
-   * -imp: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT). (Needs -i > 1.)
-   * -res: Print the Image Resource Table (IMAGE_DIRECTORY_ENTRY_RESOURCE). (Needs -i > 1.)
-   * -crt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE). (Needs -i > 1.)
-   * -cod: Directory to save found certificates in. (Needs -icrt.)
-   * -rel: Print the Image Base Relocation Table (IMAGE_DIRECTORY_ENTRY_BASE_RELOC). (Needs -i > 1.)
-   * -tls: Print the Image TLS Table (IMAGE_DIRECTORY_ENTRY_TLS). (Needs -i > 1.)
-   * -lcfg: Print the Image Load Config Table (IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG) (Needs -i > 1.)
-   * -bimp: Print the Image Bound Import Table (IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT). (Needs -i > 1.)
-   * -dimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT). (Needs -i > 1.)
+   * -dosh: Print DOS header.
+   * -coffh: Print COFF header.
+   * -opth: Print Optional header.
+   * -sech: Print Section headers.
+   * -exp: Print the Image Export Table (IMAGE_DIRECTORY_ENTRY_EXPORT).
+   * -imp: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT).
+   * -res: Print the Image Resource Table (IMAGE_DIRECTORY_ENTRY_RESOURCE).
+   * -crt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE).
+   * -cod: Directory to save found certificates in. (Needs -crt.)
+   * -rel: Print the Image Base Relocation Table (IMAGE_DIRECTORY_ENTRY_BASE_RELOC).
+   * -tls: Print the Image TLS Table (IMAGE_DIRECTORY_ENTRY_TLS).
+   * -lcfg: Print the Image Load Config Table (IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG)
+   * -bimp: Print the Image Bound Import Table (IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT).
+   * -dimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT).
  
 ## EXAMPLE ##
 ```bash

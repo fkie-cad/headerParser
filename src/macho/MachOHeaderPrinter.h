@@ -19,7 +19,7 @@ void MachO_printSegmentCommand(const SegmentCommand64* c, size_t offset, uint8_t
 void MachO_printSection(const MachOSection64* c, uint32_t idx, uint32_t ln, size_t offset, uint8_t bitness);
 //void MachO_printFlag(uint32_t flags, uint32_t expected, char* label);
 void MachO_printUuidCommand(UuidCommand* c, size_t offset);
-void MachO_printDylibCommand(DylibCommand* c, uint32_t name_ln, unsigned char* ptr, size_t offset, uint8_t ilevel);
+void MachO_printDylibCommand(DylibCommand* c, uint32_t name_ln, unsigned char* ptr, size_t offset, uint8_t ioffsets);
 void MachO_printPreboundDylibCommand(PreboundDylibCommand* c, uint32_t name_ln, unsigned char* ptr, size_t offset);
 void MachO_printSubCommand(SubCommand* c, uint32_t name_ln, unsigned char* ptr, size_t offset);
 void MachO_printSymtabCommand(SymtabCommand* c, size_t offset);
@@ -314,7 +314,7 @@ void MachO_printUuidCommand(UuidCommand* c, size_t offset)
     printf("\n");
 }
 
-void MachO_printDylibCommand(DylibCommand* c, uint32_t name_ln, unsigned char* ptr, size_t offset, uint8_t ilevel)
+void MachO_printDylibCommand(DylibCommand* c, uint32_t name_ln, unsigned char* ptr, size_t offset, uint8_t ioffsets)
 {
     uint32_t i;
     Dylib_Command_Offsets offsets = DylibCommandOffsets;
@@ -330,7 +330,7 @@ void MachO_printDylibCommand(DylibCommand* c, uint32_t name_ln, unsigned char* p
     printf("Dynamic Library (%s)\n", type);
     MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
     printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
-    if ( ilevel == INFO_LEVEL_EXTENDED_WITH_OFFSETS )
+    if ( ioffsets == 1 )
         printf(" - dylib.name.offset%s: 0x%x (%u)\n", fillOffset((size_t)offsets.dylib+DylibOffsets.name, offset, 0), c->dylib.name.offset, c->dylib.name.offset);
     printf(" - dylib.name%s: ", fillOffset(c->dylib.name.offset, offset, 0));
     for ( i = 0; i < name_ln; i++ )

@@ -163,7 +163,7 @@ void printFlag64(uint64_t present, uint64_t expected, const char* label)
  */
 char* fillOffset(size_t rel_offset, size_t abs_offset, size_t file_offset)
 {
-    if ( info_level == INFO_LEVEL_EXTENDED_WITH_OFFSETS )
+    if ( info_show_offsets == 1 )
 //#if defined(_WIN32)
 //		sprintf(offset_buffer, " (0x%llx)", abs_offset+rel_offset+file_offset);
 //#else

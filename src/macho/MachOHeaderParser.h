@@ -763,7 +763,7 @@ void MachO_fillDylibCommand(DylibCommand* c,
     name_ln = c->cmdsize - c->dylib.name.offset;
 
     if ( ilevel >= INFO_LEVEL_EXTENDED )
-        MachO_printDylibCommand(c, name_ln, ptr, abs_file_offset+offset, ilevel);
+        MachO_printDylibCommand(c, name_ln, ptr, abs_file_offset+offset, info_show_offsets);
 }
 
 void MachO_fillPreboundDylibCommand(PreboundDylibCommand* c,

@@ -66,10 +66,11 @@ const unsigned char MAGIC_PE_ARCHIV_BYTES[] = { 0x21, 0x3C, 0x61, 0x72, 0x63, 0x
 const unsigned char MAGIC_JAVA_CLASS_BYTES[] = { 0xCA, 0xFE, 0xBA, 0xBE };
 #define MAGIC_JAVA_CLASS_BYTES_LN (sizeof(MAGIC_JAVA_CLASS_BYTES))
 
-enum InfoLevel { INFO_LEVEL_NONE=0, INFO_LEVEL_BASIC=1, INFO_LEVEL_EXTENDED=2, INFO_LEVEL_EXTENDED_WITH_OFFSETS=3 };
+enum InfoLevel { INFO_LEVEL_NONE=0, INFO_LEVEL_BASIC=1, INFO_LEVEL_EXTENDED=2 };
 
 
 uint8_t info_level; // may be global.
+uint8_t info_show_offsets; // may be global.
 
 typedef struct GlobalParams
 {
@@ -88,6 +89,7 @@ typedef struct GlobalParams
 //    } file;
 
     uint8_t info_level; // may be global. TODO: delete this or the global one
+    uint8_t info_show_offsets; // may be global. TODO: delete this or the global one
 } GlobalParams, *PGlobalParams;
 
 #define INFO_LEVEL_PE_DOS_H (0x01)

@@ -39,7 +39,7 @@ static void printHeaderData(uint8_t, PHeaderData hd, unsigned char* block);
 static void printHeaderData1(PHeaderData hd);
 static uint8_t getForceOption(const char* arg);
 
-const char* vs = "1.11.0";
+const char* vs = "1.11.1";
 const char* last_changed = "22.05.2021";
 
 
@@ -155,7 +155,7 @@ void printHelp()
             " * -s:size_t Start offset. Default = 0.\n"
             " * -i:uint8_t Level of output info. Default = 1 : minimal output. 2 : Extended output (print basic header).\n"
             " * -f:string Force a headertype to be parsed skipping magic value validity checks. Supported types are: pe.\n"
-            //" * -offs: show file offsets of the printed values.\n"
+            " * -offs: show file offsets of the printed values (for -i 2 or PE options).\n"
             " * PE only options:\n"
             "   * -dosh: Print DOS header.\n"
             "   * -coffh: Print COFF header.\n"
@@ -235,6 +235,10 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_t* f
                 i++;
             }
         }
+        else if ( isArgOfType(argv[i], "-offs") )
+        {
+            gp->info_show_offsets = 1;
+        }
         else if ( isArgOfType(argv[i], "-dosh") )
         {
             pep->info_level |= INFO_LEVEL_PE_DOS_H;
@@ -298,7 +302,7 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_t* f
         }
         else
         {
-            header_info("INFO: Unknown arg type \"%s\"\n", argv[i]);
+            header_info("INFO: Unknown option \"%s\"\n", argv[i]);
         }
     }
 
@@ -396,7 +400,7 @@ uint8_t getInfoLevel(char* arg)
         level = INFO_LEVEL_BASIC;
     }
 
-    if ( level > INFO_LEVEL_EXTENDED_WITH_OFFSETS || level == INFO_LEVEL_NONE )
+    if ( level > INFO_LEVEL_EXTENDED || level == INFO_LEVEL_NONE )
         level = INFO_LEVEL_BASIC;
 
     return level;
