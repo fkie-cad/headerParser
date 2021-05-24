@@ -21,6 +21,7 @@ void printFlag32(uint32_t present, uint32_t expected, const char* label);
 void printFlag32F(uint32_t present, uint32_t expected, const char* label, const char* pre, const char post);
 void printFlag64(uint64_t present, uint64_t expected, const char* label);
 char* fillOffset(size_t rel_offset, size_t abs_offset, size_t file_offset);
+uint8_t isMemZero(void* mem, size_t n);
 
 char offset_buffer[256];
 
@@ -174,6 +175,18 @@ char* fillOffset(size_t rel_offset, size_t abs_offset, size_t file_offset)
         offset_buffer[0] = 0;
 
     return offset_buffer;
+}
+
+uint8_t isMemZero(void* mem, size_t n)
+{
+    uint8_t* m = (uint8_t*)mem;
+    size_t i;
+    for ( i = 0; i < n; i++ )
+    {
+        if ( m[i] != 0 )
+            return 0;
+    }
+    return 1;
 }
 
 #endif

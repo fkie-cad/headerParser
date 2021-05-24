@@ -404,10 +404,10 @@ void PE_printImageSectionHeader(PEImageSectionHeader* sh,
 
 void PE_printImageImportTableHeader(PEImageImportDescriptor* impd)
 {
-    if ( impd->Characteristics != 0 )
-        printf("Image Import Table:\n");
-    else
+    if ( isMemZero(impd, sizeof(PEImageImportDescriptor)) )
         printf("No Image Import Table\n");
+    else
+        printf("Image Import Table:\n");
 }
 
 void PE_printImageImportDescriptor(PEImageImportDescriptor* impd, size_t offset, const char* impd_name)
@@ -975,10 +975,10 @@ void PE_printImageBaseRelocationBlockEntry(PE_BASE_RELOCATION_ENTRY* e)
 
 void PE_printImageDelayImportTableHeader(PeImageDelayLoadDescriptor* impd)
 {
-    if (impd->ImportAddressTableRVA != 0)
-        printf("Delay Image Import Table:\n");
-    else
+    if ( isMemZero(impd, sizeof(PeImageDelayLoadDescriptor)) )
         printf("No Delay Image Import Table\n");
+    else
+        printf("Delay Image Import Table:\n");
 }
 
 void PE_printImageDelayImportDescriptor(PeImageDelayLoadDescriptor* did, size_t offset, const char* dll_name)
@@ -1000,10 +1000,10 @@ void PE_printImageDelayImportDescriptor(PeImageDelayLoadDescriptor* did, size_t 
 
 void PE_printImageBoundImportTableHeader(PE_IMAGE_BOUND_IMPORT_DESCRIPTOR* bid)
 {
-    if ( bid->OffsetModuleName != 0 )
-        printf("Bound Image Import Table:\n");
-    else
+    if ( isMemZero(bid, sizeof(PE_IMAGE_BOUND_IMPORT_DESCRIPTOR)) )
         printf("No Bound Import Table\n");
+    else
+        printf("Bound Image Import Table:\n");
 }
 
 void PE_printImageBoundImportDescriptor(PE_IMAGE_BOUND_IMPORT_DESCRIPTOR* bid, size_t offset, const char* dll_name)

@@ -14,8 +14,8 @@ OsX may work too.
 
 
 ## Version ##
-1.11.1  
-Last changed: 22.05.2021
+1.11.2  
+Last changed: 24.05.2021
 
 ## REQUIREMENTS ##
 - Linux
@@ -23,6 +23,11 @@ Last changed: 22.05.2021
    - Building with cmake requires cmake.
 - Windows
    - msbuild
+   - [wdk]
+
+**Remarks**  
+The .vcxproj file is using `WindowsApplicationForDrivers10.0` as the `PlatformToolset`, which leads to smaller builds. 
+If the WDK is not installed, the `PlatformToolset` may be changed to `v142` and it should compile without errors.
 
 ## BUILD ##
 ### Linux (gcc) & cmake ###
@@ -40,6 +45,7 @@ $ gcc -o build/headerParser -Wl,-z,relro,-z,now -D_FILE_OFFSET_BITS=64 -Ofast sr
 ```bash
 $ winBuild.bat [/t headerParser] [/m Release|Debug] [/b 32|64] [/rt] [/pdb] [/bt a\path] [/h]
 ```
+This will run in a normal cmd.  
 The correct path to your build tools may be passed as a parameter or changed in the script [winBuild.bat](winBuild.bat) itself.  
 
 
