@@ -126,6 +126,7 @@
   <ItemGroup>
     <ClCompile Include="src\headerParser.c" />
     <ClCompile Include="src\utils\Converter.c;" />
+    <ResourceCompile Include="res\headerparser.rc" />
   </ItemGroup>
   <ItemGroup>
     <None Exclude="@(None)" Include="*.ico;*.cur;*.bmp;*.dlg;*.rct;*.gif;*.jpg;*.jpeg;*.wav;*.jpe;*.tiff;*.tif;*.png;*.rc2" />
