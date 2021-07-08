@@ -14,8 +14,8 @@ OsX may work too.
 
 
 ## Version ##
-1.11.2  
-Last changed: 24.05.2021
+1.11.3  
+Last changed: 08.07.2021
 
 ## REQUIREMENTS ##
 - Linux
@@ -68,7 +68,7 @@ Options:
  * -s:uint64_t Start offset in file. Default = 1.
  * -i:uint8_t Level of output info. 1 : minimal output (Default), 2 : extended output (basic header).
  * -f:string Force parsing a specific type, skipping magic value checks. Currently only "pe" is supported.
- * -offs: show file offsets of the printed values (for -i 2 or PE options).
+ * -offs: show file offsets of the printed values (for -i 2 or XX only options).
  * PE only options:
    * -dosh: Print DOS header.
    * -coffh: Print COFF header.
@@ -84,6 +84,10 @@ Options:
    * -lcfg: Print the Image Load Config Table (IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG)
    * -bimp: Print the Image Bound Import Table (IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT).
    * -dimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT).
+ * ELF only options:
+   * -fileh: Print file header.
+   * -progh: Print program headers.
+   * -sech: Print section headers.
  
 ## EXAMPLE ##
 ```bash
@@ -101,18 +105,45 @@ CPU_arch: Intel|Arm|...
 Machine: ...
 ```
 
+There is a difference between the header bitness (displayed in brackets following the `headertype`) and the bitness of the executable (program code). 
+The header bitness is 32 or 64 bit for ELF, MACH-O and PE. 
+The bitness of the executable (program code) may be different though.
+
 A not yet complete but extended output will be printed, by setting "-i 2"
 ```bash
-$ ./headerParser a/file/name 2
+$ ./headerParser a/file.exe -i 2
 
-file or dos header
+PE Image Dos Header:
 ...
-section header 1/x
+Coff File Header:
 ...
-section header 2/x
+Optional Header::
+...
+Section Header:
+1 / x
+...
+2 / x
+```
+
+```bash
+$ ./headerParser a/elf/file -i 2
+
+ELF File header:
+...
+Program Header Table:
+1 / x
+...
+2 / x
+...
+Section Header Table:
+1 / y
+...
+2 / y
 ...
 ```
-The output is not yet formatted very well.
+
+The output is not yet formatted very well.  
+PE file info may be printed more fine grained with the extended PE only options.
 
 ### Offsets ###
 If you think, the header starts somewhere in the file, you may pass an offset to it using the "-s" option.

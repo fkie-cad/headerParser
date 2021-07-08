@@ -106,12 +106,23 @@ typedef struct GlobalParams
 #define INFO_LEVEL_PE_BIMP (0x800)
 #define INFO_LEVEL_PE_LCFG (0x1000)
 
-typedef struct PEParams
-{
-    uint32_t info_level;
+#define INFO_LEVEL_PE_EXTENDED (INFO_LEVEL_PE_DOS_H | INFO_LEVEL_PE_COFF_H | INFO_LEVEL_PE_OPT_H | INFO_LEVEL_PE_SEC_H)
 
+
+#define INFO_LEVEL_ELF_FILE_H (0x01)
+#define INFO_LEVEL_ELF_PROG_H (0x02)
+#define INFO_LEVEL_ELF_SEC_H (0x04)
+
+#define INFO_LEVEL_ELF_EXTENDED (INFO_LEVEL_ELF_FILE_H | INFO_LEVEL_ELF_PROG_H | INFO_LEVEL_ELF_SEC_H)
+
+typedef struct PEParams {
+    uint32_t info_level;
     const char* certificate_directory;
 } PEParams, *PPEParams;
+
+typedef struct ElfParams {
+    uint32_t info_level;
+} ElfParams, *PElfParams;
 
 //const unsigned char CRAMFS[] = { 0x28,, 0x0xCD, 0x3D, 0x45 };
 //const unsigned char SquashFS[] = { 0x73, 0x71, 0x73, 0x68 };

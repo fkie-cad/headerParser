@@ -29,7 +29,12 @@
 
 
 
-static int parsePEHeaderData(uint8_t force, PHeaderData hd, PGlobalParams gp, PPEParams pep);
+static int parsePEHeaderData(
+    uint8_t force, 
+    PHeaderData hd, 
+    PGlobalParams gp, 
+    PPEParams pep
+);
 
 static int parsePEHeader(uint8_t force,
                          PEHeaderData* pehd,
@@ -143,10 +148,12 @@ static void PE_cleanUp(PEHeaderData* pehd);
  * @param force uint8_t FORCE_PE|FORCE_NONE
  * @return
  */
-int parsePEHeaderData(uint8_t force,
-                      PHeaderData hd,
-                      PGlobalParams gp,
-                      PPEParams pep)
+int parsePEHeaderData(
+    uint8_t force,
+    PHeaderData hd,
+    PGlobalParams gp,
+    PPEParams pep
+)
 {
     PEHeaderData pehd;
     PEImageDosHeader image_dos_header_l;
@@ -176,11 +183,13 @@ int parsePEHeaderData(uint8_t force,
  * @param force uint8_t force option FORCE_PE|FORCE_NONE
  * @param pehd PEHeaderData* data object, containing dos-,coff-,opt-header.
  */
-int parsePEHeader(uint8_t force,
-                  PEHeaderData* pehd,
-                  PHeaderData hd,
-                  PGlobalParams gp,
-                  PPEParams pep)
+int parsePEHeader(
+    uint8_t force,
+    PEHeaderData* pehd,
+    PHeaderData hd,
+    PGlobalParams gp,
+    PPEParams pep
+)
 {
     PEImageDosHeader* image_dos_header = NULL;
     PECoffFileHeader* coff_header = NULL;

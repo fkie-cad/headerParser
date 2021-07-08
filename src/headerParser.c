@@ -30,7 +30,7 @@
 
 static void printUsage();
 static void printHelp();
-static int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_t* force, char* file_name);
+static int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams elfp, uint8_t* force, char* file_name);
 static void sanitizeArgs(PGlobalParams gp);
 static uint8_t isArgOfType(char* arg, char* type);
 static uint8_t hasValue(char* type, int i, int end_i);
@@ -39,8 +39,8 @@ static void printHeaderData(uint8_t, PHeaderData hd, unsigned char* block);
 static void printHeaderData1(PHeaderData hd);
 static uint8_t getForceOption(const char* arg);
 
-const char* vs = "1.11.2";
-const char* last_changed = "24.05.2021";
+const char* vs = "1.11.3";
+const char* last_changed = "08.07.2021";
 
 
 
@@ -63,9 +63,11 @@ main(int argc, char** argv)
     GlobalParams gp;
 
     PEParams pep;
+    ElfParams elfp;
 
     memset(&gp, 0, sizeof(GlobalParams));
     memset(&pep, 0, sizeof(PEParams));
+    memset(&elfp, 0, sizeof(ElfParams));
     memset(file_name, 0, PATH_MAX);
 
     int s = 0;
@@ -76,7 +78,7 @@ main(int argc, char** argv)
         return 0;
     }
 
-    if ( parseArgs(argc, argv, &gp, &pep, &force, file_name) != 0 )
+    if ( parseArgs(argc, argv, &gp, &pep, &elfp, &force, file_name) != 0 )
         return 0;
 
     errno = 0;
@@ -121,7 +123,7 @@ main(int argc, char** argv)
 
     initHeaderData(hd, DEFAULT_CODE_REGION_CAPACITY);
 
-    parseHeader(force, hd, &gp, &pep);
+    parseHeader(force, hd, &gp, &pep, &elfp);
     printHeaderData(gp.info_level, hd, gp.block_large);
 
     exit:
@@ -155,7 +157,7 @@ void printHelp()
             " * -s:size_t Start offset. Default = 0.\n"
             " * -i:uint8_t Level of output info. Default = 1 : minimal output. 2 : Extended output (print basic header).\n"
             " * -f:string Force a headertype to be parsed skipping magic value validity checks. Supported types are: pe.\n"
-            " * -offs: show file offsets of the printed values (for -i 2 or PE options).\n"
+            " * -offs: show file offsets of the printed values (for -i 2 or XX only options).\n"
             " * PE only options:\n"
             "   * -dosh: Print DOS header.\n"
             "   * -coffh: Print COFF header.\n"
@@ -171,6 +173,10 @@ void printHelp()
             "   * -lcfg: Print the Image Load Config Table (IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG).\n"
             "   * -bimp: Print the Image Bound Import Table (IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT).\n"
             "   * -dimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT).\n"
+            " * ELF only options:\n"
+            "   * -fileh: Print file header.\n"
+            "   * -progh: Print program headers.\n"
+            "   * -sech: Print section headers.\n"
     );
     printf("\n");
     printf("Examples:\n");
@@ -180,7 +186,7 @@ void printHelp()
     printf("$ ./%s path/to/a.file -f pe\n", BINARYNAME);
 }
 
-int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_t* force, char* file_name)
+int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams elfp, uint8_t* force, char* file_name)
 {
     int start_i = 1;
     int end_i = argc - 1;
@@ -254,6 +260,7 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_t* f
         else if ( isArgOfType(argv[i], "-sech") )
         {
             pep->info_level |= INFO_LEVEL_PE_SEC_H;
+            elfp->info_level |= INFO_LEVEL_ELF_SEC_H;
         }
         else if ( isArgOfType(argv[i], "-imp") )
         {
@@ -300,6 +307,14 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_t* f
         {
             pep->info_level |= INFO_LEVEL_PE_LCFG;
         }
+        else if (isArgOfType(argv[i], "-fileh"))
+        {
+            elfp->info_level |= INFO_LEVEL_ELF_FILE_H;
+        }
+        else if (isArgOfType(argv[i], "-progh"))
+        {
+            elfp->info_level |= INFO_LEVEL_ELF_PROG_H;
+        }
         else
         {
             header_info("INFO: Unknown option \"%s\"\n", argv[i]);
@@ -309,15 +324,13 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, uint8_t* f
     if ( start_i == 1 )
         expandFilePath(argv[i], file_name);
 
-    // maybe move to pe parsing
+    // maybe move to pe/elf parsing
     if ( gp->info_level >= INFO_LEVEL_EXTENDED )
     {
-        pep->info_level |= INFO_LEVEL_PE_DOS_H;
-        pep->info_level |= INFO_LEVEL_PE_COFF_H;
-        pep->info_level |= INFO_LEVEL_PE_OPT_H;
-        pep->info_level |= INFO_LEVEL_PE_SEC_H;
+        pep->info_level |= INFO_LEVEL_PE_EXTENDED;
+        elfp->info_level |= INFO_LEVEL_ELF_EXTENDED;
     }
-    if ( pep->info_level > 0 && gp->info_level < INFO_LEVEL_EXTENDED )
+    if ( pep->info_level + elfp->info_level > 0 && gp->info_level < INFO_LEVEL_EXTENDED )
     {
         gp->info_level = INFO_LEVEL_EXTENDED;
     }

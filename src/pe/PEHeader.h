@@ -1,6 +1,10 @@
 #ifndef HEADER_PARSER_PE_HEADER_H
 #define HEADER_PARSER_PE_HEADER_H
 
+#ifdef _WIN32
+#pragma warning(disable: 4201)                  // nonstandard extension used : nameless struct/union
+#endif
+
 #include <stdint.h>
 #include <wchar.h>
 

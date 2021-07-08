@@ -23,7 +23,7 @@
 #include "pe/PEHeaderParser.h"
 #include "zip/ZipHeaderParser.h"
 
-static void parseHeader(uint8_t force, PHeaderData hd, PGlobalParams gp, PPEParams pep);
+static void parseHeader(uint8_t force, PHeaderData hd, PGlobalParams gp, PPEParams pep, PElfParams elfp);
 
 int isART(unsigned char* block);
 int isELF(unsigned char* block);
@@ -35,7 +35,7 @@ int isMSI(unsigned char* block);
 int isJavaClass(unsigned char* block);
 int isZipArchive(unsigned char* block);
 
-void parseHeader(uint8_t force, PHeaderData hd, PGlobalParams gp, PPEParams pep)
+void parseHeader(uint8_t force, PHeaderData hd, PGlobalParams gp, PPEParams pep, PElfParams elfp)
 {
     info_level = gp->info_level;
     info_show_offsets = gp->info_show_offsets;
@@ -52,7 +52,7 @@ void parseHeader(uint8_t force, PHeaderData hd, PGlobalParams gp, PPEParams pep)
     }
     else if ( isELF(gp->block_large) )
     {
-        parseELFHeader(hd, gp);
+        parseELFHeader(hd, gp, elfp);
     }
     else if ( isPE(gp->block_large) )
     {
