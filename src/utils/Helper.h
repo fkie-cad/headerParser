@@ -6,6 +6,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#if defined(__linux__) || defined(__linux) || defined(linux)
+#include <unistd.h>
+#endif
 
 #include "../Globals.h"
 
@@ -38,9 +41,9 @@ void expandFilePath(const char* src, char* dest)
     const char* env_home;
     if ( strlen(src) == 0 ) return;
 
+#if defined(__linux__) || defined(__linux) || defined(linux)
     if ( src[0] == '~' )
     {
-#if defined(__linux__) || defined(__linux) || defined(linux)
         env_home = getenv("HOME");
         if ( env_home != NULL )
         {
@@ -50,9 +53,17 @@ void expandFilePath(const char* src, char* dest)
         {
             snprintf(dest, PATH_MAX, "%s", src);
         }
-#endif
+    }
+    else if ( src[0] != '/' )
+    {
+        char cwd[PATH_MAX] = {0};
+        if ( getcwd(cwd, PATH_MAX) != NULL )
+            snprintf(dest, PATH_MAX, "%s/%s", cwd, src);
+        else
+            snprintf(dest, PATH_MAX, "%s", src);
     }
     else
+#endif
     {
         snprintf(dest, PATH_MAX, "%s", src);
     }
