@@ -197,10 +197,10 @@ void parseELFHeader(
     if ( s != 0 ) return;
 
     Elf_fillHeaderDataWithFileHeader(&file_header, hd);
-    if ( LIB_MODE == 0 && elfp->info_level & INFO_LEVEL_ELF_FILE_H )
+    if ( LIB_MODE == 0 && (elfp->info_level & INFO_LEVEL_ELF_FILE_H) )
         Elf_printFileHeader(&file_header, gp->start_file_offset);
 
-    if ( LIB_MODE == 0 && elfp->info_level & INFO_LEVEL_ELF_PROG_H )
+    if ( LIB_MODE == 0 && (elfp->info_level & INFO_LEVEL_ELF_PROG_H) )
         Elf_readProgramHeaderTable(&file_header, &gp->abs_file_offset, gp->start_file_offset, gp->file_size, elfp->info_level, bitness, gp->fp, gp->block_large);
 
     Elf_readSectionHeaderTable(&file_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, elfp->info_level, gp->fp, gp->block_large, gp->block_standard, hd);

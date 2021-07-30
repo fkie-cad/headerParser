@@ -14,8 +14,8 @@ OsX may work too.
 
 
 ## Version ##
-1.11.3  
-Last changed: 08.07.2021
+1.11.4  
+Last changed: 30.07.2021
 
 ## REQUIREMENTS ##
 - Linux
@@ -158,7 +158,7 @@ Currently tested only on Linux.
 
 ### Build ###
 ```bash
-./linuxBuild.sh headerParser_shared
+./linuxBuild.sh -t headerParser_so [-m Release|Debug] [-h]
 ```
 or plain:
 ```bash

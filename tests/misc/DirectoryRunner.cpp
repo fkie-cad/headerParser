@@ -79,7 +79,8 @@ void DirectoryRunner::runDirectory(const string& dir)
 {
 	cout << "counting files in \"" << dir << "\" ...";
 	nr_of_files = FileUtil::countFiles(dir, {}, true, recursive);
-	cout << "\rnumber of files : " << nr_of_files << "\n\n\n";
+	cout << LINE_CLEAR << LINE_RETURN;
+	cout << "number of files : " << nr_of_files << "\n\n\n";
 
 	set<string> types = {};
 	auto isWhiteListed = [&types](const string& file) -> bool {

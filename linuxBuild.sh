@@ -2,7 +2,7 @@
 
 name=headerParser
 def_target=${name}
-pos_targets="${def_target}|headerParser_shared|clean"
+pos_targets="${def_target}|headerParser_so|clean"
 target=${def_target}
 def_mode=Release
 mode=${def_mode}
