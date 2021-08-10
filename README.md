@@ -9,8 +9,14 @@ As well as PE and ELF still have to be extended.
 
 
 POSIX compliant.  
-Compilable under Linux and Windows (x86/x64).  
-OsX may work too.
+Compils and runs under
+    - Linux 
+    - Windows (x86/x64).  
+    - OsX may work too.
+    - Android in [Termux][1]:
+
+[1]: https://termux.com/
+
 
 
 ## Version ##
@@ -40,6 +46,8 @@ $ ./linuxBuild.sh [-t headerParser] [-m Release|Debug] [-h]
 $ mkdir build
 $ gcc -o build/headerParser -Wl,-z,relro,-z,now -D_FILE_OFFSET_BITS=64 -Ofast src/headerParser.c src/utils/Converter.c  
 ```
+
+Use `clang` istead off `gcc` in Termux on Android.
 
 ### Windows (MsBuild) ###
 ```bash
@@ -109,7 +117,7 @@ There is a difference between the header bitness (displayed in brackets followin
 The header bitness is 32 or 64 bit for ELF, MACH-O and PE. 
 The bitness of the executable (program code) may be different though.
 
-A not yet complete but extended output will be printed, by setting "-i 2"
+An extended output will be printed, by setting "-i 2", whick will cover the basic headers.
 ```bash
 $ ./headerParser a/file.exe -i 2
 
@@ -126,7 +134,7 @@ Section Header:
 ```
 
 ```bash
-$ ./headerParser a/elf/file -i 2
+$ ./headerParser an/elf/file -i 2
 
 ELF File header:
 ...
@@ -142,8 +150,7 @@ Section Header Table:
 ...
 ```
 
-The output is not yet formatted very well.  
-PE file info may be printed more fine grained with the extended PE only options.
+A more fine grained and/or extended printout is available with the PE or ELF only options.
 
 ### Offsets ###
 If you think, the header starts somewhere in the file, you may pass an offset to it using the "-s" option.
