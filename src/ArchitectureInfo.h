@@ -44,7 +44,7 @@ ArchitectureMapEntry pe_arch_id_mapper[] = {
     { {IMAGE_FILE_MACHINE_I386, "Intel 386"}, ARCH_INTEL, 32 },
     { {IMAGE_FILE_MACHINE_I860, "Intel i860/i486"}, ARCH_INTEL, 32 }, // ?? 64
     { {IMAGE_FILE_MACHINE_I80586, "Intel 80586"}, ARCH_INTEL, 32 },
-    { {IMAGE_FILE_MACHINE_IA64, "Intel Itanium"}, ARCH_INTEL, 32 },
+    { {IMAGE_FILE_MACHINE_IA64, "Intel Itanium"}, ARCH_INTEL, 64 },
     { {IMAGE_FILE_MACHINE_M32R, "Mitsubishi M32R little endian"}, ARCH_MITSUBISHI, 32 },
     { {IMAGE_FILE_MACHINE_MIPS16, "MIPS16"}, ARCH_MIPS, 16 },
     { {IMAGE_FILE_MACHINE_MIPSFPU, "MIPS with FPU"}, ARCH_MIPS, 32 },
