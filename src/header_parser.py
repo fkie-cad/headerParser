@@ -15,6 +15,7 @@ class CodeRegionData(ctypes.Structure):
 
 class HeaderData(ctypes.Structure):
     _fields_ = [("headertype", ctypes.c_uint8),
+                ("h_bitness", ctypes.c_uint8),
                 ("bitness", ctypes.c_uint8),
                 ("endian", ctypes.c_uint8),
                 ("CPU_arch", ctypes.c_uint8),
