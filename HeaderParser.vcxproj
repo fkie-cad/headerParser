@@ -125,7 +125,6 @@
 
   <ItemGroup>
     <ClCompile Include="src\headerParser.c" />
-    <ClCompile Include="src\utils\Converter.c;" />
     <ResourceCompile Include="res\headerparser.rc" />
   </ItemGroup>
   <ItemGroup>
