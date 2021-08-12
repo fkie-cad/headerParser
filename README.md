@@ -44,7 +44,7 @@ $ ./linuxBuild.sh [-t headerParser] [-m Release|Debug] [-h]
 ### Linux (gcc) ###
 ```bash
 $ mkdir build
-$ gcc -o build/headerParser -Wl,-z,relro,-z,now -D_FILE_OFFSET_BITS=64 -Ofast src/headerParser.c src/utils/Converter.c  
+$ gcc -o build/headerParser -Wl,-z,relro,-z,now -D_FILE_OFFSET_BITS=64 -Ofast src/headerParser.c  
 ```
 
 Use `clang` istead off `gcc` in Termux on Android.
@@ -170,7 +170,7 @@ Currently tested only on Linux.
 or plain:
 ```bash
 mkdir build
-gcc -fPIC -Wl,-z,relro,-z,now -shared -Ofast -D_FILE_OFFSET_BITS=64 -o build/libheaderparser.so src/headerParserLib.c src/utils/Converter.c -Wall 
+gcc -fPIC -Wl,-z,relro,-z,now -shared -Ofast -D_FILE_OFFSET_BITS=64 -o build/libheaderparser.so src/headerParserLib.c -Wall 
 ```
 
 ### Usage ###

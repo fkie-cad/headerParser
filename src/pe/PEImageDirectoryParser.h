@@ -582,7 +582,6 @@ void PE_parseImageBoundImportTable(PE64OptHeader* oh,
     PE_printImageBoundImportTableHeader(&bid);
 
     // terminated by zero filled PEImageBoundImportDescriptor
-//    while ( bid.OffsetModuleName != 0 )
     while ( !isMemZero(&bid, sizeof(bid)) && r_size < vsize  )
     {
         dll_name = NULL;
@@ -1027,7 +1026,7 @@ int PE_fillImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
 
     ptr = &block_s[offset];
     memset(lcd, 0, PE_IMAGE_LOAD_CONFIG_DIRECTORY64_SIZE);
-    lcd->Size = *((uint32_t*)&ptr[offsets.Size]);
+    lcd->Size = GetIntXValueAtOffset(uint32_t, ptr, offsets.Size); //*((uint32_t*)&ptr[offsets.Size]);
     lcd->TimeDateStamp = *((uint32_t*)&ptr[offsets.TimeDateStamp]);
     lcd->MajorVersion = *((uint16_t*)&ptr[offsets.MajorVersion]);
     lcd->MinorVersion = *((uint16_t*)&ptr[offsets.MinorVersion]);

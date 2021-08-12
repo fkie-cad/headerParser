@@ -288,6 +288,10 @@ void Elf_fillHeaderDataWithFileHeader(const Elf64FileHeader* file_header, PHeade
             hd->i_bitness = 32;
         }
     }
+//    else if ( arch->bitness == 0 )
+//    {
+//        hd->i_bitness = hd->h_bitness;
+//    }
 //  The 32-bit Intel Architecture defines no flags so e_flags is 0
 }
 

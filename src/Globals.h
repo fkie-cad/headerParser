@@ -38,7 +38,7 @@
 // _t_ type
 // _p_ pointer
 // _o_ offset
-#define GetIntXValueAtOffset(_t_, _p_, _o_) *((_t_*) &_p_[_o_])
+#define GetIntXValueAtOffset(_t_, _p_, _o_) *((_t_*) &(_p_)[_o_])
 
 
 
