@@ -103,7 +103,7 @@ TEST_F(ConverterTest, testParseUint64)
 	int s;
 	for ( uint32_t i = 0; i < bytes.size(); i++)
 	{
-		s = parseUint64(bytes[i], &r);
+		s = parseUint64Auto(bytes[i], &r);
 		EXPECT_EQ(s, 0);
 		EXPECT_EQ(r, expteced[i]);
 	}

@@ -9,6 +9,7 @@
 #include "PEHeader.h"
 #include "../Globals.h"
 #include "../utils/Helper.h"
+#include "../utils/common_fileio.h"
 
 void PE_getRealName(const char* short_name,
                     char** real_name,

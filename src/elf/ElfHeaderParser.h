@@ -305,7 +305,7 @@ void Elf_readProgramHeaderTable(
     unsigned char* block_l
 )
 {
-    debug_info("Elf_readProgramHeaderTable.\n");
+//    debug_info("Elf_readProgramHeaderTable.\n");
 
     if ( !Elf_programHeaderOffsetsAreValid(file_header, start_file_offset, file_size))
         return;
@@ -378,7 +378,7 @@ void Elf_readProgramHeaderTableEntries(
 
     for ( i = 0; i < file_header->e_phnum; i++ )
     {
-        debug_info(" - %u / %u\n", (i + 1), file_header->e_phnum);
+//        debug_info(" - %u / %u\n", (i + 1), file_header->e_phnum);
 
         if ( !checkFileSpace(offset, *abs_file_offset, file_header->e_phentsize, file_size) )
             return;
@@ -521,7 +521,7 @@ void Elf_readSectionHeaderTable(
     PHeaderData hd
 )
 {
-    debug_info("Elf_readSectionHeaderTable.\n");
+//    debug_info("Elf_readSectionHeaderTable.\n");
     uint32_t string_table_size = 0;
     unsigned char* string_table = NULL;
 
@@ -623,7 +623,7 @@ void Elf_readSectionHeaderEntries(
 
     for ( i = 0; i < fh->e_shnum; i++ )
     {
-        debug_info(" - %u / %u\n", (i + 1), fh->e_shnum);
+//        debug_info(" - %u / %u\n", (i + 1), fh->e_shnum);
 
         if ( !checkFileSpace(offset, *abs_file_offset, fh->e_shentsize, file_size) )
             return;
@@ -646,7 +646,7 @@ void Elf_readSectionHeaderEntries(
 //			continue;
         }
 
-        debug_info(" - - name %s\n", s_name);
+//        debug_info(" - - name %s\n", s_name);
 
         if ( Elf_isExecutableSectionHeader(&sht_entry) )
         {

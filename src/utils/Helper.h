@@ -72,9 +72,9 @@ void expandFilePath(const char* src, char* dest)
 
 uint8_t blockIsTooSmall(const size_t header_end)
 {
-    debug_info("blockIsTooSmall()\n");
-    debug_info(" - BLOCKSIZE_LARGE: %u\n", BLOCKSIZE_LARGE);
-    debug_info(" - header_end: %zx\n", header_end);
+//    debug_info("blockIsTooSmall()\n");
+//    debug_info(" - BLOCKSIZE_LARGE: %u\n", BLOCKSIZE_LARGE);
+//    debug_info(" - header_end: %zx\n", header_end);
     return BLOCKSIZE_LARGE < header_end;
 }
 

@@ -50,7 +50,7 @@ void parseDexHeader(PHeaderData hd, PGlobalParams gp)
     DEX_readFileHeader(&file_header, gp->block_large, gp->start_file_offset, gp->file_size);
     char** strings = NULL;
 
-    debug_info(" - architecture: %s\n", dex_arch_id_mapper[0].arch.name);
+//    debug_info(" - architecture: %s\n", dex_arch_id_mapper[0].arch.name);
 
     hd->headertype = HEADER_TYPE_DEX;
     hd->endian = ( file_header.endian_tag == DEX_ENDIAN_CONSTANT ) ? ENDIAN_LITTLE : ENDIAN_BIG;
@@ -148,8 +148,8 @@ void DEX_readFileHeader(DEXFileHeader *fh,
     fh->data_size = *((uint32_t*) &ptr[DEXFileHeaderOffsets.data_size]);
     fh->data_off = *((uint32_t*) &ptr[DEXFileHeaderOffsets.data_off]);
 
-    debug_info("DEXreadFileHeader()\n");
-    debug_info(" - endian_tag: 0x%x\n",fh->endian_tag);
+//    debug_info("DEXreadFileHeader()\n");
+//    debug_info(" - endian_tag: 0x%x\n",fh->endian_tag);
 }
 
 uint8_t DEX_readItemIds(size_t offset,

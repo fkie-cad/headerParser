@@ -46,7 +46,6 @@ set(HEADER_PARSER_SRC
 	src/utils/blockio.h
 	src/utils/common_fileio.h
 	src/utils/Converter.h
-	src/utils/Converter.c
 	src/utils/Helper.h
 	src/zip/ZipHeader.h
 	src/zip/ZipHeaderOffsets.h

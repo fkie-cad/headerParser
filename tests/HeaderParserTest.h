@@ -56,14 +56,14 @@ class HeaderParserTest : public testing::Test
 		};
 
 		const vector<string> unknown_args_lines = {
-				"INFO: Unknown arg type \"-x0\"",
-				"ERROR: File \"a\" does not exist.",
+				"INFO: Unknown option \"-x0\"",
+				"ERROR (0x2): Could not open file: \"%s\"",
 				""
 		};
 
 		const vector<string> not_passed_value_args_lines = {
 				"INFO: Arg \"%s\" has no value! Skipped!",
-				"ERROR: File \"a\" does not exist.",
+				"ERROR (0x2): File Could not open file: \"%s\"",
 				""
 		};
 
@@ -192,6 +192,10 @@ TEST_F(HeaderParserTest, testMainWithFalseFormatedArgs)
 	start_pos = expected_f[0].find("%s", 0);
 	expected_f[0].replace(start_pos, 2, "-f");
 
+	vector<string> unknown_f = unknown_args_lines;
+	start_pos = unknown_f[1].find("%s", 0);
+	unknown_f[1].insert(start_pos, "/home");
+
 	expectAppResult(argv_x0, unknown_args_lines);
 	expectAppResult(argv_x1, unknown_args_lines);
 	expectAppResult(argv_s, expected_s);
@@ -272,7 +276,7 @@ TEST_F(HeaderParserTest, testMainWithNotSupportedF)
 	vector<string> expected = { "ERROR: DOS header is invalid!", "", "",
 							 "HeaderData:",
 							 "coderegions:",
-							 "headertype: unsupported",
+							 "headertype: unsupported (0)",
 							 "bitness: 0-bit",
 							 "endian: unsupported",
 							 "CPU_arch: unsupported",

@@ -8,6 +8,7 @@
 #include "../Globals.h"
 #include "../utils/Converter.h"
 #include "../utils/Helper.h"
+#include "../utils/blockio.h"
 #include "PEHeader.h"
 #include "PEHeaderOffsets.h"
 #include "PEOptionalHeaderSignature.h"
@@ -113,7 +114,7 @@ void PE_printImageBoundForwarderRef(PE_IMAGE_BOUND_FORWARDER_REF* bfr,
                                     uint16_t i, 
                                     uint16_t n);
 
-char* PE_getImageSecAlignmentString(uint32_t ch);
+const char* PE_getImageSecAlignmentString(uint32_t ch);
 
 
 #define MAX_SPACES (512)
@@ -896,7 +897,7 @@ void PE_printTLSEntry(PE_IMAGE_TLS_DIRECTORY64* tls,
 }
 
 #define PE_IMAGE_SCN_ALIGN_MASK (0x00F00000)
-char* PE_getImageSecAlignmentString(uint32_t ch)
+const char* PE_getImageSecAlignmentString(uint32_t ch)
 {
     uint32_t a = ch & PE_IMAGE_SCN_ALIGN_MASK;
 

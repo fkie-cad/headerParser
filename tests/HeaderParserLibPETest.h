@@ -87,6 +87,7 @@ TEST_F(HeaderParserLibPETest, test_getPEHeaderData_validELFFile)
 //	freePEHeaderData(r);
 }
 
+// fill pe_file_with_cert with a valid path
 TEST_F(HeaderParserLibPETest, test_hasCertificate)
 {
 	const char* src = pe_file;
@@ -111,8 +112,10 @@ TEST_F(HeaderParserLibPETest, test_hasCertificate)
 	freePEHeaderData(d);
 }
 
+// fill pe_file_with_cert with a valid path
 TEST_F(HeaderParserLibPETest, test_getNumberOfCertificates)
 {
+    // insert a file with certificate
 	const char* src = pe_file;
 	size_t start = 0;
 	uint64_t start_file_offset = 0;
@@ -147,8 +150,10 @@ TEST_F(HeaderParserLibPETest, test_getNumberOfCertificates)
 	freePEHeaderData(d);
 }
 
+// fill pe_file_with_cert with a valid path
 TEST_F(HeaderParserLibPETest, test_fillOfCertificateTable)
 {
+    // insert a file with certificate
 	const char* src = pe_file_with_cert;
 	size_t start = 0;
     uint64_t start_file_offset = 0;
@@ -174,8 +179,10 @@ TEST_F(HeaderParserLibPETest, test_fillOfCertificateTable)
 	freePEHeaderData(d);
 }
 
+// fill pe_file_with_cert with a valid path
 TEST_F(HeaderParserLibPETest, test_writeCertificatesToFile)
 {
+    // insert a file with certificate
 	const char* src = pe_file_with_cert;
 	string dir = getTempDir("HeaderParserLibPETest");
 	size_t start = 0;

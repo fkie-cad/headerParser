@@ -264,8 +264,8 @@ void MachO_readCommands(uint32_t ncmds,
 
     for ( i = 0; i < ncmds; i++ )
     {
-        debug_info("%u/%u:\n", i+1,ncmds);
-        debug_info(" - sc_offset: 0x%zx (%zu)\n", sc_offset, sc_offset);
+//        debug_info("%u/%u:\n", i+1,ncmds);
+//        debug_info(" - sc_offset: 0x%zx (%zu)\n", sc_offset, sc_offset);
 
         if ( ilevel >= INFO_LEVEL_EXTENDED )
             printf("(%u/%u):\n", i+1, ncmds);
@@ -278,10 +278,10 @@ void MachO_readCommands(uint32_t ncmds,
 
         MachO_fillLoadCommand(&lc, sc_offset, hd, block_l);
 
-        debug_info(" - lc.cmd: %u\n", lc.cmd);
-        debug_info(" - lc.cmdsize: %u\n", lc.cmdsize);
-        debug_info(" - sc_offset + lc.cmdsize: %zu\n", sc_offset + lc.cmdsize);
-        debug_info(" - file_size: %zu\n", file_size);
+//        debug_info(" - lc.cmd: %u\n", lc.cmd);
+//        debug_info(" - lc.cmdsize: %u\n", lc.cmdsize);
+//        debug_info(" - sc_offset + lc.cmdsize: %zu\n", sc_offset + lc.cmdsize);
+//        debug_info(" - file_size: %zu\n", file_size);
 
         if ( !checkFileSpace(sc_offset, *abs_file_offset, lc.cmdsize, file_size) )
             return;
@@ -291,7 +291,7 @@ void MachO_readCommands(uint32_t ncmds,
 
         if ( lc.cmd == LC_SEGMENT || lc.cmd == LC_SEGMENT_64 )
         {
-            debug_info("LC_SEGMENT | LC_SEGMENT_64\n");
+//            debug_info("LC_SEGMENT | LC_SEGMENT_64\n");
             SegmentCommand64 c;
             c.cmd = lc.cmd;
             c.cmdsize = lc.cmdsize;
@@ -299,7 +299,7 @@ void MachO_readCommands(uint32_t ncmds,
         }
         else if ( lc.cmd == LC_UUID )
         {
-            debug_info("LC_UUID\n");
+//            debug_info("LC_UUID\n");
             UuidCommand c;
             c.cmd = lc.cmd;
             c.cmdsize = lc.cmdsize;
@@ -309,7 +309,7 @@ void MachO_readCommands(uint32_t ncmds,
         }
         else if ( lc.cmd == LC_ID_DYLIB || lc.cmd == LC_LOAD_DYLIB )
         {
-            debug_info("LC_ID_DYLIB | LC_LOAD_DYLIB\n");
+//            debug_info("LC_ID_DYLIB | LC_LOAD_DYLIB\n");
             DylibCommand c;
             c.cmd = lc.cmd;
             c.cmdsize = lc.cmdsize;
@@ -320,7 +320,7 @@ void MachO_readCommands(uint32_t ncmds,
         }
         else if ( lc.cmd == LC_PREBOUND_DYLIB )
         {
-            debug_info("LC_PREBOUND_DYLIB \n");
+//            debug_info("LC_PREBOUND_DYLIB \n");
             PreboundDylibCommand c;
             c.cmd = lc.cmd;
             c.cmdsize = lc.cmdsize;
@@ -334,7 +334,7 @@ void MachO_readCommands(uint32_t ncmds,
                   lc.cmd == LC_SUB_LIBRARY ||
                   lc.cmd == LC_SUB_CLIENT )
         {
-            debug_info("LC_SUB_FRAMEWORK | LC_SUB_UMBRELLA | LC_SUB_LIBRARY | LC_SUB_CLIENT \n");
+//            debug_info("LC_SUB_FRAMEWORK | LC_SUB_UMBRELLA | LC_SUB_LIBRARY | LC_SUB_CLIENT \n");
             SubCommand c;
             c.cmd = lc.cmd;
             c.cmdsize = lc.cmdsize;
@@ -345,7 +345,7 @@ void MachO_readCommands(uint32_t ncmds,
         }
         else if ( lc.cmd == LC_SYMTAB )
         {
-            debug_info("LC_SYMTAB\n");
+//            debug_info("LC_SYMTAB\n");
             SymtabCommand c;
             c.cmd = lc.cmd;
             c.cmdsize = lc.cmdsize;
@@ -356,7 +356,7 @@ void MachO_readCommands(uint32_t ncmds,
         }
         else if ( lc.cmd == LC_DYSYMTAB )
         {
-            debug_info("LC_DYSYMTAB\n");
+//            debug_info("LC_DYSYMTAB\n");
             DySymtabCommand c;
             c.cmd = lc.cmd;
             c.cmdsize = lc.cmdsize;
@@ -368,7 +368,7 @@ void MachO_readCommands(uint32_t ncmds,
         else if ( lc.cmd == LC_LOAD_DYLINKER ||
                   lc.cmd == LC_ID_DYLINKER )
         {
-            debug_info("LC_LOAD_DYLINKER | LC_ID_DYLINKER\n");
+//            debug_info("LC_LOAD_DYLINKER | LC_ID_DYLINKER\n");
             DyLinkerCommand c;
             c.cmd = lc.cmd;
             c.cmdsize = lc.cmdsize;
@@ -380,7 +380,7 @@ void MachO_readCommands(uint32_t ncmds,
         else if ( lc.cmd == LC_ROUTINES ||
                   lc.cmd == LC_ROUTINES_64 )
         {
-            debug_info("LC_ROUTINES | LC_ROUTINES_64\n");
+//            debug_info("LC_ROUTINES | LC_ROUTINES_64\n");
             RoutinesCommand64 c;
             c.cmd = lc.cmd;
             c.cmdsize = lc.cmdsize;
@@ -392,7 +392,7 @@ void MachO_readCommands(uint32_t ncmds,
         else if ( lc.cmd == LC_THREAD ||
                   lc.cmd == LC_UNIXTHREAD )
         {
-            debug_info("LC_THREAD | LC_UNIXTHREAD\n");
+//            debug_info("LC_THREAD | LC_UNIXTHREAD\n");
             ThreadCommand c;
             c.cmd = lc.cmd;
             c.cmdsize = lc.cmdsize;
@@ -406,7 +406,7 @@ void MachO_readCommands(uint32_t ncmds,
                   lc.cmd == LC_VERSION_MIN_TVOS ||
                   lc.cmd == LC_VERSION_MIN_WATCHOS )
         {
-            debug_info("LC_VERSION_MIN_MACOSX | LC_VERSION_MIN_IPHONEOS | LC_VERSION_MIN_TVOS | LC_VERSION_MIN_WATCHOS\n");
+//            debug_info("LC_VERSION_MIN_MACOSX | LC_VERSION_MIN_IPHONEOS | LC_VERSION_MIN_TVOS | LC_VERSION_MIN_WATCHOS\n");
             VersionMinCommand c;
             c.cmd = lc.cmd;
             c.cmdsize = lc.cmdsize;
@@ -418,7 +418,7 @@ void MachO_readCommands(uint32_t ncmds,
         else if ( lc.cmd == LC_DYLD_INFO ||
                   lc.cmd == LC_DYLD_INFO_ONLY )
         {
-            debug_info("LC_VERSION_MIN_MACOSX | LC_VERSION_MIN_IPHONEOS\n");
+//            debug_info("LC_VERSION_MIN_MACOSX | LC_VERSION_MIN_IPHONEOS\n");
             DyldInfoCommand c;
             c.cmd = lc.cmd;
             c.cmdsize = lc.cmdsize;
@@ -434,7 +434,7 @@ void MachO_readCommands(uint32_t ncmds,
                   lc.cmd == LC_DYLIB_CODE_SIGN_DRS ||
                   lc.cmd == LC_LINKER_OPTIMIZATION_HINT )
         {
-            debug_info("LC_CODE_SIGNATURE | LC_SEGMENT_SPLIT_INFO | LC_FUNCTION_STARTS | LC_DATA_IN_CODE | LC_DYLIB_CODE_SIGN_DRS | LC_LINKER_OPTIMIZATION_HINT\n");
+//            debug_info("LC_CODE_SIGNATURE | LC_SEGMENT_SPLIT_INFO | LC_FUNCTION_STARTS | LC_DATA_IN_CODE | LC_DYLIB_CODE_SIGN_DRS | LC_LINKER_OPTIMIZATION_HINT\n");
             LinkedItDataCommand c;
             c.cmd = lc.cmd;
             c.cmdsize = lc.cmdsize;
@@ -445,7 +445,7 @@ void MachO_readCommands(uint32_t ncmds,
         }
         else if ( lc.cmd == LC_SOURCE_VERSION )
         {
-            debug_info("LC_SOURCE_VERSION\n");
+//            debug_info("LC_SOURCE_VERSION\n");
             SourceVersionCommand c;
             c.cmd = lc.cmd;
             c.cmdsize = lc.cmdsize;
@@ -456,7 +456,7 @@ void MachO_readCommands(uint32_t ncmds,
         }
         else if ( lc.cmd == LC_BUILD_VERSION )
         {
-            debug_info("LC_BUILD_VERSION\n");
+//            debug_info("LC_BUILD_VERSION\n");
             BuildVersionCommand c;
             c.cmd = lc.cmd;
             c.cmdsize = lc.cmdsize;
@@ -467,7 +467,7 @@ void MachO_readCommands(uint32_t ncmds,
         }
         else if ( lc.cmd == LC_MAIN )
         {
-            debug_info("LC_MAIN\n");
+//            debug_info("LC_MAIN\n");
             MainDylibCommand c;
             c.cmd = lc.cmd;
             c.cmdsize = lc.cmdsize;
@@ -478,7 +478,7 @@ void MachO_readCommands(uint32_t ncmds,
         }
         else
         {
-            debug_info("else load segment\n");
+//            debug_info("else load segment\n");
             if ( ilevel >= INFO_LEVEL_EXTENDED )
                 MachO_printLoadCommand(&lc, *abs_file_offset+sc_offset);
             sc_offset += lc.cmdsize;
@@ -561,9 +561,9 @@ size_t MachO_fillSegmentCommand(size_t sc_offset,
     }
 
     sec_offset = (hd->h_bitness == 64 ) ?  (uint32_t)(sc_offset + SIZE_OF_MACHO_O_SEGMENT_HEADER_64) :  (uint32_t)(sc_offset + SIZE_OF_MACHO_O_SEGMENT_HEADER_32);
-    debug_info("MachoOfillSegmentCommand\n");
-    debug_info(" -  sec_offset: %u\n", sec_offset);
-    debug_info(" -  sc->nsects: %u\n", sc->nsects);
+//    debug_info("MachoOfillSegmentCommand\n");
+//    debug_info(" -  sec_offset: %u\n", sec_offset);
+//    debug_info(" -  sc->nsects: %u\n", sc->nsects);
 
     if ( ilevel >= INFO_LEVEL_EXTENDED )
         MachO_printSegmentCommand(sc, *abs_file_offset+sc_offset, hd->h_bitness);
@@ -590,8 +590,8 @@ size_t MachO_readSections(SegmentCommand64* c,
     CodeRegionData code_region_data;
     uint32_t sect_size = (hd->h_bitness == 64 ) ? SIZE_OF_MACHO_O_SECTEION_HEADER_64 : SIZE_OF_MACHO_O_SECTEION_HEADER_32;
 
-    debug_info(" - MachoOreadSections\n");
-    debug_info(" - - offset: %zx\n", offset);
+//    debug_info(" - MachoOreadSections\n");
+//    debug_info(" - - offset: %zx\n", offset);
 
     if ( hd->h_bitness == 64 )
         offsets = MachOsectionOffsets64;
@@ -600,7 +600,7 @@ size_t MachO_readSections(SegmentCommand64* c,
 
     for ( i = 0; i < c->nsects; i++ )
     {
-        debug_info(" - offset: %zx\n", offset);
+//        debug_info(" - offset: %zx\n", offset);
 
         if ( !checkFileSpace(offset, *abs_file_offset, sect_size, file_size) )
             return UINT32_MAX;
@@ -612,7 +612,7 @@ size_t MachO_readSections(SegmentCommand64* c,
 
         if ( MachO_isExecutableSection(&sec) )
         {
-            debug_info(" - - is executable\n");
+//            debug_info(" - - is executable\n");
             code_region_data = MachO_fillCodeRegion(&sec);
             addCodeRegionDataToHeaderData(&code_region_data, hd);
         }
@@ -636,8 +636,8 @@ void MachO_readSection(MachOSection64* sec,
     unsigned char *ptr;
     ptr = &block_l[offset];
     uint32_t i;
-    debug_info(" - - MachO_readSection\n");
-    debug_info(" - - - offset: %zx\n", offset);
+//    debug_info(" - - MachO_readSection\n");
+//    debug_info(" - - - offset: %zx\n", offset);
 
     for ( i = 0; i < MACH_O_SEG_NAME_LN; i++ )
     {

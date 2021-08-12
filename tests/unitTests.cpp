@@ -7,7 +7,7 @@
 #include "jar/JarParserTest.h"
 #include "utils/ConverterTest.h"
 #include "utils/HelperTest.h"
-#include "HeaderParserTest.h"
+//#include "HeaderParserTest.h"
 #include "HeaderParserLibTest.h"
 #include "HeaderParserLibPETest.h"
 
