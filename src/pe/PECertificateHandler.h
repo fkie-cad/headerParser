@@ -7,7 +7,9 @@
 #include "../utils/common_fileio.h"
 #include "PEHeaderOffsets.h"
 
-uint8_t PE_hasCertificate(PE64OptHeader* oh);
+uint8_t PE_hasCertificate(
+    PE64OptHeader* oh
+);
 
 int PE_getNumberOfCertificates(PE64OptHeader* oh,
                                size_t start_file_offset,

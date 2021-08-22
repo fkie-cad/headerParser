@@ -18,7 +18,7 @@ Compiles and runs under
 
 
 ## Version ##
-1.11.6  
+1.11.7  
 Last changed: 22.08.2021
 
 ## REQUIREMENTS ##
@@ -81,7 +81,8 @@ Options:
    * -opth: Print Optional header.
    * -sech: Print Section headers.
    * -exp: Print the Image Export Table (IMAGE_DIRECTORY_ENTRY_EXPORT).
-   * -imp: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT).
+   * -imp: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT) dll names and info.
+   * -impx: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT) dll names, info and imported functions.
    * -res: Print the Image Resource Table (IMAGE_DIRECTORY_ENTRY_RESOURCE).
    * -crt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE).
    * -cod: Directory to save found certificates in. (Needs -crt.)

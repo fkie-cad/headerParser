@@ -40,7 +40,7 @@ static void printHeaderData(uint8_t, PHeaderData hd, unsigned char* block);
 static void printHeaderData1(PHeaderData hd);
 static uint8_t getForceOption(const char* arg);
 
-const char* vs = "1.11.6";
+const char* vs = "1.11.7";
 const char* last_changed = "22.08.2021";
 
 
@@ -165,7 +165,8 @@ void printHelp()
             "   * -opth: Print Optional header.\n"
             "   * -sech: Print Section headers.\n"
             "   * -exp: Print the Image Export Table (IMAGE_DIRECTORY_ENTRY_EXPORT).\n"
-            "   * -imp: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT).\n"
+            "   * -imp: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT) dll names and info.\n"
+            "   * -impx: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT) dll names, info and imported functions.\n"
             "   * -res: Print the Image Resource Table (IMAGE_DIRECTORY_ENTRY_RESOURCE).\n"
             "   * -crt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE).\n"
             "   * -cod: Directory to save found certificates in (Needs -crt).\n"
@@ -267,9 +268,17 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
         {
             pep->info_level |= INFO_LEVEL_PE_IMP;
         }
+        else if ( isArgOfType(argv[i], "-impx") )
+        {
+            pep->info_level |= INFO_LEVEL_PE_IMP | INFO_LEVEL_PE_IMP_EX;
+        }
         else if ( isArgOfType(argv[i], "-exp") )
         {
             pep->info_level |= INFO_LEVEL_PE_EXP;
+        }
+        else if ( isArgOfType(argv[i], "-expx") )
+        {
+            pep->info_level |= INFO_LEVEL_PE_EXP | INFO_LEVEL_PE_EXP_EX;
         }
         else if (isArgOfType(argv[i], "-res"))
         {

@@ -27,7 +27,8 @@ void PE_parseImageImportTable(PE64OptHeader* oh,
                               size_t file_size,
                               FILE* fp,
                               unsigned char* block_l,
-                              unsigned char* block_s);
+                              unsigned char* block_s,
+                              int extended);
 void PE_fillImportDescriptor(PEImageImportDescriptor* id,
                              size_t* offset,
                              size_t* abs_file_offset,
@@ -226,7 +227,8 @@ void PE_parseImageImportTable(PE64OptHeader* oh,
                               size_t file_size,
                               FILE* fp,
                               unsigned char* block_l,
-                              unsigned char* block_s)
+                              unsigned char* block_s,
+                              int extended)
 {
     size_t size;
     size_t offset;
@@ -279,13 +281,16 @@ void PE_parseImageImportTable(PE64OptHeader* oh,
 
         PE_printImageImportDescriptor(&id, *abs_file_offset+offset, dll_name);
 
-        if ( id.OriginalFirstThunk != 0)
-            thunk_data_offset = PE_Rva2Foa(id.OriginalFirstThunk, svas, nr_of_sections);
-        else
-            thunk_data_offset = PE_Rva2Foa(id.FirstThunk, svas, nr_of_sections);
+        if ( extended )
+        {
+            if ( id.OriginalFirstThunk != 0)
+                thunk_data_offset = PE_Rva2Foa(id.OriginalFirstThunk, svas, nr_of_sections);
+            else
+                thunk_data_offset = PE_Rva2Foa(id.FirstThunk, svas, nr_of_sections);
 
-        PE_printHintFunctionHeader((id.TimeDateStamp == (uint32_t)-1));
-        PE_iterateThunkData(nr_of_sections, svas, bitness, start_file_offset, file_size, fp, block_s, thunk_data_offset);
+            PE_printHintFunctionHeader((id.TimeDateStamp == (uint32_t)-1));
+            PE_iterateThunkData(nr_of_sections, svas, bitness, start_file_offset, file_size, fp, block_s, thunk_data_offset);
+        }
 
         offset += PE_IMPORT_DESCRIPTOR_SIZE;
         r_size += PE_IMPORT_DESCRIPTOR_SIZE;
