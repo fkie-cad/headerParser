@@ -58,13 +58,13 @@ static size_t readFileA(FILE* fi, size_t begin, size_t size, unsigned char** dat
  */
 static size_t readCustomBlock(const char* finame, size_t offset, size_t size, unsigned char* data);
 
-/**
- * Check if dir exists.
- * 
- * @param path The path to check
- * @return 1 : true, or 0 : false
- */
-static uint8_t dirExists(const char* path);
+///**
+// * Check if dir exists.
+// * 
+// * @param path The path to check
+// * @return 1 : true, or 0 : false
+// */
+//static uint8_t dirExists(const char* path);
 
 
 
@@ -313,17 +313,17 @@ size_t readCustomBlock(const char* finame, size_t offset, size_t size, unsigned 
     return n;
 }
 
-uint8_t dirExists(const char* path)
-{
-    struct stat s;
-    if ( stat(path, &s) == 0 )
-    {
-        if ( s.st_mode & S_IFDIR )
-            return 1;
-    }
-
-    return 0;
-}
+//uint8_t dirExists(const char* path)
+//{
+//    struct stat s;
+//    if ( stat(path, &s) == 0 )
+//    {
+//        if ( s.st_mode & S_IFDIR )
+//            return 1;
+//    }
+//
+//    return 0;
+//}
 
 
 #endif

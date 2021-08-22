@@ -11,15 +11,15 @@ As well as PE and ELF still have to be extended.
 POSIX compliant.  
 Compiles and runs under
 - Linux 
-- Windows (x86/x64).  
-- OsX may work too.
-- Android in Termux:
+- Windows (x86/x64)  
+- OsX may work too
+- Android in Termux
 
 
 
 ## Version ##
-1.11.5  
-Last changed: 12.08.2021
+1.11.6  
+Last changed: 22.08.2021
 
 ## REQUIREMENTS ##
 - Linux

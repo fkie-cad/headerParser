@@ -18,6 +18,7 @@
 #include "Globals.h"
 #include "utils/Converter.h"
 #include "utils/common_fileio.h"
+#include "utils/Files.h"
 #include "utils/blockio.h"
 #include "utils/Helper.h"
 #include "parser.h"
@@ -39,8 +40,8 @@ static void printHeaderData(uint8_t, PHeaderData hd, unsigned char* block);
 static void printHeaderData1(PHeaderData hd);
 static uint8_t getForceOption(const char* arg);
 
-const char* vs = "1.11.5";
-const char* last_changed = "12.08.2021";
+const char* vs = "1.11.6";
+const char* last_changed = "22.08.2021";
 
 
 
@@ -291,6 +292,7 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
             if ( hasValue("-cod", i, end_i))
             {
                 pep->certificate_directory = argv[i + 1];
+                cropTrailingSlash(pep->certificate_directory);
 //				expandFilePath(argv[i+i], certificate_directory);
                 i++;
             }

@@ -199,7 +199,7 @@ int PE_writeCertificatesToFile(PeAttributeCertificateTable* table,
     header_info(" - saving\n");
     for ( i = 0; i < table_size; i++ )
     {
-        sprintf(cert_file, "%s/cert-%u.der", dir, i);
+        sprintf(cert_file, "%s%ccert-%u.der", dir, PATH_SEPARATOR, i);
         cert_file[PATH_MAX-1] = 0;
 
         header_info(" - - file (%u/%u): %s", (i+1), table_size, cert_file);
