@@ -1,3 +1,8 @@
+#ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS
+#pragma warning( disable : 4100 4101 )
+#endif
+
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +16,7 @@
 #include "Globals.h"
 #include "utils/Helper.h"
 #include "utils/common_fileio.h"
+#include "utils/Files.h"
 #include "utils/blockio.h"
 #include "parser.h"
 
@@ -22,6 +28,7 @@ static PEHeaderData* getInitializedPEHeaderData();
 // gcc -fPIC -shared -Ofast -o libheaderparser.so headerParserLib.c headerParserLib.h HeaderData.h HeaderData.c -Wall
 
 
+HP_API
 HeaderData* getBasicHeaderParserInfo(const char* file, size_t start, uint8_t force)
 {
     HeaderData* hd = (HeaderData*) malloc(sizeof(HeaderData));
@@ -39,7 +46,7 @@ HeaderData* getBasicHeaderParserInfo(const char* file, size_t start, uint8_t for
 
 int getBasicInfoA(const char* file, size_t start, uint8_t force, HeaderData* hd)
 {
-    uint32_t n = 0;
+    size_t n = 0;
     int s;
     GlobalParams gp;
     int errsv;
@@ -110,6 +117,7 @@ int getBasicInfoA(const char* file, size_t start, uint8_t force, HeaderData* hd)
     return s;
 }
 
+HP_API
 PEHeaderData* getPEHeaderData(const char* file, size_t start)
 {
     PEHeaderData* pehd = getInitializedPEHeaderData();
@@ -148,7 +156,7 @@ PEHeaderData* getInitializedPEHeaderData()
 int getPEHeaderDataA(const char* file, size_t start, PEHeaderData* pehd)
 {
     HeaderData* hd = NULL;
-    uint32_t n = 0;
+    size_t n = 0;
     int s = 0;
     int errsv = 0;
     GlobalParams gp;
@@ -233,6 +241,7 @@ exit:
     return s;
 }
 
+HP_API
 void freePEHeaderData(PEHeaderData* pehd)
 {
     if ( pehd == NULL )
@@ -259,6 +268,7 @@ int sanitizeArgs(size_t abs_file_offset, size_t file_size)
     return 0;
 }
 
+HP_API
 HeaderData* getInitializedHeaderParserHeaderData()
 {
     HeaderData* data;
@@ -279,6 +289,7 @@ HeaderData* getInitializedHeaderParserHeaderData()
 //	hd = NULL;
 //}
 
+HP_API
 const char* getHeaderDataArchitecture(uint16_t id)
 {
     if ( id >= ARCHITECTURE_NAMES_SIZE )
@@ -287,6 +298,7 @@ const char* getHeaderDataArchitecture(uint16_t id)
     return architecture_names[id];
 }
 
+HP_API
 const char* getHeaderDataHeaderType(uint8_t id)
 {
     if ( id >= HEADER_TYPES_SIZE )
@@ -295,6 +307,7 @@ const char* getHeaderDataHeaderType(uint8_t id)
     return header_type_names[id];
 }
 
+HP_API
 const char* getHeaderDataEndianType(uint8_t id)
 {
     if ( id >= ENDIAN_NAMES_SIZE )

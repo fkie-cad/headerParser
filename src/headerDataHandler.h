@@ -3,15 +3,16 @@
 
 #include <errno.h>
 
+#include "exp.h"
 #include "HeaderData.h"
 
-#ifdef __cplusplus
-extern "C"{
-#endif
-void freeHeaderData(HeaderData* hd);
-#ifdef __cplusplus
-}
-#endif
+//#ifdef __cplusplus
+//extern "C"{
+//#endif
+//void freeHeaderData(HeaderData* hd);
+//#ifdef __cplusplus
+//}
+//#endif
 static void freeInnerHeaderData(HeaderData* hd);
 int initHeaderData(HeaderData* header_data, size_t code_regions_capacity);
 static uint8_t resizeHeaderDataCodeRegions(HeaderData* header_data);
@@ -30,6 +31,7 @@ int initHeaderData(HeaderData* header_data, size_t code_regions_capacity)
     return 0;
 }
 
+HP_API
 void freeHeaderData(HeaderData* hd)
 {
     if ( hd == NULL )

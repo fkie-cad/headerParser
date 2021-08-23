@@ -50,24 +50,27 @@
 
   <ItemGroup Label="WrappedTaskItems" />
 
-  <PropertyGroup>
-    <TargetName>$(MSBuildProjectName)</TargetName>
+  <PropertyGroup Condition="'$(TestTarget)'=='TestLib'">
+    <TargetName>TestLib</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TestTarget)'=='TestPELib'">
+    <TargetName>TestPELib</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IntDir>build\64\$(MSBuildProjectName)\</IntDir>
-    <OutDir>build\64\</OutDir>
+    <IntDir>..\build\64\$(TargetName)\</IntDir>
+    <OutDir>..\build\64\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IntDir>build\debug\64\$(MSBuildProjectName)\</IntDir>
-    <OutDir>build\debug\64\</OutDir>
+    <IntDir>..\build\debug\64\$(TargetName)\</IntDir>
+    <OutDir>..\build\debug\64\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IntDir>build\32\$(MSBuildProjectName)\</IntDir>
-    <OutDir>build\32\</OutDir>
+    <IntDir>..\build\32\$(TargetName)\</IntDir>
+    <OutDir>..\build\32\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IntDir>build\debug\32\$(MSBuildProjectName)\</IntDir>
-    <OutDir>build\debug\32\</OutDir>
+    <IntDir>..\build\debug\32\$(TargetName)\</IntDir>
+    <OutDir>..\build\debug\32\</OutDir>
   </PropertyGroup>
   
   <ItemDefinitionGroup>
@@ -123,14 +126,11 @@
     </Link>
   </ItemDefinitionGroup>
 
-  <ItemGroup Condition="'$(ConfigurationType)'=='Application'">
-    <ClCompile Include="src\headerParser.c" />
+  <ItemGroup Condition="'$(TestTarget)'=='TestLib'">
+    <ClCompile Include="testHeaderParserLib.c" />
   </ItemGroup>
-  <ItemGroup Condition="'$(ConfigurationType)'=='DynamicLibrary'">
-    <ClCompile Include="src\headerParserLib.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="res\headerparser.rc" />
+  <ItemGroup Condition="'$(TestTarget)'=='TestPELib'">
+    <ClCompile Include="testHeaderParserLibPE.c" />
   </ItemGroup>
 
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

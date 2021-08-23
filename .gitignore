@@ -6,13 +6,14 @@ venv/
 .project
 tests/sources
 tests/conflict*
-headerParser
 *.7z
 .vs/
 CMakeSettings.json
 .vsls.json
 #tests/
 .git.old
+
+*.vcxproj.user
 
 update_projects.sh
 update_usr_lib.sh

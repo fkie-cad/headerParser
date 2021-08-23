@@ -7,55 +7,75 @@
 #include "../utils/common_fileio.h"
 #include "PEHeaderOffsets.h"
 
+HP_API
 uint8_t PE_hasCertificate(
     PE64OptHeader* oh
 );
 
-int PE_getNumberOfCertificates(PE64OptHeader* oh,
-                               size_t start_file_offset,
-                               size_t file_size,
-                               FILE* fp,
-                               unsigned char* block_s);
+HP_API
+int PE_getNumberOfCertificates(
+    PE64OptHeader* oh,
+    size_t start_file_offset,
+    size_t file_size,
+    FILE* fp,
+    unsigned char* block_s
+);
 
-uint8_t PE_fillCertificateTable(PE64OptHeader* oh,
-                            size_t start_file_offset,
-                            size_t file_size,
-                            FILE* fp,
-                            unsigned char* block_s,
-                            PeAttributeCertificateTable* table,
-                            uint8_t max_size);
+HP_API
+uint8_t PE_fillCertificateTable(
+    PE64OptHeader* oh,
+    size_t start_file_offset,
+    size_t file_size,
+    FILE* fp,
+    unsigned char* block_s,
+    PeAttributeCertificateTable* table,
+    uint8_t max_size
+);
 
-uint8_t PE_iterateCertificates(PE64OptHeader* oh,
-                           size_t start_file_offset,
-                           size_t file_size,
-                           FILE* fp,
-                           unsigned char* block_s,
-                           PeAttributeCertificateTable* table,
-                           uint8_t max_size);
+uint8_t PE_iterateCertificates(
+    PE64OptHeader* oh,
+    size_t start_file_offset,
+    size_t file_size,
+    FILE* fp,
+    unsigned char* block_s,
+    PeAttributeCertificateTable* table,
+    uint8_t max_size
+);
 
-int PE_writeCertificatesToFile(PeAttributeCertificateTable* table,
-                               uint8_t table_size,
-                               const char* dir,
-                               size_t file_size,
-                               FILE* fp,
-                               unsigned char* block_s);
-int PE_writeCertificateToFile(PeAttributeCertificateTable* table, 
-                             uint8_t id, 
-                             const char* file,
-                             size_t file_size,
-                             FILE* src,
-                             unsigned char* block_s);
-int PE_fillAttributeCertificateTableEntry(PeAttributeCertificateTable *entry, 
-                                         uint32_t t_address, 
-                                         uint32_t t_size,
-                                         size_t start_file_offset,
-                                         size_t file_size,
-                                         FILE* fp,
-                                         unsigned char* block_s);
+HP_API
+int PE_writeCertificatesToFile(
+    PeAttributeCertificateTable* table,
+    uint8_t table_size,
+    const char* dir,
+    size_t file_size,
+    FILE* fp,
+    unsigned char* block_s
+);
+
+HP_API
+int PE_writeCertificateToFile(
+    PeAttributeCertificateTable* table, 
+    uint8_t id, 
+    const char* file,
+    size_t file_size,
+    FILE* src,
+    unsigned char* block_s
+);
+
+int PE_fillAttributeCertificateTableEntry(
+    PeAttributeCertificateTable *entry, 
+    uint32_t t_address, 
+    uint32_t t_size,
+    size_t start_file_offset,
+    size_t file_size,
+    FILE* fp,
+    unsigned char* block_s
+);
 
 /**
  * Check if a certificate is present.
  */
+HP_API
 uint8_t PE_hasCertificate(PE64OptHeader* oh)
 {
     uint32_t address;
@@ -76,6 +96,7 @@ uint8_t PE_hasCertificate(PE64OptHeader* oh)
 /**
  * Get number of certificates.
  */
+HP_API
 int PE_getNumberOfCertificates(PE64OptHeader* oh,
                                size_t start_file_offset,
                                size_t file_size,
@@ -111,6 +132,7 @@ int PE_getNumberOfCertificates(PE64OptHeader* oh,
 //	return nr;
 }
 
+HP_API
 uint8_t PE_fillCertificateTable(PE64OptHeader* oh,
                             size_t start_file_offset,
                             size_t file_size,
@@ -184,6 +206,7 @@ uint8_t PE_iterateCertificates(PE64OptHeader* oh,
  * @param	dir const char* the target directory
  * @return	int status code: 0: success, -1: dir does not exist
  */
+HP_API
 int PE_writeCertificatesToFile(PeAttributeCertificateTable* table,
                                uint8_t table_size,
                                const char* dir,
@@ -233,6 +256,7 @@ int PE_writeCertificatesToFile(PeAttributeCertificateTable* table,
  * @param	id uint8_t The certificate id. Usually 0, if the file contains just one certificate.
  * @param	file const char* the output file name
  */
+HP_API
 int PE_writeCertificateToFile(PeAttributeCertificateTable* table, 
                              uint8_t id, 
                              const char* file,

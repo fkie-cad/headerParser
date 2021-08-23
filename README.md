@@ -18,8 +18,8 @@ Compiles and runs under
 
 
 ## Version ##
-1.11.7  
-Last changed: 22.08.2021
+1.11.8  
+Last changed: 23.08.2021
 
 ## REQUIREMENTS ##
 - Linux
@@ -160,9 +160,9 @@ If you think it is a PE file but the MZ or PE00 magic values are broken, try the
 
 ## ALTERNATIVE USAGE ##
 HeaderParser may also be build as a shared library.  
-Currently tested only on Linux.
 
 ### Build ###
+*Linux*
 ```bash
 ./linuxBuild.sh -t headerParser_so [-m Release|Debug] [-h]
 ```
@@ -170,6 +170,10 @@ or plain:
 ```bash
 mkdir build
 gcc -fPIC -Wl,-z,relro,-z,now -shared -Ofast -D_FILE_OFFSET_BITS=64 -o build/libheaderparser.so src/headerParserLib.c -Wall 
+```
+*Windows*
+```bash
+winBuild.bat /t headerParser_lib [/m Release|Debug] [/b 32|64]
 ```
 
 ### Usage ###

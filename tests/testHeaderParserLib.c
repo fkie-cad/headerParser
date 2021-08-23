@@ -1,3 +1,8 @@
+#ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS
+#pragma warning( disable : 4100 4101 )
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -9,17 +14,33 @@
 #include "../src/headerParserLib.h"
 #include "../src/utils/common_fileio.h"
 
-void runParser(const char* src, uint64_t offset, uint8_t force);
+#ifdef _WIN32
+	#ifdef _DEBUG
+		#ifdef _WIN64
+			#pragma comment(lib, "..\\build\\debug\\64\\HeaderParser.lib")
+		#else
+			#pragma comment(lib, "..\\build\\debug\\32\\HeaderParser.lib")
+		#endif
+	#else
+		#ifdef _WIN64
+			#pragma comment(lib, "..\\build\\64\\HeaderParser.lib")
+		#else
+			#pragma comment(lib, "..\\build\\32\\HeaderParser.lib")
+		#endif
+	#endif
+#endif
+
+void runParser(const char* src, size_t offset, uint8_t force);
 HeaderData* getPeGuessedHeaderData(const char* file_src);
 void checkGuessed(const char* file_src);
 void printHeaderData(HeaderData* data);
 
 int main(int argc, char** argv)
 {
-	uint32_t i;
+	int i;
 	const char* src = NULL;
 	uint8_t force = FORCE_NONE;
-	uint64_t offset = 0;
+	size_t offset = 0;
 
 	if (argc < 2)
 	{
@@ -28,8 +49,8 @@ int main(int argc, char** argv)
 	}
 
 	printf("argc: %d\n", argc);
-	printf("offset: %lu\n", offset);
-	printf("force: %d\n", force);
+	printf("offset: 0x%zx\n", offset);
+	printf("force: %u\n", force);
 	printf("\n");
 
 	for ( i = 1; i < argc; i++ )
@@ -65,12 +86,12 @@ int main(int argc, char** argv)
 	return 0;
 }
 
-void runParser(const char* src, uint64_t offset, uint8_t force)
+void runParser(const char* src, size_t offset, uint8_t force)
 {
 	printf("=======runParser=======\n");
 	printf("src: %s\n", src);
-	printf("offset: %lu\n", offset);
-	printf("force: %d\n", force);
+	printf("offset: 0x%zx\n", offset);
+	printf("force: %u\n", force);
 	printf("\n");
 	HeaderData* data = getBasicHeaderParserInfo(src, offset, force);
 
@@ -105,7 +126,10 @@ HeaderData* getPeGuessedHeaderData(const char* file_src)
 	HeaderData* hpd = getBasicHeaderParserInfo(file_src, 0, force);
 
 	if ( hpd == NULL )
+	{
+		printf("HeaderData is NULL\n");
 		return NULL;
+	}
 
 	// check for supported arch is the only possible validation for a guessed hpd
 	if ( hpd->headertype != HEADER_TYPE_NONE )
@@ -124,7 +148,7 @@ void printHeaderData(HeaderData* data)
 	printf("coderegions:\n");
 	for ( i = 0; i < data->code_regions_size; i++ )
 	{
-		printf(" (%lu) %s: ( 0x%016lx - 0x%016lx )\n",
+		printf(" (%zu) %s: ( 0x%016zx - 0x%016zx )\n",
 			   i+1, data->code_regions[i].name, data->code_regions[i].start, data->code_regions[i].end);
 	}
 	printf("headertype: %s\n", getHeaderDataHeaderType(data->headertype));

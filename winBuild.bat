@@ -79,21 +79,38 @@ if [%bitness%] == [32] (
 if [%valid%] == [0] (
     goto help
 )
-
+:: test valid targets
 set valid=0
+set test=0
 if /i [%target%] == [%name%] (
-    set ct=Application
     set valid=1
-) else (
-    if /i [%target%] == [%name%_lib] (
-        set ct=DynamicLibrary
-        set valid=1
-    )
+    set proj=HeaderParser.vcxproj
+)
+if /i [%target%] == [%name%_lib] (
+    set valid=1
+    set proj=HeaderParser.vcxproj
+)
+if /i [%target%] == [TestLib] (
+    set test=1
+    set valid=1
+    set proj=tests\Tests.vcxproj
+)
+if /i [%target%] == [TestPELib] (
+    set test=1
+    set valid=1
+    set proj=tests\Tests.vcxproj
 )
 if [%valid%] == [0] (
     goto help
 )
 
+:: set ConfigurationType
+set ct=Application
+if /i [%target%] == [%name%_lib] (
+    set ct=DynamicLibrary
+)
+
+:: set runtime lib
 set rtlib=No
 set valid=0
 if /i [%mode%] == [debug] (
@@ -122,17 +139,29 @@ if [%verbose%] == [1] (
     echo mode=%mode%
     echo build_dir=%build_dir%
     echo buildTools=%buildTools%
+    echo proj=%proj%
 )
 
 set vcvars="%buildTools:~1,-1%\VC\Auxiliary\Build\vcvars%bitness%.bat"
 
 
+if [%valid%] == [0] (
+    goto build
+) else (
+    goto buildTest
+)
+
 :build
-    cmd /k "mkdir %build_dir% & %vcvars% & msbuild HeaderParser.vcxproj /p:Platform=%platform% /p:Configuration=%mode% /p:RuntimeLib=%rt% /p:PDB=%pdb% /p:ConfigurationType=%ct%  & exit"
+    cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:Configuration=%mode% /p:RuntimeLib=%rt% /p:PDB=%pdb% /p:ConfigurationType=%ct%  & exit"
 
     if /i [%mode%]==[release] (
         certutil -hashfile %build_dir%\%target%.exe sha256 | find /i /v "sha256" | find /i /v "certutil" > %build_dir%\%target%.sha256
     )
+
+    exit /B 0
+
+:buildTest
+    cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:Configuration=%mode% /p:RuntimeLib=%rt% /p:PDB=%pdb% /p:ConfigurationType=%ct% /p:TestTarget=%target% & exit"
 
     exit /B 0
 

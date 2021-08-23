@@ -15,9 +15,11 @@ typedef struct LoadConfigTableOffsets {
 } LoadConfigTableOffsets, *PLoadConfigTableOffsets;
 
 #include "../utils/fifo/Fifo.h"
+#include "../exp.h"
 #include "PEHeaderPrinter.h"
 #include "PEHeader.h"
 
+HP_API
 void PE_parseImageImportTable(PE64OptHeader* oh,
                               uint16_t nr_of_sections,
                               SVAS* svas,
@@ -218,6 +220,7 @@ size_t PE_Rva2Foa(uint32_t va, SVAS* svas, uint16_t svas_size);
  * @param oh
  * @param nr_of_sections
  */
+HP_API
 void PE_parseImageImportTable(PE64OptHeader* oh,
                               uint16_t nr_of_sections,
                               SVAS* svas,

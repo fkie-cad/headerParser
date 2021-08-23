@@ -17,7 +17,7 @@
 #include "PEWindowsSubsystem.h"
 #include "PECharacteristics.h"
 
-void PE_printImageDosHeader(PEImageDosHeader* image_dos_header, size_t start_file_offset);
+void PE_printImageDosHeader(PEImageDosHeader* idh, size_t start_file_offset);
 void PE_printCoffFileHeader(PECoffFileHeader* ch, size_t offset, size_t start_file_offset);
 //char* PE_getMachineName(PeMachineTypes type);
 void PE_printOptionalHeader(PE64OptHeader* oh, size_t offset, size_t start_file_offset, uint8_t bitness);
@@ -124,49 +124,31 @@ void fillSpaces(char* buf, size_t n, uint16_t level);
 
 
 
-const char* ImageDirectoryEntryNames[] = {
-    "EXPORT",
-    "IMPORT",
-    "RESOURCE",
-    "EXCEPTION",
-    "CERTIFICATE",
-    "BASE_RELOC",
-    "DEBUG",
-    "ARCHITECTURE",
-    "GLOBAL_PTR",
-    "TLS",
-    "LOAD_CONFIG",
-    "BOUND_IMPORT",
-    "IAT",
-    "DELAY_IMPORT",
-    "CLR_RUNTIME_HEADER",
-    "RESERVED",
-};
 
 
 
-void PE_printImageDosHeader(PEImageDosHeader* image_dos_header, size_t start_file_offset)
+void PE_printImageDosHeader(PEImageDosHeader* idh, size_t start_file_offset)
 {
     printf("PE Image Dos Header:\n");
-    printf(" - signature%s: %c|%c\n", fillOffset(PEImageDosHeaderOffsets.signature, 0, start_file_offset), image_dos_header->signature[0], image_dos_header->signature[1]);
-    printf(" - lastsize%s: %u\n", fillOffset(PEImageDosHeaderOffsets.lastsize, 0, start_file_offset), image_dos_header->lastsize);
-    printf(" - nblocks%s: %u\n", fillOffset(PEImageDosHeaderOffsets.nblocks, 0, start_file_offset), image_dos_header->nblocks);
-    printf(" - nreloc%s: %u\n", fillOffset(PEImageDosHeaderOffsets.nreloc, 0, start_file_offset), image_dos_header->nreloc);
-    printf(" - hdrsize%s: %u\n", fillOffset(PEImageDosHeaderOffsets.hdrsize, 0, start_file_offset), image_dos_header->hdrsize);
-    printf(" - minalloc%s: 0x%x\n", fillOffset(PEImageDosHeaderOffsets.minalloc, 0, start_file_offset), image_dos_header->minalloc);
-    printf(" - maxalloc%s: 0x%x\n", fillOffset(PEImageDosHeaderOffsets.maxalloc, 0, start_file_offset), image_dos_header->maxalloc);
-    printf(" - ss: 0x%x\n", image_dos_header->ss);
-    printf(" - sp: 0x%x\n", image_dos_header->sp);
-    printf(" - checksum%s: %u\n", fillOffset(PEImageDosHeaderOffsets.checksum, 0, start_file_offset), image_dos_header->checksum);
-    printf(" - ip: 0x%x\n", image_dos_header->ip);
-    printf(" - cs: 0x%x\n", image_dos_header->cs);
-    printf(" - relocpos%s: 0x%x\n", fillOffset(PEImageDosHeaderOffsets.relocpos, 0, start_file_offset), image_dos_header->relocpos);
-    printf(" - noverlay%s: %u\n", fillOffset(PEImageDosHeaderOffsets.noverlay, 0, start_file_offset), image_dos_header->noverlay);
-//	printf(" - reserved1: %04x|%04x|%04x|%04x\n", image_dos_header->reserved1[0], image_dos_header->reserved1[1], image_dos_header->reserved1[2], image_dos_header->reserved1[3]);
-    printf(" - oem_id%s: %u\n", fillOffset(PEImageDosHeaderOffsets.oem_id, 0, start_file_offset), image_dos_header->oem_id);
-    printf(" - oem_info%s: %u\n", fillOffset(PEImageDosHeaderOffsets.oem_info, 0, start_file_offset), image_dos_header->oem_info);
-//	printf(" - reserved2: %04x|%04x|%04x|%04x%04x|%04x|%04x|%04x%04x|%04x\n", image_dos_header->reserved2[0], image_dos_header->reserved2[1], image_dos_header->reserved2[2], image_dos_header->reserved2[3], image_dos_header->reserved2[4], image_dos_header->reserved2[5], image_dos_header->reserved2[6], image_dos_header->reserved2[7], image_dos_header->reserved2[8], image_dos_header->reserved2[9]);
-    printf(" - e_lfanew%s: 0x%x (%u)\n", fillOffset(PEImageDosHeaderOffsets.e_lfanew, 0, start_file_offset), image_dos_header->e_lfanew, image_dos_header->e_lfanew);
+    printf(" - signature%s: %c|%c\n", fillOffset(PEImageDosHeaderOffsets.signature, 0, start_file_offset), idh->signature[0], idh->signature[1]);
+    printf(" - lastsize%s: %u\n", fillOffset(PEImageDosHeaderOffsets.lastsize, 0, start_file_offset), idh->lastsize);
+    printf(" - nblocks%s: %u\n", fillOffset(PEImageDosHeaderOffsets.nblocks, 0, start_file_offset), idh->nblocks);
+    printf(" - nreloc%s: %u\n", fillOffset(PEImageDosHeaderOffsets.nreloc, 0, start_file_offset), idh->nreloc);
+    printf(" - hdrsize%s: %u\n", fillOffset(PEImageDosHeaderOffsets.hdrsize, 0, start_file_offset), idh->hdrsize);
+    printf(" - minalloc%s: 0x%x\n", fillOffset(PEImageDosHeaderOffsets.minalloc, 0, start_file_offset), idh->minalloc);
+    printf(" - maxalloc%s: 0x%x\n", fillOffset(PEImageDosHeaderOffsets.maxalloc, 0, start_file_offset), idh->maxalloc);
+    printf(" - ss: 0x%x\n", idh->ss);
+    printf(" - sp: 0x%x\n", idh->sp);
+    printf(" - checksum%s: %u\n", fillOffset(PEImageDosHeaderOffsets.checksum, 0, start_file_offset), idh->checksum);
+    printf(" - ip: 0x%x\n", idh->ip);
+    printf(" - cs: 0x%x\n", idh->cs);
+    printf(" - relocpos%s: 0x%x\n", fillOffset(PEImageDosHeaderOffsets.relocpos, 0, start_file_offset), idh->relocpos);
+    printf(" - noverlay%s: %u\n", fillOffset(PEImageDosHeaderOffsets.noverlay, 0, start_file_offset), idh->noverlay);
+//	printf(" - reserved1: %04x|%04x|%04x|%04x\n", idh->reserved1[0], idh->reserved1[1], idh->reserved1[2], idh->reserved1[3]);
+    printf(" - oem_id%s: %u\n", fillOffset(PEImageDosHeaderOffsets.oem_id, 0, start_file_offset), idh->oem_id);
+    printf(" - oem_info%s: %u\n", fillOffset(PEImageDosHeaderOffsets.oem_info, 0, start_file_offset), idh->oem_info);
+//	printf(" - reserved2: %04x|%04x|%04x|%04x%04x|%04x|%04x|%04x%04x|%04x\n", idh->reserved2[0], idh->reserved2[1], idh->reserved2[2], idh->reserved2[3], idh->reserved2[4], idh->reserved2[5], idh->reserved2[6], idh->reserved2[7], idh->reserved2[8], idh->reserved2[9]);
+    printf(" - e_lfanew%s: 0x%x (%u)\n", fillOffset(PEImageDosHeaderOffsets.e_lfanew, 0, start_file_offset), idh->e_lfanew, idh->e_lfanew);
     printf("\n");
 }
 
@@ -269,7 +251,7 @@ void PE_printOptionalHeader(PE64OptHeader* oh, size_t offset, size_t start_file_
     printf(" - SizeOfImage%s: 0x%X (%u)\n", fillOffset(offsets.SizeOfImage, offset, start_file_offset), oh->SizeOfImage, oh->SizeOfImage);
     printf(" - SizeOfHeaders%s: 0x%X (%u)\n", fillOffset(offsets.SizeOfHeaders, offset, start_file_offset), oh->SizeOfHeaders, oh->SizeOfHeaders);
     printf(" - Checksum%s: 0x%X (%u)\n", fillOffset(offsets.CheckSum, offset, start_file_offset), oh->Checksum, oh->Checksum);
-    printf(" - Subsystem%s: %s (%u)\n", fillOffset(offsets.Subsystem, offset, start_file_offset), PE_getSubsystemName((enum PEWinudowsSubsystem)oh->Subsystem), oh->Subsystem);
+    printf(" - Subsystem%s: %s (0x%x)\n", fillOffset(offsets.Subsystem, offset, start_file_offset), PE_getSubsystemName((enum PEWinudowsSubsystem)oh->Subsystem), oh->Subsystem);
     printf(" - DllCharacteristics%s: 0x%X (b%s)\n", fillOffset(offsets.DllCharacteristics, offset, start_file_offset), oh->DLLCharacteristics, ch_bin);
     printFlag32F(oh->DLLCharacteristics, IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA,
             "IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA: Image can handle a high entropy 64-bit virtual address space.", dll_c_pre, dll_c_post);

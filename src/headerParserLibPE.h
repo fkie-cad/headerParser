@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#define HP_EXPORTS
+#include "exp.h"
 #include "PEHeaderData.h"
 
 #ifndef FORCE_NONE
@@ -26,14 +28,21 @@ extern "C"{
  * @param start
  * @return PEHeaderData* filled with info or NULL if file does not exist or reading its bytes failed.
  */
-PEHeaderData* getPEHeaderData(const char* file, size_t start);
+HP_API
+PEHeaderData* getPEHeaderData(
+    const char* file, 
+    size_t start
+);
 
 /**
  * Free PEHeaderData object and its inner structs.
  *
  * @param hd PEHeaderData*
  */
-void freePEHeaderData(PEHeaderData* hd);
+HP_API
+void freePEHeaderData(
+    PEHeaderData* hd
+);
 
 /**
  * Check if a PE file has a certificate attached.
@@ -41,7 +50,10 @@ void freePEHeaderData(PEHeaderData* hd);
  * @param oh PE64OptHeader* an PE64OptHeader received from getPEHeaderData()
  * @return int a bool value
  */
-uint8_t PE_hasCertificate(PE64OptHeader* oh);
+HP_API
+uint8_t PE_hasCertificate(
+    PE64OptHeader* oh
+);
 
 /**
  * Get the number of certificates attached to a PE file.
@@ -49,11 +61,14 @@ uint8_t PE_hasCertificate(PE64OptHeader* oh);
  * @param oh PE64OptHeader* an PE64OptHeader received from getPEHeaderData()
  * @return int the number of certificates
  */
-int PE_getNumberOfCertificates(PE64OptHeader* oh,
-                               size_t start_file_offset,
-                               size_t file_size,
-                               FILE* fp,
-                               unsigned char* block_s);
+HP_API
+int PE_getNumberOfCertificates(
+    PE64OptHeader* oh,
+    size_t start_file_offset,
+    size_t file_size,
+    FILE* fp,
+    unsigned char* block_s
+);
 
 /**
  * Fill a PeAttributeCertificateTable with values from file.
@@ -63,13 +78,16 @@ int PE_getNumberOfCertificates(PE64OptHeader* oh,
  * @param oh PE64OptHeader* an PE64OptHeader received from getPEHeaderData()
  * @return int success status
  */
-uint8_t PE_fillCertificateTable(PE64OptHeader* oh,
-                            size_t start_file_offset,
-                            size_t file_size,
-                            FILE* fp,
-                            unsigned char* block_s,
-                            PeAttributeCertificateTable* table,
-                            uint8_t table_size);
+HP_API
+uint8_t PE_fillCertificateTable(
+    PE64OptHeader* oh,
+    size_t start_file_offset,
+    size_t file_size,
+    FILE* fp,
+    unsigned char* block_s,
+    PeAttributeCertificateTable* table,
+    uint8_t table_size
+);
 
 /**
  * Write all found certificates to file in DER format.
@@ -85,12 +103,15 @@ uint8_t PE_fillCertificateTable(PE64OptHeader* oh,
  * @param dir const char* the destination directory
  * @return int status code: 0: success, -1: dir does not exist
  */
-int PE_writeCertificatesToFile(PeAttributeCertificateTable* table,
-                               uint8_t table_size,
-                               const char* dir,
-                               size_t file_size,
-                               FILE* fp,
-                               unsigned char* block_s);
+HP_API
+int PE_writeCertificatesToFile(
+    PeAttributeCertificateTable* table,
+    uint8_t table_size,
+    const char* dir,
+    size_t file_size,
+    FILE* fp,
+    unsigned char* block_s
+);
 
 /**
  * Write one certificates to file in DER format.
@@ -106,12 +127,15 @@ int PE_writeCertificatesToFile(PeAttributeCertificateTable* table,
  * @param file const char* the destination file name
  * @return int success status
  */
-int PE_writeCertificateToFile(PeAttributeCertificateTable* table,
-                              uint8_t id,
-                              const char* file,
-                              size_t file_size,
-                              FILE* src,
-                              unsigned char* block_s);
+HP_API
+int PE_writeCertificateToFile(
+    PeAttributeCertificateTable* table,
+    uint8_t id,
+    const char* file,
+    size_t file_size,
+    FILE* src,
+    unsigned char* block_s
+);
 
 /**
  * Parse ImageImportTable, i.e. DataDirectory[IMPORT]
@@ -119,16 +143,20 @@ int PE_writeCertificateToFile(PeAttributeCertificateTable* table,
  * @param optional_header
  * @param nr_of_sections
  */
-void PE_parseImageImportTable(PE64OptHeader* optional_header,
-                              uint16_t nr_of_sections,
-                              SVAS* svas,
-                              uint8_t bitness,
-                              size_t start_file_offset,
-                              size_t* abs_file_offset,
-                              size_t file_size,
-                              FILE* fp,
-                              unsigned char* block_l,
-                              unsigned char* block_s);
+HP_API
+void PE_parseImageImportTable(
+    PE64OptHeader* optional_header,
+    uint16_t nr_of_sections,
+    SVAS* svas,
+    uint8_t bitness,
+    size_t start_file_offset,
+    size_t* abs_file_offset,
+    size_t file_size,
+    FILE* fp,
+    unsigned char* block_l,
+    unsigned char* block_s,
+    int extended
+);
 #ifdef __cplusplus
 }
 #endif

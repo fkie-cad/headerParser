@@ -135,6 +135,25 @@ enum ImageDirectoryEntries {
     IMAGE_DIRECTORY_ENTRY_RESERVED, // 15
 };
 
+const char* ImageDirectoryEntryNames[] = {
+    "EXPORT",
+    "IMPORT",
+    "RESOURCE",
+    "EXCEPTION",
+    "CERTIFICATE",
+    "BASE_RELOC",
+    "DEBUG",
+    "ARCHITECTURE",
+    "GLOBAL_PTR",
+    "TLS",
+    "LOAD_CONFIG",
+    "BOUND_IMPORT",
+    "IAT",
+    "DELAY_IMPORT",
+    "CLR_RUNTIME_HEADER",
+    "RESERVED",
+};
+
 /**
  * 64 bit version of the PE Optional Header also known as IMAGE_OPTIONAL_HEADER64
  */

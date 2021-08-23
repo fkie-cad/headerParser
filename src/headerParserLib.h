@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#define HP_EXPORTS
+#include "exp.h"
 #include "HeaderData.h"
 
 #define VERBOSE_MODE 0
@@ -29,36 +31,52 @@ extern "C"{
  * @param force
  * @return HeaderData* filled with info or NULL if file does not exist or reading its bytes failed.
  */
-HeaderData* getBasicHeaderParserInfo(const char* file,
-                                     size_t start,
-                                     uint8_t force);
+HP_API
+HeaderData* getBasicHeaderParserInfo(
+    const char* file,
+    size_t start,
+    uint8_t force
+);
 
 /**
  * Get an initialized header data object.
  */
+HP_API
 HeaderData* getInitializedHeaderParserHeaderData();
 
 /**
  * Get architecture name string from type id.
  */
-const char* getHeaderDataArchitecture(uint16_t id);
+HP_API
+const char* getHeaderDataArchitecture(
+    uint16_t id
+);
 
 /**
  * Free a HeaderData object and its internal structures.
  *
  * @param hd
  */
-void freeHeaderData(HeaderData* hd);
+HP_API
+void freeHeaderData(
+    HeaderData* hd
+);
 
 /**
  * Get header type string from type id.
  */
-const char* getHeaderDataHeaderType(uint8_t id);
+HP_API
+const char* getHeaderDataHeaderType(
+    uint8_t id
+);
 
 /**
  * Get endian type string from type id.
  */
-const char* getHeaderDataEndianType(uint8_t id);
+HP_API
+const char* getHeaderDataEndianType(
+    uint8_t id
+);
 
 #ifdef __cplusplus
 }
