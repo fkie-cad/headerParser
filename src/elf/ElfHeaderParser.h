@@ -336,7 +336,7 @@ unsigned char Elf_programHeaderOffsetsAreValid(
     }
     if ( start_file_offset + file_header->e_phoff > file_size )
     {
-        header_info("INFO: The program header offset (%"PRIu64") is greater than file_size (%zu).\n",
+        header_info("INFO: The program header offset (0x%"PRIx64") is greater than file_size (0x%zu).\n",
                 file_header->e_phoff, file_size);
         return 0;
     }
@@ -482,17 +482,17 @@ unsigned char Elf_checkProgramHeaderTableEntry(
 //		offset += strlen(errors);
 //		valid = 0;
 //	}
-    if ( start_file_offset + ph->p_offset > file_size )
+    if ( start_file_offset + ph->p_offset >= file_size )
     {
-        snprintf(&errors[offset], ERRORS_BUFFER_SIZE-offset, " - p_offset (%"PRIu64") is > file_size (%zu)\n",
+        snprintf(&errors[offset], ERRORS_BUFFER_SIZE-offset, " - p_offset (0x%"PRIx64") is >= file_size (0x%zx)\n",
                  ph->p_offset, file_size);
         offset += (uint16_t)strlen(errors);
         valid = 0;
     }
-    if ( start_file_offset + ph->p_offset + ph->p_filesz > file_size )
+    if ( start_file_offset + ph->p_offset + ph->p_filesz >= file_size )
     {
         snprintf(&errors[offset], ERRORS_BUFFER_SIZE-offset,
-                 " - ph_offset (%"PRIu64") + ph_size (%"PRIu64") = (%"PRIu64") is > file_size (%zu)\n",
+                 " - p_offset (0x%"PRIx64") + p_filesz (0x%"PRIx64") = (0x%"PRIx64") is >= file_size (0x%zx)\n",
                  ph->p_offset, ph->p_filesz, ph->p_offset + ph->p_filesz, file_size);
         offset += (uint16_t)strlen(errors);
         valid = 0;
@@ -565,7 +565,7 @@ unsigned char Elf_sectionHeaderOffsetsAreValid(
     }
     if ( start_file_offset + file_header->e_shoff > file_size )
     {
-        header_info("INFO: The section header offset (%"PRIu64") > file_size (%zu).\n",
+        header_info("INFO: The section header offset (0x%"PRIx64") > file_size (0x%zu).\n",
                 file_header->e_shoff, file_size);
         return 0;
     }
@@ -814,7 +814,7 @@ unsigned char Elf_checkSectionHeaderTableEntry(Elf64SectionHeader* sh, uint16_t 
 //	}
     if ( start_file_offset + sh->sh_offset > file_size )
     {
-        snprintf(&errors[offset], ERRORS_BUFFER_SIZE, " - sh_offset (%"PRIu64") is > file_size (%zu)\n",
+        snprintf(&errors[offset], ERRORS_BUFFER_SIZE, " - sh_offset (0x%"PRIx64") is > file_size (0x%zu)\n",
                  sh->sh_offset, file_size);
         offset += (uint16_t)strlen(errors);
         valid = 0;
@@ -831,7 +831,7 @@ unsigned char Elf_checkSectionHeaderTableEntry(Elf64SectionHeader* sh, uint16_t 
         && start_file_offset + sh->sh_offset + sh->sh_size > file_size )
     {
         snprintf(&errors[offset], ERRORS_BUFFER_SIZE,
-                 " - sh_offset (%"PRIu64") + sh_size (%"PRIu64") = (%"PRIu64") is > file_size (%zu)\n",
+                 " - sh_offset (0x%"PRIx64") + sh_size (0x%"PRIx64") = (0x%"PRIx64") is > file_size (0x0x%zu)\n",
                  sh->sh_offset, sh->sh_size, sh->sh_offset + sh->sh_size, file_size);
         offset += (uint16_t)strlen(errors);
         valid = 0;

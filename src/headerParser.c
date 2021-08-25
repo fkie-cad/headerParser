@@ -302,7 +302,7 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
             if ( hasValue("-cod", i, end_i))
             {
                 pep->certificate_directory = argv[i + 1];
-                cropTrailingSlash(pep->certificate_directory);
+                cropTrailingSlash((char*)pep->certificate_directory);
 //				expandFilePath(argv[i+i], certificate_directory);
                 i++;
             }

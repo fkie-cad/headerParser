@@ -5,6 +5,7 @@
 #include "PEHeader.h"
 #include "PEImageDirectoryParser.h"
 #include "../utils/common_fileio.h"
+#include "../utils/Files.h"
 #include "PEHeaderOffsets.h"
 
 HP_API
