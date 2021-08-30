@@ -45,7 +45,7 @@ $ mkdir build
 $ gcc -o build/headerParser -Wl,-z,relro,-z,now -D_FILE_OFFSET_BITS=64 -Ofast src/headerParser.c  
 ```
 
-Use `clang` istead off `gcc` in Termux on Android.
+Use `clang` instead of `gcc` in Termux on Android.
 
 ### Windows (MsBuild) ###
 ```bash
@@ -73,7 +73,7 @@ Options:
  * -h Print help.
  * -s:uint64_t Start offset in file. Default = 1.
  * -i:uint8_t Level of output info. 1 : minimal output (Default), 2 : extended output (basic header).
- * -f:string Force parsing a specific type, skipping magic value checks. Currently only "pe" is supported.
+ * -f:string Force parsing a specific type, skipping magic value checks. Currently, only "pe" is supported.
  * -offs: show file offsets of the printed values (for -i 2 or XX only options).
  * PE only options:
    * -dosh: Print DOS header.
@@ -116,7 +116,7 @@ There is a difference between the header bitness (displayed in brackets followin
 The header bitness is 32 or 64 bit for ELF, MACH-O and PE. 
 The bitness of the executable (program code) may be different though.
 
-An extended output will be printed, by setting "-i 2", whick will cover the basic headers.
+An extended output will be printed, by setting "-i 2", which will cover the basic headers.
 ```bash
 $ ./headerParser a/file.exe -i 2
 
@@ -149,7 +149,7 @@ Section Header Table:
 ...
 ```
 
-A more fine grained and/or extended printout is available with the PE or ELF only options.
+A more fine-grained and/or extended printout is available with the PE or ELF only options.
 
 ### Offsets ###
 If you think, the header starts somewhere in the file, you may pass an offset to it using the "-s" option.
