@@ -11,7 +11,7 @@
 
 void MachO_printFileHeader(const MachHeader64* h, uint8_t bitness, uint8_t endian, size_t start_file_offset);
 //char* getMachO_CPUTypeName(uint32_t type);
-char* MachO_getCPUSubTypeName(uint32_t type, uint32_t sub_type);
+void MachO_getCPUSubTypeName(uint32_t type, uint32_t sub_type, char* buffer);
 char* MachO_getFileTypeName(uint32_t type);
 void MachO_printLoadCommand(LoadCommand* c, size_t offset);
 //void printMachO_FileHeaderFlag(const MachHeader64* h, uint32_t expected, const char* label);
@@ -39,13 +39,16 @@ void MachO_parseV32(uint32_t value, Version32* v32);
 void MachO_printFileHeader(const MachHeader64* h, uint8_t bitness, uint8_t endian, size_t start_file_offset)
 {
     ArchitectureMapEntry* arch = getArchitecture(h->cputype, mach_o_arch_id_mapper, mach_o_arch_id_mapper_size);
+    char sub_type_str[0x100];
+    sub_type_str[0] = 0;
+    MachO_getCPUSubTypeName(h->cputype, h->cpusubtype, sub_type_str);
 
     printf("MachOHeader:\n");
     printf(" - magic%s: 0x%x\n", fillOffset(MachHeaderOffsets.magic, 0, start_file_offset), h->magic);
-    printf("   - %x-bit, %s-endian\n", bitness, (endian==ENDIAN_LITTLE)?"little":"big");
+    printf("   - %u-bit, %s-endian\n", bitness, (endian==ENDIAN_LITTLE)?"little":"big");
     printf(" - cputype%s: %s (0x%x)\n", fillOffset(MachHeaderOffsets.cputype, 0, start_file_offset), arch->arch.name, h->cputype);
     printf(" - cpusubtype%s: %s (0x%x)\n", fillOffset(MachHeaderOffsets.cpusubtype, 0, start_file_offset),
-           MachO_getCPUSubTypeName(h->cputype, h->cpusubtype), h->cpusubtype);
+           sub_type_str, h->cpusubtype);
     printf(" - filetype%s: %s (%u)\n", fillOffset(MachHeaderOffsets.filetype, 0, start_file_offset),
            MachO_getFileTypeName(h->filetype), h->filetype);
     printf(" - ncmds%s: %u\n", fillOffset(MachHeaderOffsets.ncmds, 0, start_file_offset), h->ncmds);
@@ -72,7 +75,7 @@ void MachO_printFileHeader(const MachHeader64* h, uint8_t bitness, uint8_t endia
     printFlag32F(h->flags, MH_ROOT_SAFE, "The binary declares it is safe for use in processes with uid zero", "   - ", '\n');
     printFlag32F(h->flags, MH_SETUID_SAFE, "The binary declares it is safe for use in processes when issetugid() is true", "   - ", '\n');
     printFlag32F(h->flags, MH_NO_REEXPORTED_DYLIBS, "The static linker does not need to examine dependent dylibs to see if any are re-exported", "   - ", '\n');
-    printFlag32F(h->flags, MH_PIE, "The OS will load the main executable at a random address.  Only used in MH_EXECUTE filetypes.", "   - ", '\n');
+    printFlag32F(h->flags, MH_PIE, "The OS will load the main executable at a random address. Only used in MH_EXECUTE filetypes.", "   - ", '\n');
     printFlag32F(h->flags, MH_DEAD_STRIPPABLE_DYLIB, "Only for use on dylibs.  When linking against a dylib that has this bit set, the static linker will automatically not create a LC_LOAD_DYLIB load command to the dylib if no symbols are being referenced from the dylib.", "   - ", '\n');
     printFlag32F(h->flags, MH_HAS_TLV_DESCRIPTORS, "Contains a section of type S_THREAD_LOCAL_VARIABLES", "   - ", '\n');
     printFlag32F(h->flags, MH_NO_HEAP_EXECUTION, "The OS will run the main executable with a non-executable heap even on platforms (e.g. i386) that don't require it. Only used in MH_EXECUTE filetypes.", "   - ", '\n');
@@ -97,86 +100,98 @@ void MachO_printFileHeader(const MachHeader64* h, uint8_t bitness, uint8_t endia
         else return "None";
 }*/
 
-char* MachO_getCPUSubTypeName(uint32_t type, uint32_t sub_type)
+void MachO_getCPUSubTypeName(uint32_t type, uint32_t sub_type, char* buffer)
 {
+    size_t strln = 0;
     if ( type == CPU_TYPE_I386 )
     {
-            if ( sub_type == CPU_SUBTYPE_I386 ) return "i386";
-            if ( sub_type == SUBTYPE_486 ) return "i486";
-            else if ( sub_type == SUBTYPE_486SX ) return "i486SX";
-            else if ( sub_type == CPU_SUBTYPE_586 ) return "i586 (P5, Pentium)";
-            else if ( sub_type == SUBTYPE_PENTPRO ) return "Pentium Pro (P6)";
-            else if ( sub_type == SUBTYPE_PENTII_M3 ) return "Pentium II (P6, M3?)";
-            else if ( sub_type == SUBTYPE_PENTII_M5 ) return "Pentium II (P6, M5?)";
-            else if ( sub_type == SUBTYPE_PENTIUM_4 ) return "Pentium 4 (Netburst)";
+        if ( sub_type == CPU_SUBTYPE_I386 ) strcpy(buffer, "i386");
+        if ( sub_type == SUBTYPE_486 ) strcpy(buffer, "i486");
+        else if ( sub_type == SUBTYPE_486SX ) strcpy(buffer, "i486SX");
+        else if ( sub_type == CPU_SUBTYPE_586 ) strcpy(buffer, "i586 (P5, Pentium)");
+        else if ( sub_type == SUBTYPE_PENTPRO ) strcpy(buffer, "Pentium Pro (P6)");
+        else if ( sub_type == SUBTYPE_PENTII_M3 ) strcpy(buffer, "Pentium II (P6, M3?)");
+        else if ( sub_type == SUBTYPE_PENTII_M5 ) strcpy(buffer, "Pentium II (P6, M5?)");
+        else if ( sub_type == SUBTYPE_PENTIUM_4 ) strcpy(buffer, "Pentium 4 (Netburst)");
 //		# @see CPU_SUBTYPE_586
 //		const uint32_t SUBTYPE_PENT = CPU_SUBTYPE_586;
     }
     else if ( type == CPU_TYPE_MC680X0 )
     {
-        if ( sub_type == CPU_SUBTYPE_MC680X0_ALL ) return "all | lowest common sub-type";
-        else if ( sub_type == SUBTYPE_MC68040 ) return "040";
-        else if ( sub_type == SUBTYPE_MC68030_ONLY ) return "030";
+        if ( sub_type == CPU_SUBTYPE_MC680X0_ALL ) strcpy(buffer, "all | lowest common sub-type");
+        else if ( sub_type == SUBTYPE_MC68040 ) strcpy(buffer, "040");
+        else if ( sub_type == SUBTYPE_MC68030_ONLY ) strcpy(buffer, "030");
     }
     else if ( type == CPU_TYPE_X86_64 )
     {
-        if ( sub_type == CPU_SUBTYPE_I386 ) return "all | lowest common sub-type";
-        else if ( sub_type == SUBTYPE_X86_64_H ) return "Haskell";
+        if ( sub_type & CPU_SUBTYPE_I386 ) strcpy(&buffer[strlen(buffer)], "all | lowest common sub-type");
+        if ( sub_type & SUBTYPE_X86_64_H ) strcpy(&buffer[strlen(buffer)], "Haskell");
+        if ( sub_type & SUBTYPE_LIB64 )
+        {
+            strln = strlen(buffer);
+            if ( strln > 0 )
+            {
+                strcpy(&buffer[strln], " | ");
+                strln += 3;
+            }
+            strcpy(&buffer[strln], "Lib64");
+        }
     }
     else if ( type == CPU_TYPE_ARM )
     {
-        if ( sub_type == SUBTYPE_ARM_ALL ) return "all | lowest common sub-type";
-        else if ( sub_type == SUBTYPE_ARM_V4T ) return "v4t";
-        else if ( sub_type == SUBTYPE_ARM_V6 ) return "v6";
-        else if ( sub_type == SUBTYPE_ARM_V5TEJ ) return "v5";
-        else if ( sub_type == SUBTYPE_ARM_XSCALE ) return "xscale (v5 family)";
-        else if ( sub_type == SUBTYPE_ARM_V7 ) return "v7";
-        else if ( sub_type == SUBTYPE_ARM_V7F ) return "v7f (Cortex A9)";
-        else if ( sub_type == SUBTYPE_ARM_V7S ) return "v7s (\"Swift\")";
-        else if ( sub_type == SUBTYPE_ARM_V7K ) return "v7k (\"Kirkwood40\")";
-        else if ( sub_type == SUBTYPE_ARM_V6M ) return "v6m";
-        else if ( sub_type == SUBTYPE_ARM_V7M ) return "v7m";
-        else if ( sub_type == SUBTYPE_ARM_V7EM ) return "v7em";
-        else if ( sub_type == SUBTYPE_ARM_V8 ) return "v8";
+        if ( sub_type == SUBTYPE_ARM_ALL ) strcpy(buffer, "all | lowest common sub-type");
+        else if ( sub_type == SUBTYPE_ARM_V4T ) strcpy(buffer, "v4t");
+        else if ( sub_type == SUBTYPE_ARM_V6 ) strcpy(buffer, "v6");
+        else if ( sub_type == SUBTYPE_ARM_V5TEJ ) strcpy(buffer, "v5");
+        else if ( sub_type == SUBTYPE_ARM_XSCALE ) strcpy(buffer, "xscale (v5 family)");
+        else if ( sub_type == SUBTYPE_ARM_V7 ) strcpy(buffer, "v7");
+        else if ( sub_type == SUBTYPE_ARM_V7F ) strcpy(buffer, "v7f (Cortex A9)");
+        else if ( sub_type == SUBTYPE_ARM_V7S ) strcpy(buffer, "v7s (\"Swift\")");
+        else if ( sub_type == SUBTYPE_ARM_V7K ) strcpy(buffer, "v7k (\"Kirkwood40\")");
+        else if ( sub_type == SUBTYPE_ARM_V6M ) strcpy(buffer, "v6m");
+        else if ( sub_type == SUBTYPE_ARM_V7M ) strcpy(buffer, "v7m");
+        else if ( sub_type == SUBTYPE_ARM_V7EM ) strcpy(buffer, "v7em");
+        else if ( sub_type == SUBTYPE_ARM_V8 ) strcpy(buffer, "v8");
     }
     else if ( type == CPU_TYPE_ARM64 )
     {
-        if ( sub_type == SUBTYPE_ARM64_ALL ) return "all | lowest common sub-type";
-        else if ( sub_type == SUBTYPE_ARM64_V8 ) return "v8";
-        else if ( sub_type == SUBTYPE_ARM64E ) return "e (A12)";
+        if ( sub_type == SUBTYPE_ARM64_ALL ) strcpy(buffer, "all | lowest common sub-type");
+        else if ( sub_type == SUBTYPE_ARM64_V8 ) strcpy(buffer, "v8");
+        else if ( sub_type == SUBTYPE_ARM64E ) strcpy(buffer, "e (A12)");
     }
     else if ( type == CPU_TYPE_ARM64_32 )
     {
-        if ( sub_type == SUBTYPE_ARM64_32_V8 ) return "v8";
+        if ( sub_type == SUBTYPE_ARM64_32_V8 ) strcpy(buffer, "v8");
     }
     else if ( type == CPU_TYPE_MC88000 )
     {
-        if ( sub_type == SUBTYPE_MMAX_JPC ) return "all | lowest common sub-type";
-        else if ( sub_type == SUBTYPE_MC88100 ) return "100";
-        else if ( sub_type == SUBTYPE_MC88110 ) return "110";
+        if ( sub_type == SUBTYPE_MMAX_JPC ) strcpy(buffer, "all | lowest common sub-type");
+        else if ( sub_type == SUBTYPE_MC88100 ) strcpy(buffer, "100");
+        else if ( sub_type == SUBTYPE_MC88110 ) strcpy(buffer, "110");
     }
     else if ( type == CPU_TYPE_POWERPC )
     {
-        if ( sub_type == CPU_SUBTYPE_POWERPC_ALL ) return "all | lowest common sub-type";
-        else if ( sub_type == SUBTYPE_POWERPC_601 ) return "601";
-        else if ( sub_type == SUBTYPE_POWERPC_602 ) return "602";
-        else if ( sub_type == SUBTYPE_POWERPC_603 ) return "603";
-        else if ( sub_type == SUBTYPE_POWERPC_603E ) return "603e (G2)";
-        else if ( sub_type == SUBTYPE_POWERPC_603EV ) return "603ev";
-        else if ( sub_type == SUBTYPE_POWERPC_604 ) return "604";
-        else if ( sub_type == SUBTYPE_POWERPC_604E ) return "604e";
-        else if ( sub_type == SUBTYPE_POWERPC_620 ) return "620";
-        else if ( sub_type == SUBTYPE_POWERPC_750 ) return "750 (G3)";
-        else if ( sub_type == SUBTYPE_POWERPC_7400 ) return "7400 (G4)";
-        else if ( sub_type == SUBTYPE_POWERPC_7450 ) return "7450 (G4 \"Voyager\")";
-        else if ( sub_type == SUBTYPE_POWERPC_970 ) return "970 (G5)";
+        if ( sub_type == CPU_SUBTYPE_POWERPC_ALL ) strcpy(buffer, "all | lowest common sub-type");
+        else if ( sub_type == SUBTYPE_POWERPC_601 ) strcpy(buffer, "601");
+        else if ( sub_type == SUBTYPE_POWERPC_602 ) strcpy(buffer, "602");
+        else if ( sub_type == SUBTYPE_POWERPC_603 ) strcpy(buffer, "603");
+        else if ( sub_type == SUBTYPE_POWERPC_603E ) strcpy(buffer, "603e (G2)");
+        else if ( sub_type == SUBTYPE_POWERPC_603EV ) strcpy(buffer, "603ev");
+        else if ( sub_type == SUBTYPE_POWERPC_604 ) strcpy(buffer, "604");
+        else if ( sub_type == SUBTYPE_POWERPC_604E ) strcpy(buffer, "604e");
+        else if ( sub_type == SUBTYPE_POWERPC_620 ) strcpy(buffer, "620");
+        else if ( sub_type == SUBTYPE_POWERPC_750 ) strcpy(buffer, "750 (G3)");
+        else if ( sub_type == SUBTYPE_POWERPC_7400 ) strcpy(buffer, "7400 (G4)");
+        else if ( sub_type == SUBTYPE_POWERPC_7450 ) strcpy(buffer, "7450 (G4 \"Voyager\")");
+        else if ( sub_type == SUBTYPE_POWERPC_970 ) strcpy(buffer, "970 (G5)");
     }
     else if ( type == CPU_TYPE_POWERPC64 )
     {
-        if ( sub_type == SUBTYPE_POWERPC64_ALL ) return "all | lowest common sub-type";
+        if ( sub_type == SUBTYPE_POWERPC64_ALL ) strcpy(buffer, "all | lowest common sub-type");
     }
 
-    return "None";
+    if ( buffer[0] == 0)
+        strcpy(buffer, "None");
 }
 
 char* MachO_getFileTypeName(uint32_t type)
@@ -225,7 +240,7 @@ void MachO_printSegmentCommand(const SegmentCommand64* c, size_t offset, uint8_t
     printf(" - flags%s: 0x%x\n", fillOffset(offsets.flags, offset, 0), c->flags);
     if ( c->flags > 0 )
     {
-        printf(" - -");
+        printf("    ");
         printFlag32(c->flags, SG_HIGHVM, "the file contents for this segment is for the high part of the VM space, the low part is zero filled (for stacks in core files)");
         printFlag32(c->flags, SG_FVMLIB, "this segment is the VM that is allocated by a fixed VM library, for overlap checking inthe link editor");
         printFlag32(c->flags, SG_NORELOC, "this segment has nothing that was relocated in it and nothing relocated to it, that is it maybe safely replaced without relocation");
@@ -254,7 +269,7 @@ void MachO_printSection(const MachOSection64* sec, uint32_t idx, uint32_t ln, si
     printf("   - reloff%s: %u\n", fillOffset(offsets.reloff, offset, 0), sec->reloff);
     printf("   - nreloc%s: %u\n", fillOffset(offsets.nreloc, offset, 0), sec->nreloc);
     printf("   - flags%s: 0x%x\n", fillOffset(offsets.flags, offset, 0), sec->flags);
-    printf(" - -");
+    printf("    ");
     printFlag32(sec->flags, SECTION_TYPE, "256 section types");
     printFlag32(sec->flags, SECTION_ATTRIBUTES, " 24 section attributes");
     printFlag32(sec->flags, S_REGULAR, "regular section");
