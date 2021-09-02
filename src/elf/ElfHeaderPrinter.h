@@ -157,7 +157,6 @@ Elf_printSectionHeaderTableEntry(Elf64SectionHeader* sh, uint16_t idx, uint16_t 
     printf("%u / %u\n", (idx+1), e_shnum);
     printf(" - sh_name%s: %s (%u)\n", fillOffset(offsets.sh_name, offset, 0), name, sh->sh_name);
     printf(" - sh_type%s: %s (0x%x)\n", fillOffset(offsets.sh_type, offset, 0), Elf_getSHTypeString(sh->sh_type), sh->sh_type);
-    printf(" - sh_flags%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.sh_flags, offset, 0), sh->sh_flags, sh->sh_flags);
     printf(" - sh_addr%s: 0x%"PRIx64"\n", fillOffset(offsets.sh_addr, offset, 0), sh->sh_addr);
     printf(" - sh_offset%s: 0x%"PRIx64"\n", fillOffset(offsets.sh_offset, offset, 0), sh->sh_offset);
     printf(" - sh_size%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.sh_size, offset, 0), sh->sh_size, sh->sh_size);
@@ -165,8 +164,8 @@ Elf_printSectionHeaderTableEntry(Elf64SectionHeader* sh, uint16_t idx, uint16_t 
     printf(" - sh_info%s: 0x%x (%u)\n", fillOffset(offsets.sh_info, offset, 0), sh->sh_info, sh->sh_info);
     printf(" - sh_addralign%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.sh_addralign, offset, 0), sh->sh_addralign, sh->sh_addralign);
     printf(" - sh_entsize%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.sh_entsize, offset, 0), sh->sh_entsize, sh->sh_entsize);
-
-    printf(" - flags:");
+    printf(" - sh_flags%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.sh_flags, offset, 0), sh->sh_flags, sh->sh_flags);
+    printf("  ");
     printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_WRITE, "WRITE");
     printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_EXECINSTR, "EXEC");
     printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_ALLOC, "ALLOC");
@@ -180,7 +179,6 @@ Elf_printSectionHeaderTableEntry(Elf64SectionHeader* sh, uint16_t idx, uint16_t 
     printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_COMPRESSED, "COMPRESSED");
     printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_MASKOS, "MASKOS");
     printFlag64(sh->sh_flags, ElfSectionHeaderFlags.SHF_MASKPROC, "MASKPROC");
-    printf(" (0x%"PRIx64")\n", sh->sh_flags);
     printf("\n");
 }
 

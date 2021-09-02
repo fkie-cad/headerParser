@@ -92,18 +92,18 @@ typedef struct GlobalParams
     uint8_t info_show_offsets; // may be global. TODO: delete this or the global one
 } GlobalParams, *PGlobalParams;
 
-#define INFO_LEVEL_PE_DOS_H  (0x01)
-#define INFO_LEVEL_PE_COFF_H (0x02)
-#define INFO_LEVEL_PE_OPT_H  (0x04)
-#define INFO_LEVEL_PE_SEC_H  (0x08)
-#define INFO_LEVEL_PE_IMP    (0x10)
-#define INFO_LEVEL_PE_IMP_EX (0x20)
-#define INFO_LEVEL_PE_EXP    (0x40)
-#define INFO_LEVEL_PE_EXP_EX (0x80)
-#define INFO_LEVEL_PE_RES    (0x100)
-#define INFO_LEVEL_PE_TLS    (0x200)
-#define INFO_LEVEL_PE_REL    (0x400)
-#define INFO_LEVEL_PE_CRT    (0x800)
+#define INFO_LEVEL_PE_DOS_H    (0x01)
+#define INFO_LEVEL_PE_COFF_H   (0x02)
+#define INFO_LEVEL_PE_OPT_H    (0x04)
+#define INFO_LEVEL_PE_SEC_H    (0x08)
+#define INFO_LEVEL_PE_IMP      (0x10)
+#define INFO_LEVEL_PE_IMP_EX   (0x20)
+#define INFO_LEVEL_PE_EXP      (0x40)
+#define INFO_LEVEL_PE_EXP_EX   (0x80)
+#define INFO_LEVEL_PE_RES     (0x100)
+#define INFO_LEVEL_PE_TLS     (0x200)
+#define INFO_LEVEL_PE_REL     (0x400)
+#define INFO_LEVEL_PE_CRT     (0x800)
 #define INFO_LEVEL_PE_DIMP   (0x1000)
 #define INFO_LEVEL_PE_BIMP   (0x2000)
 #define INFO_LEVEL_PE_LCFG   (0x4000)
@@ -111,9 +111,10 @@ typedef struct GlobalParams
 #define INFO_LEVEL_PE_EXTENDED (INFO_LEVEL_PE_DOS_H | INFO_LEVEL_PE_COFF_H | INFO_LEVEL_PE_OPT_H | INFO_LEVEL_PE_SEC_H)
 
 
-#define INFO_LEVEL_ELF_FILE_H (0x01)
-#define INFO_LEVEL_ELF_PROG_H (0x02)
-#define INFO_LEVEL_ELF_SEC_H (0x04)
+#define INFO_LEVEL_ELF_FILE_H  (0x01)
+#define INFO_LEVEL_ELF_PROG_H  (0x02)
+#define INFO_LEVEL_ELF_SEC_H   (0x04)
+#define INFO_LEVEL_ELF_SYM_TAB (0x08)
 
 #define INFO_LEVEL_ELF_EXTENDED (INFO_LEVEL_ELF_FILE_H | INFO_LEVEL_ELF_PROG_H | INFO_LEVEL_ELF_SEC_H)
 

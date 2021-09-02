@@ -81,4 +81,136 @@ const struct Elf_Section_Header_Types ElfSectionHeaderTypes = {
     .SHT_LOUSER = 0x80000000,    /* Start of application-specific */
     .SHT_HIUSER = 0x8fffffff,    /* End of application-specific */
 };
+
+
+
+// Dynamic section entry.
+typedef struct
+{
+    int32_t d_tag;			/* Dynamic entry type */
+    union
+    {
+        uint32_t d_val;			/* Integer value */
+        uint32_t d_ptr;			/* Address value */
+    } d_un;
+} Elf32_Dyn;
+
+typedef struct
+{
+    int64_t d_tag;			/* Dynamic entry type */
+    union
+    {
+        uint64_t d_val;		/* Integer value */
+        uint64_t d_ptr;			/* Address value */
+    } d_un;
+} Elf64_Dyn;
+
+/* Legal values for d_tag (dynamic entry type).  */
+
+#define DT_NULL		0		/* Marks end of dynamic section */
+#define DT_NEEDED	1		/* Name of needed library */
+#define DT_PLTRELSZ	2		/* Size in bytes of PLT relocs */
+#define DT_PLTGOT	3		/* Processor defined value */
+#define DT_HASH		4		/* Address of symbol hash table */
+#define DT_STRTAB	5		/* Address of string table */
+#define DT_SYMTAB	6		/* Address of symbol table */
+#define DT_RELA		7		/* Address of Rela relocs */
+#define DT_RELASZ	8		/* Total size of Rela relocs */
+#define DT_RELAENT	9		/* Size of one Rela reloc */
+#define DT_STRSZ	10		/* Size of string table */
+#define DT_SYMENT	11		/* Size of one symbol table entry */
+#define DT_INIT		12		/* Address of init function */
+#define DT_FINI		13		/* Address of termination function */
+#define DT_SONAME	14		/* Name of shared object */
+#define DT_RPATH	15		/* Library search path (deprecated) */
+#define DT_SYMBOLIC	16		/* Start symbol search here */
+#define DT_REL		17		/* Address of Rel relocs */
+#define DT_RELSZ	18		/* Total size of Rel relocs */
+#define DT_RELENT	19		/* Size of one Rel reloc */
+#define DT_PLTREL	20		/* Type of reloc in PLT */
+#define DT_DEBUG	21		/* For debugging; unspecified */
+#define DT_TEXTREL	22		/* Reloc might modify .text */
+#define DT_JMPREL	23		/* Address of PLT relocs */
+#define	DT_BIND_NOW	24		/* Process relocations of object */
+#define	DT_INIT_ARRAY	25		/* Array with addresses of init fct */
+#define	DT_FINI_ARRAY	26		/* Array with addresses of fini fct */
+#define	DT_INIT_ARRAYSZ	27		/* Size in bytes of DT_INIT_ARRAY */
+#define	DT_FINI_ARRAYSZ	28		/* Size in bytes of DT_FINI_ARRAY */
+#define DT_RUNPATH	29		/* Library search path */
+#define DT_FLAGS	30		/* Flags for the object being loaded */
+#define DT_ENCODING	32		/* Start of encoded range */
+#define DT_PREINIT_ARRAY 32		/* Array with addresses of preinit fct*/
+#define DT_PREINIT_ARRAYSZ 33		/* size in bytes of DT_PREINIT_ARRAY */
+#define DT_SYMTAB_SHNDX	34		/* Address of SYMTAB_SHNDX section */
+#define	DT_NUM		35		/* Number used */
+#define DT_LOOS		0x6000000d	/* Start of OS-specific */
+#define DT_HIOS		0x6ffff000	/* End of OS-specific */
+#define DT_LOPROC	0x70000000	/* Start of processor-specific */
+#define DT_HIPROC	0x7fffffff	/* End of processor-specific */
+#define	DT_PROCNUM	DT_MIPS_NUM	/* Most used by any processor */
+
+
+
+typedef struct {
+    // An index into the object file's symbol string table, which holds the character representations of the symbol names.
+    // If the value is nonzero, the value represents a string table index that gives the symbol name. Otherwise, the symbol table entry has no name.
+    uint32_t st_name;
+    // The value of the associated symbol.
+    // The value can be an absolute value or an address, depending on the context. See Symbol Values.
+    uint32_t st_value;
+    // Many symbols have associated sizes.
+    // For example, a data object's size is the number of bytes that are contained in the object.
+    // This member holds the value zero if the symbol has no size or an unknown size.
+    uint32_t st_size;
+    // The symbol's type and binding attributes.
+    unsigned char st_info;
+    // Symbol visibility
+    unsigned char st_other;
+    // Section index
+    uint16_t st_shndx;
+} Elf32_Sym;
+typedef struct {
+    uint32_t st_name;
+    unsigned char st_info;
+    unsigned char st_other;
+    uint16_t st_shndx;
+    uint64_t st_value;
+    uint64_t st_size;
+} Elf64_Sym;
+typedef struct Elf_Sym_Offsets {
+    uint8_t	st_name;
+    uint8_t	st_info;
+    uint8_t	st_other;
+    uint8_t	st_shndx;
+    uint8_t	st_value;
+    uint8_t	st_size;
+} Elf_Sym_Offsets;
+const Elf_Sym_Offsets Elf32SymOffsets = {
+    .st_name = 0,
+    .st_value = 4,
+    .st_size = 8,
+    .st_info = 12,
+    .st_other = 13,
+    .st_shndx = 14,
+};
+const Elf_Sym_Offsets Elf64SymOffsets = {
+    .st_name = 0,
+    .st_info = 4,
+    .st_other = 5,
+    .st_shndx = 6,
+    .st_value = 8,
+    .st_size = 16,
+};
+// st_info
+#define ELF32_ST_BIND(info)          ((info) >> 4)
+#define ELF32_ST_TYPE(info)          ((info) & 0xf)
+#define ELF32_ST_INFO(bind, type)    (((bind)<<4)+((type)&0xf))
+
+#define ELF64_ST_BIND(info)          ((info) >> 4)
+#define ELF64_ST_TYPE(info)          ((info) & 0xf)
+#define ELF64_ST_INFO(bind, type)    (((bind)<<4)+((type)&0xf))
+
+// st_other
+#define ELF32_ST_VISIBILITY(o)       ((o)&0x3)
+#define ELF64_ST_VISIBILITY(o)       ((o)&0x3)
 #endif

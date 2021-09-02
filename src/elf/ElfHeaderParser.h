@@ -142,8 +142,8 @@ static uint8_t Elf_hasFlag(
 
 static void Elf_readSectionHeaderEntries(
     const Elf64FileHeader* fh,
-    unsigned char* string_table,
-    size_t string_table_size,
+    unsigned char* shstrtab,
+    size_t shstrtab_size,
     size_t start_file_offset,
     size_t* abs_file_offset,
     size_t file_size,
@@ -288,7 +288,7 @@ void Elf_fillHeaderDataWithFileHeader(const Elf64FileHeader* file_header, PHeade
             hd->i_bitness = 32;
         }
     }
-    else if ( arch->arch.id == ARCH_MIPS || arch->arch.id == ARCH_RISC || arch->arch.id == ARCH_RISC_V || arch->arch.id == ARCH_SPARC ) 
+    else if ( arch->arch_id == ARCH_MIPS || arch->arch_id == ARCH_RISC || arch->arch_id == ARCH_RISC_V || arch->arch_id == ARCH_SPARC )
     {
         hd->i_bitness = hd->h_bitness;
     }
@@ -526,24 +526,24 @@ void Elf_readSectionHeaderTable(
 )
 {
 //    debug_info("Elf_readSectionHeaderTable.\n");
-    uint32_t string_table_size = 0;
-    unsigned char* string_table = NULL;
+    uint32_t shstrtab_size = 0;
+    unsigned char* shstrtab = NULL;
 
     if ( !Elf_sectionHeaderOffsetsAreValid(file_header, start_file_offset, file_size) )
         return;
 
     // read string table
-    string_table_size = Elf_loadSectionHeaderTable(&string_table, file_header->e_shstrndx, file_header, start_file_offset, file_size, block_s, fp);
-    if ( !string_table_size )
+    shstrtab_size = Elf_loadSectionHeaderTable(&shstrtab, file_header->e_shstrndx, file_header, start_file_offset, file_size, block_s, fp);
+    if ( !shstrtab_size )
     {
         header_error("ERROR: Loading String Table failed.\n");
         return;
     }
-    string_table[string_table_size-1] = 0;
+    shstrtab[shstrtab_size-1] = 0;
 
-    Elf_readSectionHeaderEntries(file_header, string_table, string_table_size, start_file_offset, abs_file_offset, file_size, ilevel, fp, block_l, hd);
+    Elf_readSectionHeaderEntries(file_header, shstrtab, shstrtab_size, start_file_offset, abs_file_offset, file_size, ilevel, fp, block_l, hd);
 
-    free(string_table);
+    free(shstrtab);
 }
 
 unsigned char Elf_sectionHeaderOffsetsAreValid(
@@ -584,13 +584,13 @@ unsigned char Elf_sectionHeaderOffsetsAreValid(
  * Loop through all section table entries.
  *
  * @param fh
- * @param string_table
- * @param string_table_size
+ * @param shstrtab
+ * @param shstrtab_size
  */
 void Elf_readSectionHeaderEntries(
     const Elf64FileHeader* fh,
-    unsigned char* string_table,
-    size_t string_table_size,
+    unsigned char* shstrtab,
+    size_t shstrtab_size,
     size_t start_file_offset,
     size_t* abs_file_offset,
     size_t file_size,
@@ -639,7 +639,7 @@ void Elf_readSectionHeaderEntries(
 
         Elf_readSectionHeaderTableEntry(ptr, &sh_offsets, fh, &sht_entry);
 
-        s_name = ( sht_entry.sh_name < string_table_size-1 ) ? (char*) &string_table[sht_entry.sh_name] : "";
+        s_name = ( sht_entry.sh_name < shstrtab_size-1 ) ? (char*) &shstrtab[sht_entry.sh_name] : "";
 
         if ( LIB_MODE == 0 && ilevel & INFO_LEVEL_ELF_SEC_H )
             Elf_printSectionHeaderTableEntry(&sht_entry, i, fh->e_shnum, s_name, *abs_file_offset+offset, hd->h_bitness);
@@ -660,6 +660,15 @@ void Elf_readSectionHeaderEntries(
 
 //		if ( ilevel == INFO_LEVEL_EXTENDED )
 //			Elf_saveSection(&sht_entry, s_name, i);
+//        if ( LIB_MODE == 0 )
+//        {
+//            uint8_t buffer[BLOCKSIZE];
+//            ilevel = ilevel | INFO_LEVEL_ELF_SYM_TAB;
+//            if ( ilevel & INFO_LEVEL_ELF_SYM_TAB && sht_entry.sh_type == ElfSectionHeaderTypes.SHT_SYMTAB )
+//            {
+//               Elf_parseSymTab(strtab, strtab_size, start_file_offset, abs_file_offset, file_size, fp, &sht_entry, buffer, BLOCKSIZE, 64, fh->EI_DATA);
+//            }
+//        }
 
         offset += fh->e_shentsize;
     }
