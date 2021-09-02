@@ -78,18 +78,19 @@ ArchitectureMapEntry elf_arch_id_mapper[] = {
     { {EM_88K, "Motorola 88000"}, ARCH_MOTOROLA_88K, 32 },
     { {EM_IAMCU, "Intel MCU"}, ARCH_INTEL, 32 },
     { {EM_860, "Intel 80860"}, ARCH_INTEL, 32 },  // ?? 64
-    { {EM_MIPS, "MIPS RS3000"}, ARCH_MIPS, 32 },
-    { {EM_S370, "IBM System/370 Processor"}, ARCH_IBM, 31 },
-    { {EM_MIPS_RS4_BE, "MIPS R4000"}, ARCH_MIPS, 32 },
+    { {EM_MIPS, "MIPS R3000"}, ARCH_MIPS, 0 }, // 32|64 big-endian
+    { {EM_S370, "IBM System/370 Processor"}, ARCH_IBM, 32 },
+    //{ {EM_MIPS_RS3_LE, "MIPS RS3000"}, ARCH_MIPS, 0 }, // deprecated
+    { {EM_MIPS_RS4_BE, "MIPS R4000"}, ARCH_MIPS, 64 }, // deprecated
     // 11 - 14,
     { {EM_PARISC, "Hewlett-Packard PA-RISC"}, ARCH_PA_RISC, 32 },
     // 16,
     { {EM_VPP500, "Fujitsu VPP500"}, ARCH_FUJITSU, 0 }, // 256 ??
     { {EM_SPARC32PLUS, "Enhanced instruction set SPARC"}, ARCH_SPARC, 32 },
-    { {EM_960, "Intel 80960"}, ARCH_INTEL, 33 },
+    { {EM_960, "Intel 80960"}, ARCH_INTEL, 32 },
     { {EM_PPC, "PowerPC"}, ARCH_PPC, 32 },
     { {EM_PPC64, "64-bit PowerPC"}, ARCH_PPC, 64 },
-    { {EM_S390, "IBM System/390 Processor"}, ARCH_IBM, 31 }, // 31/32/64
+    { {EM_S390, "IBM System/390 Processor"}, ARCH_IBM, 32 }, // 31/32/64
     { {EM_SPU, "IBM SPU/SPC"}, ARCH_IBM, 128 },
     { {EM_V800, "NEC V800"}, ARCH_NEC, 32 },
     { {EM_FR20, "Fujitsu FR20"}, ARCH_FUJITSU, 32 },
@@ -100,7 +101,7 @@ ArchitectureMapEntry elf_arch_id_mapper[] = {
     { {EM_SH, "Hitachi SH"}, ARCH_HITACHI, 32 },
     { {EM_SPARCV9, "SPARC Version 9"}, ARCH_SPARC, 64 },
     { {EM_TRICORE, "Siemens TriCore embedded processor"}, ARCH_SIEMENS, 32 },
-    { {EM_ARC, "Argonaut RISC Core, Argonaut Technologies Inc."}, ARCH_RISC, 32 },
+    { {EM_ARC, "Argonaut RISC Core, Argonaut Technologies Inc."}, ARCH_RISC, 0 }, // 32|64
     { {EM_H8_300, "Hitachi H8/300"}, ARCH_HITACHI, 16 }, // 8/16
     { {EM_H8_300H, "Hitachi H8/300H"}, ARCH_HITACHI, 32 }, // 16/32
     { {EM_H8S, "Hitachi H8S"}, ARCH_HITACHI, 32 }, // 16/32
@@ -152,7 +153,7 @@ ArchitectureMapEntry elf_arch_id_mapper[] = {
     { {EM_XTENSA, "Tensilica Xtensa Architecture"}, ARCH_TENSILICA, 32 },
     { {EM_VIDEOCORE, "Alphamosaic VideoCore processor"}, ARCH_ALPHAMOSAIC, 0 },
     { {EM_TMM_GPP, "Thomson Multimedia General Purpose Processor"}, ARCH_THOMPSON, 0 },
-    { {EM_NS32K, "National Semiconductor 32000 series"}, ARCH_NS, 0 }, // 32 ??
+    { {EM_NS32K, "National Semiconductor 32000 series"}, ARCH_NS, 32 }, // 32 ??
     { {EM_TPC, "Tenor Network TPC processor"}, ARCH_TENOR, 0 },
     { {EM_SNP1K, "Trebia SNP 1000 processor"}, ARCH_TREBIA, 0 },
     { {EM_ST200, "STMicroelectronics (www.st.com) ST200 microcontroller"}, ARCH_STM, 0 },

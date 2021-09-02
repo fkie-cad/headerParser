@@ -26,7 +26,9 @@
 
 //#define DILLER
 
-#define BINARYNAME ("headerParser")
+#define BIN_NAME "headerParser"
+#define BIN_VS "1.11.9"
+#define BIN_DATE "02.09.2021"
 
 
 
@@ -40,9 +42,6 @@ static uint8_t getInfoLevel(char* arg);
 static void printHeaderData(uint8_t, PHeaderData hd, unsigned char* block);
 static void printHeaderData1(PHeaderData hd);
 static uint8_t getForceOption(const char* arg);
-
-const char* vs = "1.11.8";
-const char* last_changed = "23.08.2021";
 
 
 
@@ -144,10 +143,10 @@ void printUsage()
 #else
     char* pref = "./";
 #endif
-    printf("Usage: %s%s file/name [options]\n", pref, BINARYNAME);
-    printf("Usage: %s%s [options] file/name\n", pref, BINARYNAME);
-    printf("\nVersion: %s\n", vs);
-    printf("Last changed: %s\n", last_changed);
+    printf("Usage: %s%s file/name [options]\n", pref, BIN_NAME);
+    printf("Usage: %s%s [options] file/name\n", pref, BIN_NAME);
+    printf("\nVersion: %s\n", BIN_VS);
+    printf("Last changed: %s\n", BIN_DATE);
 }
 
 void printHelp()
@@ -183,10 +182,10 @@ void printHelp()
     );
     printf("\n");
     printf("Examples:\n");
-    printf("$ ./%s path/to/a.file\n", BINARYNAME);
-    printf("$ ./%s path/to/a.file -i 2\n", BINARYNAME);
-    printf("$ ./%s path/to/a.file -s 0x100\n", BINARYNAME);
-    printf("$ ./%s path/to/a.file -f pe\n", BINARYNAME);
+    printf("$ ./%s path/to/a.file\n", BIN_NAME);
+    printf("$ ./%s path/to/a.file -i 2\n", BIN_NAME);
+    printf("$ ./%s path/to/a.file -s 0x100\n", BIN_NAME);
+    printf("$ ./%s path/to/a.file -f pe\n", BIN_NAME);
 }
 
 int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams elfp, uint8_t* force, char* file_name)

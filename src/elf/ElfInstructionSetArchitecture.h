@@ -12,7 +12,8 @@ typedef enum ElfInstructionSetArchitecture {
     EM_860 = 7, // Intel 80860
     EM_MIPS = 8, // MIPS I Architecture
     EM_S370 = 9, // IBM System/370 Processor
-    EM_MIPS_RS4_BE = 10, // MIPS RS4000 Big-endian
+    //EM_MIPS_RS3_LE = 10, // MIPS RS3000 Little-endian (historical, rejected by Linux)
+    EM_MIPS_RS4_BE = 10, // MIPS RS4000 Big-endian (historical, rejected by Linux)
     reserved11 = 11, // Reserved for future use
     reserved12 = 12, // Reserved for future use
     reserved13 = 13, // Reserved for future use
