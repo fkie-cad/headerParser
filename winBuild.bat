@@ -145,7 +145,7 @@ if [%verbose%] == [1] (
 set vcvars="%buildTools:~1,-1%\VC\Auxiliary\Build\vcvars%bitness%.bat"
 
 
-if [%valid%] == [0] (
+if [%test%] == [0] (
     goto build
 ) else (
     goto buildTest
