@@ -27,8 +27,8 @@
 //#define DILLER
 
 #define BIN_NAME "headerParser"
-#define BIN_VS "1.11.9"
-#define BIN_DATE "02.09.2021"
+#define BIN_VS "1.11.10"
+#define BIN_DATE "16.09.2021"
 
 
 

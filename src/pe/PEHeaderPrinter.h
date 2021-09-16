@@ -720,16 +720,18 @@ void PE_printImageResourceDirectoryEntryHeader(int type, uint16_t n, uint16_t le
         printf("%s- ID Entries (%u):\n", dashes, n);
 }
 
-void PE_printImageResourceDirectoryEntry(const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
-                                         size_t table_fo,
-                                         size_t offset,
-                                         uint16_t level,
-                                         uint16_t id,
-                                         uint16_t n,
-                                         size_t start_file_offset,
-                                         size_t file_size,
-                                         FILE* fp,
-                                         unsigned char* block_s)
+void PE_printImageResourceDirectoryEntry(
+    const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
+    size_t table_fo,
+    size_t offset,
+    uint16_t level,
+    uint16_t id,
+    uint16_t n,
+    size_t start_file_offset,
+    size_t file_size,
+    FILE* fp,
+    unsigned char* block_s
+)
 {
     size_t name_offset = 0;
     size_t size = 0;
@@ -780,13 +782,22 @@ void PE_printImageResourceDirectoryEntry(const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY
     printf("%s    - OffsetToData.NameIsDirectory: 0x%x\n", dashes, re->OFFSET_UNION.DATA_STRUCT.DataIsDirectory);
 }
 
-void PE_printImageResourceDataEntry(const PE_IMAGE_RESOURCE_DATA_ENTRY* de, size_t offset, uint16_t level)
+void PE_printImageResourceDataEntry(
+    const PE_IMAGE_RESOURCE_DATA_ENTRY* de, 
+    uint32_t fotd, 
+    size_t offset, 
+    uint16_t level
+)
 {
     char dashes[MAX_SPACES];
     fillSpaces(dashes, MAX_SPACES, level);
     
     printf("%s  - ResourceDataEntry%s:\n", dashes, fillOffset(0, offset, 0));
-    printf("%s    - OffsetToData: 0x%x\n", dashes, de->OffsetToData);
+    //printf("%s    - OffsetToData rva: 0x%x, fo: 0x%x\n", dashes, de->OffsetToData, fotd);
+    //printf("%s    - OffsetToData: 0x%x (rva), 0x%x (fo)\n", dashes, de->OffsetToData, fotd);
+    printf("%s    - OffsetToData\n", dashes);
+    printf("%s        rva: 0x%x\n", dashes, de->OffsetToData);
+    printf("%s         fo: 0x%x\n", dashes, fotd);
     printf("%s    - Size: 0x%x\n", dashes, de->Size);
     printf("%s    - CodePage: 0x%x\n", dashes, de->CodePage);
     printf("%s    - Reserved: 0x%x\n", dashes, de->Reserved);
