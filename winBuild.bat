@@ -142,10 +142,13 @@ if [%verbose%] == [1] (
     echo proj=%proj%
 )
 
+:: set vcvars=""
+:: WHERE %msbuild% >nul 2>nul
+:: IF %ERRORLEVEL% NEQ 0 set vcvars="%buildTools:~1,-1%\VC\Auxiliary\Build\vcvars%bitness%.bat"
 set vcvars="%buildTools:~1,-1%\VC\Auxiliary\Build\vcvars%bitness%.bat"
 
 
-if [%valid%] == [0] (
+if [%test%] == [0] (
     goto build
 ) else (
     goto buildTest

@@ -120,24 +120,32 @@ int PE_fillImageResourceDirectory(PE_IMAGE_RESOURCE_DIRECTORY* rd,
                                   size_t file_size,
                                   FILE* fp,
                                   unsigned char* block_s);
-int PE_recurseImageResourceDirectory(size_t offset,
-                                     size_t table_fo,
-                                     uint16_t nr_of_named_entries,
-                                     uint16_t nr_of_id_entries,
-                                     uint16_t level,
-                                     size_t start_file_offset,
-                                     size_t file_size,
-                                     FILE* fp,
-                                     unsigned char* block_s);
-int PE_parseResourceDirectoryEntry(uint16_t id, 
-                                   size_t offset, 
-                                   size_t table_fo, 
-                                   uint16_t nr_of_entries, 
-                                   uint16_t level,
-                                   size_t start_file_offset,
-                                   size_t file_size,
-                                   FILE* fp,
-                                   unsigned char* block_s);
+int PE_recurseImageResourceDirectory(
+    size_t offset,
+    size_t table_fo,
+    uint16_t nr_of_named_entries,
+    uint16_t nr_of_id_entries,
+    uint16_t level,
+    size_t start_file_offset,
+    size_t file_size,
+    FILE* fp,
+    unsigned char* block_s,
+    SVAS* svas,
+    uint16_t nr_of_sections
+);
+int PE_parseResourceDirectoryEntry(
+    uint16_t id, 
+    size_t offset, 
+    size_t table_fo, 
+    uint16_t nr_of_entries, 
+    uint16_t level,
+    size_t start_file_offset,
+    size_t file_size,
+    FILE* fp,
+    unsigned char* block_s,
+    SVAS* svas,
+    uint16_t nr_of_sections
+);
 //int PE_iterateImageResourceDirectory(size_t offset,size_t table_fo,uint16_t nr_of_named_entries,uint16_t nr_of_id_entries,uint16_t level,size_t start_file_offset,size_t file_size,FILE* fp,unsigned char* block_s);
 //int PE_parseResourceDirectoryEntryI(uint16_t id,size_t offset,size_t table_fo,uint16_t nr_of_entries,uint16_t level,size_t start_file_offset,size_t file_size,FILE* fp,unsigned char* block_s, PFifo fifo);
 int PE_fillImageResourceDirectoryEntry(PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
@@ -1156,7 +1164,7 @@ void PE_parseImageResourceTable(PE64OptHeader* oh,
     PE_printImageResourceDirectory(&rd, table_fo, 0);
 
     PE_recurseImageResourceDirectory(table_fo + PE_RESOURCE_DIRECTORY_SIZE, table_fo, rd.NumberOfNamedEntries,
-                                    rd.NumberOfIdEntries, 0, start_file_offset, file_size, fp, block_s);
+                                    rd.NumberOfIdEntries, 0, start_file_offset, file_size, fp, block_s, svas, nr_of_sections);
 }
 
 int PE_fillImageResourceDirectory(PE_IMAGE_RESOURCE_DIRECTORY* rd,
@@ -1194,16 +1202,20 @@ int PE_fillImageResourceDirectory(PE_IMAGE_RESOURCE_DIRECTORY* rd,
     return 0;
 }
 
-int PE_recurseImageResourceDirectory(size_t offset,
-                                     size_t table_fo,
-                                     uint16_t
-                                     nr_of_named_entries,
-                                     uint16_t nr_of_id_entries,
-                                     uint16_t level,
-                                     size_t start_file_offset,
-                                     size_t file_size,
-                                     FILE* fp,
-                                     unsigned char* block_s)
+int PE_recurseImageResourceDirectory(
+    size_t offset,
+    size_t table_fo,
+    uint16_t
+    nr_of_named_entries,
+    uint16_t nr_of_id_entries,
+    uint16_t level,
+    size_t start_file_offset,
+    size_t file_size,
+    FILE* fp,
+    unsigned char* block_s,
+    SVAS* svas,
+    uint16_t nr_of_sections
+)
 {
     uint16_t i;
     int s;
@@ -1211,7 +1223,7 @@ int PE_recurseImageResourceDirectory(size_t offset,
     PE_printImageResourceDirectoryEntryHeader(0, nr_of_named_entries, level);
     for ( i = 0; i < nr_of_named_entries; i++)
     {
-        s = PE_parseResourceDirectoryEntry(i, offset, table_fo, nr_of_named_entries, level, start_file_offset, file_size, fp, block_s);
+        s = PE_parseResourceDirectoryEntry(i, offset, table_fo, nr_of_named_entries, level, start_file_offset, file_size, fp, block_s, svas, nr_of_sections);
         if ( s != 0 )
             continue;
 
@@ -1221,7 +1233,7 @@ int PE_recurseImageResourceDirectory(size_t offset,
     PE_printImageResourceDirectoryEntryHeader(1, nr_of_id_entries, level);
     for ( i = 0; i < nr_of_id_entries; i++)
     {
-        s = PE_parseResourceDirectoryEntry(i, offset, table_fo, nr_of_id_entries, level, start_file_offset, file_size, fp, block_s);
+        s = PE_parseResourceDirectoryEntry(i, offset, table_fo, nr_of_id_entries, level, start_file_offset, file_size, fp, block_s, svas, nr_of_sections);
         if ( s != 0 )
             continue;
         
@@ -1232,15 +1244,19 @@ int PE_recurseImageResourceDirectory(size_t offset,
 }
 
 
-int PE_parseResourceDirectoryEntry(uint16_t id, 
-                                   size_t offset, 
-                                   size_t table_fo, 
-                                   uint16_t nr_of_entries, 
-                                   uint16_t level,
-                                   size_t start_file_offset,
-                                   size_t file_size,
-                                   FILE* fp,
-                                   unsigned char* block_s)
+int PE_parseResourceDirectoryEntry(
+    uint16_t id, 
+    size_t offset, 
+    size_t table_fo, 
+    uint16_t nr_of_entries, 
+    uint16_t level,
+    size_t start_file_offset,
+    size_t file_size,
+    FILE* fp,
+    unsigned char* block_s,
+    SVAS* svas,
+    uint16_t nr_of_sections
+)
 {
     PE_IMAGE_RESOURCE_DIRECTORY rd;
     PE_IMAGE_RESOURCE_DIRECTORY_ENTRY re;
@@ -1248,6 +1264,7 @@ int PE_parseResourceDirectoryEntry(uint16_t id,
     
     int s;
     size_t dir_offset = 0;
+    uint32_t fotd;
     
     PE_fillImageResourceDirectoryEntry(&re, offset, table_fo, start_file_offset, file_size, fp, block_s);
     PE_printImageResourceDirectoryEntry(&re, table_fo, offset, level, id, nr_of_entries, start_file_offset, file_size, fp, block_s);
@@ -1261,12 +1278,13 @@ int PE_parseResourceDirectoryEntry(uint16_t id,
             return 1;
         PE_printImageResourceDirectory(&rd, dir_offset, level+1);
         PE_recurseImageResourceDirectory((size_t)dir_offset + PE_RESOURCE_DIRECTORY_SIZE, table_fo, rd.NumberOfNamedEntries,
-                                        rd.NumberOfIdEntries, level + 1, start_file_offset, file_size, fp, block_s);
+                                        rd.NumberOfIdEntries, level + 1, start_file_offset, file_size, fp, block_s, svas, nr_of_sections);
     }
     else
     {
         PE_fillImageResourceDataEntry(&de, dir_offset, start_file_offset, file_size, fp, block_s);
-        PE_printImageResourceDataEntry(&de, dir_offset, level);
+        fotd = (uint32_t)PE_Rva2Foa(de.OffsetToData, svas, nr_of_sections);
+        PE_printImageResourceDataEntry(&de, fotd, dir_offset, level);
     }
     
     return 0;
