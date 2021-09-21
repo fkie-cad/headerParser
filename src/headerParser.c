@@ -27,8 +27,8 @@
 //#define DILLER
 
 #define BIN_NAME "headerParser"
-#define BIN_VS "1.11.10"
-#define BIN_DATE "16.09.2021"
+#define BIN_VS "1.11.11"
+#define BIN_DATE "21.09.2021"
 
 
 
@@ -221,7 +221,7 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
             if ( hasValue("-s", i, end_i))
             {
                 s = parseSizeAuto(argv[i + 1], &gp->abs_file_offset);
-                if ( !s )
+                if ( s != 0 )
                     gp->abs_file_offset = 0;
                 gp->start_file_offset = gp->abs_file_offset;
                 i++;
