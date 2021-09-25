@@ -27,9 +27,16 @@
 //#define DILLER
 
 #define BIN_NAME "headerParser"
-#define BIN_VS "1.11.11"
-#define BIN_DATE "21.09.2021"
+#define BIN_VS "1.12.0"
+#define BIN_DATE "25.09.2021"
 
+#define LIN_PARAM_IDENTIFIER ('-')
+#define WIN_PARAM_IDENTIFIER ('/')
+#ifdef _WIN32
+#define PARAM_IDENTIFIER WIN_PARAM_IDENTIFIER
+#else
+#define PARAM_IDENTIFIER LIN_PARAM_IDENTIFIER
+#endif
 
 
 static void printUsage();
@@ -174,7 +181,8 @@ void printHelp()
             "   * -tls: Print the Image TLS Table (IMAGE_DIRECTORY_ENTRY_TLS).\n"
             "   * -lcfg: Print the Image Load Config Table (IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG).\n"
             "   * -bimp: Print the Image Bound Import Table (IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT).\n"
-            "   * -dimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT).\n"
+            "   * -dimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT) dll names and info..\n"
+            "   * -dimpx: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT) dll names, info and imported functions.\n"
             " * ELF only options:\n"
             "   * -fileh: Print file header.\n"
             "   * -progh: Print program headers.\n"
@@ -191,7 +199,7 @@ void printHelp()
 int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams elfp, uint8_t* force, char* file_name)
 {
     int start_i = 1;
-    int end_i = argc - 1;
+    int end_i = argc;
     int i;
     int s;
 
@@ -204,19 +212,19 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
     gp->info_level = INFO_LEVEL_BASIC;
 
     // if first argument is the input file
-    if ( argv[1][0] != '-' )
-    {
-        expandFilePath(argv[1], file_name);
-        start_i = 2;
-        end_i = argc;
-    }
+    //if ( argv[1][0] != '-' )
+    //{
+    //    expandFilePath(argv[1], file_name);
+    //    start_i = 2;
+    //    end_i = argc;
+    //}
 
     for ( i = start_i; i < end_i; i++ )
     {
-        if ( argv[i][0] != '-' )
-            break;
+        //if ( argv[i][0] != LIN_PARAM_IDENTIFIER &&  )
+        //    break;
 
-        if ( isArgOfType(argv[i], "-s"))
+        if ( isArgOfType(argv[i], "-s") )
         {
             if ( hasValue("-s", i, end_i))
             {
@@ -227,7 +235,7 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
                 i++;
             }
         }
-        else if ( isArgOfType(argv[i], "-i"))
+        else if ( isArgOfType(argv[i], "-i") )
         {
             if ( hasValue("-i", i, end_i))
             {
@@ -310,6 +318,10 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
         {
             pep->info_level |= INFO_LEVEL_PE_DIMP;
         }
+        else if (isArgOfType(argv[i], "-dimpx"))
+        {
+            pep->info_level |= INFO_LEVEL_PE_DIMP | INFO_LEVEL_PE_DIMP_EX;
+        }
         else if (isArgOfType(argv[i], "-bimp"))
         {
             pep->info_level |= INFO_LEVEL_PE_BIMP;
@@ -328,12 +340,13 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
         }
         else
         {
-            header_info("INFO: Unknown option \"%s\"\n", argv[i]);
+            //header_info("INFO: Unknown option \"%s\"\n", argv[i]);
+            expandFilePath(argv[i], file_name);
         }
     }
 
-    if ( start_i == 1 )
-        expandFilePath(argv[i], file_name);
+    //if ( start_i == 1 )
+    //    expandFilePath(argv[i], file_name);
 
     // maybe move to pe/elf parsing
     if ( gp->info_level >= INFO_LEVEL_EXTENDED )
@@ -393,11 +406,21 @@ uint8_t getForceOption(const char* arg)
 
 uint8_t isArgOfType(char* arg, char* type)
 {
+    size_t i;
     size_t type_ln;
+    if ( arg[0] != LIN_PARAM_IDENTIFIER && arg[0] != WIN_PARAM_IDENTIFIER )
+        return 0;
 
     type_ln = strlen(type);
 
-    return strlen(arg) == type_ln && strncmp(arg, type, type_ln) == 0;
+    for ( i = 1; i < type_ln; i++ )
+    {
+        if ( arg[i] != type[i] )
+            return 0;
+    }
+    return arg[i] == 0;
+
+    //return strlen(arg) == type_ln && strncmp(arg, type, type_ln) == 0;
 }
 
 uint8_t hasValue(char* type, int i, int end_i)

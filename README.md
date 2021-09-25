@@ -18,8 +18,8 @@ Compiles and runs under
 
 
 ## Version ##
-1.11.11  
-Last changed: 20.09.2021
+1.12.0  
+Last changed: 25.09.2021
 
 ## REQUIREMENTS ##
 - Linux
@@ -90,7 +90,8 @@ Options:
    * -tls: Print the Image TLS Table (IMAGE_DIRECTORY_ENTRY_TLS).
    * -lcfg: Print the Image Load Config Table (IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG)
    * -bimp: Print the Image Bound Import Table (IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT).
-   * -dimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT).
+   * -dimp: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT) dll names and info.
+   * -dimpx: Print the Image Delay Import Table (IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT) dll names, info and imported functions.
  * ELF only options:
    * -fileh: Print file header.
    * -progh: Print program headers.

@@ -76,19 +76,23 @@ void PE_fillBoundForwarderRef(PE_IMAGE_BOUND_FORWARDER_REF* bfr,
                               FILE* fp,
                               unsigned char* block_l);
 
-void PE_parseImageExportTable(PE64OptHeader* oh,
-                              uint16_t nr_of_sections,
-                              size_t start_file_offset,
-                              size_t file_size,
-                              FILE* fp,
-                              unsigned char* block_s,
-                              SVAS* svas);
-int PE_fillImageExportDirectory(PE_IMAGE_EXPORT_DIRECTORY* ied,
-                                size_t offset,
-                                size_t start_file_offset,
-                                size_t file_size,
-                                FILE* fp,
-                                unsigned char* block_s);
+void PE_parseImageExportTable(
+    PE64OptHeader* oh,
+    uint16_t nr_of_sections,
+    size_t start_file_offset,
+    size_t file_size,
+    FILE* fp,
+    unsigned char* block_s,
+    SVAS* svas
+);
+int PE_fillImageExportDirectory(
+    PE_IMAGE_EXPORT_DIRECTORY* ied,
+    size_t offset,
+    size_t start_file_offset,
+    size_t file_size,
+    FILE* fp,
+    unsigned char* block_s
+);
 
 void PE_parseImageLoadConfigTable(PE64OptHeader* oh,
                                  uint16_t nr_of_sections,
@@ -162,16 +166,19 @@ int PE_fillImageResourceDataEntry(PE_IMAGE_RESOURCE_DATA_ENTRY* de,
                                   FILE* fp,
                                   unsigned char* block_s);
 
-void PE_parseImageDelayImportTable(PE64OptHeader* oh,
-                                   uint16_t nr_of_sections,
-                                   SVAS* svas,
-                                   uint8_t bitness,
-                                   size_t start_file_offset,
-                                   size_t* abs_file_offset,
-                                   size_t file_size,
-                                   FILE* fp,
-                                   unsigned char* block_l,
-                                   unsigned char* block_s);
+void PE_parseImageDelayImportTable(
+    PE64OptHeader* oh,
+    uint16_t nr_of_sections,
+    SVAS* svas,
+    uint8_t bitness,
+    size_t start_file_offset,
+    size_t* abs_file_offset,
+    size_t file_size,
+    FILE* fp,
+    unsigned char* block_l,
+    unsigned char* block_s,
+    int extended
+);
 void PE_fillDelayImportDescriptor(PeImageDelayLoadDescriptor* id,
                                   size_t* offset,
                                   size_t* abs_file_offset,
@@ -243,6 +250,7 @@ void PE_parseImageImportTable(PE64OptHeader* oh,
 {
     size_t size;
     size_t offset;
+    size_t name_offset;
     
     size_t thunk_data_offset;
     size_t table_fo;
@@ -279,13 +287,11 @@ void PE_parseImageImportTable(PE64OptHeader* oh,
     while ( !isMemZero(&id, sizeof(id)) && r_size < vsize)
     {
         dll_name = NULL;
-        *abs_file_offset = PE_Rva2Foa(id.Name, svas, nr_of_sections);
-        if ( !checkFileSpace(0, *abs_file_offset, 1, file_size) )
-        {
+        name_offset = PE_Rva2Foa(id.Name, svas, nr_of_sections);
+        if ( !checkFileSpace(0, name_offset, 1, file_size) )
             break;
-        }
-
-        if ( readFile(fp, *abs_file_offset, BLOCKSIZE, block_s) )
+        name_offset += start_file_offset;
+        if ( readFile(fp, name_offset, BLOCKSIZE, block_s) )
             dll_name = (char*) block_s;
 //		else
 //			break;
@@ -298,6 +304,9 @@ void PE_parseImageImportTable(PE64OptHeader* oh,
                 thunk_data_offset = PE_Rva2Foa(id.OriginalFirstThunk, svas, nr_of_sections);
             else
                 thunk_data_offset = PE_Rva2Foa(id.FirstThunk, svas, nr_of_sections);
+
+            if ( thunk_data_offset > 0 )
+                thunk_data_offset += start_file_offset;
 
             PE_printHintFunctionHeader((id.TimeDateStamp == (uint32_t)-1));
             PE_iterateThunkData(nr_of_sections, svas, bitness, start_file_offset, file_size, fp, block_s, thunk_data_offset);
@@ -389,19 +398,23 @@ int PE_fillImportByName(PEImageImportByName* ibn,
  * @param oh
  * @param nr_of_sections
  */
-void PE_parseImageDelayImportTable(PE64OptHeader* oh,
-                                   uint16_t nr_of_sections,
-                                   SVAS* svas,
-                                   uint8_t bitness,
-                                   size_t start_file_offset,
-                                   size_t* abs_file_offset,
-                                   size_t file_size,
-                                   FILE* fp,
-                                   unsigned char* block_l,
-                                   unsigned char* block_s)
+void PE_parseImageDelayImportTable(
+    PE64OptHeader* oh,
+    uint16_t nr_of_sections,
+    SVAS* svas,
+    uint8_t bitness,
+    size_t start_file_offset,
+    size_t* abs_file_offset,
+    size_t file_size,
+    FILE* fp,
+    unsigned char* block_l,
+    unsigned char* block_s,
+    int extended
+)
 {
     size_t size;
     size_t offset;
+    size_t name_offset;
 
     size_t thunk_data_offset;
     size_t table_fo;
@@ -439,24 +452,31 @@ void PE_parseImageDelayImportTable(PE64OptHeader* oh,
     while ( !isMemZero(&did, sizeof(did)) && r_size < vsize )
     {
         dll_name = NULL;
-        *abs_file_offset = PE_Rva2Foa(did.DllNameRVA, svas, nr_of_sections);
-        if ( !checkFileSpace(0, *abs_file_offset, 1, file_size) )
+        name_offset = PE_Rva2Foa(did.DllNameRVA, svas, nr_of_sections);
+        if ( !checkFileSpace(0, name_offset, 1, file_size) )
             break;
+        name_offset += start_file_offset;
 
-        if ( readFile(fp, *abs_file_offset, BLOCKSIZE, block_s) )
+        if ( readFile(fp, name_offset, BLOCKSIZE, block_s) )
             dll_name = (char*)block_s;
         //		else
         //			break;
 
         PE_printImageDelayImportDescriptor(&did, *abs_file_offset + offset, dll_name);
 
-        if ( did.ImportNameTableRVA != 0 )
-            thunk_data_offset = PE_Rva2Foa(did.ImportNameTableRVA, svas, nr_of_sections);
-        else
-            thunk_data_offset = PE_Rva2Foa(did.ImportAddressTableRVA, svas, nr_of_sections);
+        if ( extended )
+        {
+            if ( did.ImportNameTableRVA != 0 )
+                thunk_data_offset = PE_Rva2Foa(did.ImportNameTableRVA, svas, nr_of_sections);
+            else
+                thunk_data_offset = PE_Rva2Foa(did.ImportAddressTableRVA, svas, nr_of_sections);
 
-        PE_printHintFunctionHeader((did.TimeDateStamp == (uint32_t)-1));
-        PE_iterateThunkData(nr_of_sections, svas, bitness, start_file_offset, file_size, fp, block_s, thunk_data_offset);
+            if ( thunk_data_offset > 0 )
+                thunk_data_offset += start_file_offset;
+
+            PE_printHintFunctionHeader((did.TimeDateStamp == (uint32_t)-1));
+            PE_iterateThunkData(nr_of_sections, svas, bitness, start_file_offset, file_size, fp, block_s, thunk_data_offset);
+        }
 
         offset += PE_DELAY_IMPORT_DESCRIPTOR_SIZE;
         r_size += PE_DELAY_IMPORT_DESCRIPTOR_SIZE;
@@ -504,7 +524,7 @@ int PE_iterateThunkData(uint16_t nr_of_sections,
                         size_t thunk_data_offset)
 {
     int s;
-    size_t rva_offset = 0;
+    size_t fo = 0;
     PEImageThunkData64 thunk_data; // 32==PIMAGE_THUNK_DATA32 64:PIMAGE_THUNK_DATA64
     uint8_t thunk_data_size = (bitness == 32) ? PE_THUNK_DATA_32_SIZE : PE_THUNK_DATA_64_SIZE;
     PEImageImportByName import_by_name; // 32 + 64
@@ -524,11 +544,12 @@ int PE_iterateThunkData(uint16_t nr_of_sections,
 
         if ( !(thunk_data.Ordinal & flag) )
         {
-            rva_offset = PE_Rva2Foa((uint32_t)thunk_data.AddressOfData, svas, nr_of_sections); // INT => AddressOfData, IAT => Function
-            if ( rva_offset == 0 )
+            fo = PE_Rva2Foa((uint32_t)thunk_data.AddressOfData, svas, nr_of_sections); // INT => AddressOfData, IAT => Function
+            if ( fo == 0 )
                 return -2;
+            fo += start_file_offset;
 
-            s = PE_fillImportByName(&import_by_name, rva_offset, fp, block_s);
+            s = PE_fillImportByName(&import_by_name, fo, fp, block_s);
             if ( s != 0 )
             {
                 header_error("ERROR (0x%x): PE_fillImportByName\n", s);
@@ -536,7 +557,7 @@ int PE_iterateThunkData(uint16_t nr_of_sections,
             }
         }
 
-        PE_printImageThunkData(&thunk_data, &import_by_name, thunk_data_offset, rva_offset, bitness);
+        PE_printImageThunkData(&thunk_data, &import_by_name, thunk_data_offset, fo, bitness);
 
         thunk_data_offset += thunk_data_size;
     }
@@ -548,17 +569,20 @@ int PE_iterateThunkData(uint16_t nr_of_sections,
  * Parse ImageBoundImportTable, i.e. DataDirectory[BOUND_IMPORT]
  *
  */
-void PE_parseImageBoundImportTable(PE64OptHeader* oh,
-                                    size_t start_file_offset,
-                                    size_t* abs_file_offset,
-                                    size_t file_size,
-                                    FILE* fp,
-                                    unsigned char* block_l,
-                                    unsigned char* block_s)
+void PE_parseImageBoundImportTable(
+    PE64OptHeader* oh,
+    size_t start_file_offset,
+    size_t* abs_file_offset,
+    size_t file_size,
+    FILE* fp,
+    unsigned char* block_l,
+    unsigned char* block_s
+)
 {
     size_t size;
     size_t table_fo;
     size_t offset;
+    size_t name_offset;
 
     PEDataDirectory* table = &oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT]; // 32 + 64
     uint32_t vaddr = table->VirtualAddress;
@@ -601,11 +625,11 @@ void PE_parseImageBoundImportTable(PE64OptHeader* oh,
     while ( !isMemZero(&bid, sizeof(bid)) && r_size < vsize  )
     {
         dll_name = NULL;
-        *abs_file_offset = table_fo + bid.OffsetModuleName;
-        if ( !checkFileSpace(0, *abs_file_offset, 1, file_size) )
+        name_offset = table_fo + bid.OffsetModuleName + start_file_offset;
+        if ( !checkFileSpace(0, name_offset, 1, file_size) )
             break;
 
-        if ( readFile(fp, *abs_file_offset, BLOCKSIZE, block_s) )
+        if ( readFile(fp, name_offset, BLOCKSIZE, block_s) )
             dll_name = (char*)block_s;
         //else
         //  break;
@@ -620,11 +644,11 @@ void PE_parseImageBoundImportTable(PE64OptHeader* oh,
             PE_fillBoundForwarderRef(&bfr, &offset, abs_file_offset, file_size, fp, block_l);
 
             dll_name = NULL;
-            *abs_file_offset = table_fo + bfr.OffsetModuleName;
-            if ( !checkFileSpace(0, *abs_file_offset, 1, file_size) )
+            name_offset = table_fo + bfr.OffsetModuleName + start_file_offset;
+            if ( !checkFileSpace(0, name_offset, 1, file_size) )
                 break;
 
-            if ( readFile(fp, *abs_file_offset, BLOCKSIZE, block_s) )
+            if ( readFile(fp, name_offset, BLOCKSIZE, block_s) )
                 dll_name = (char*)block_s;
 
             PE_printImageBoundForwarderRef(&bfr, *abs_file_offset + offset, dll_name, ri+1, bid.NumberOfModuleForwarderRefs);
@@ -701,13 +725,15 @@ void PE_fillBoundForwarderRef(PE_IMAGE_BOUND_FORWARDER_REF* bfr,
  * @param block_s
  * @param svas
  */
-void PE_parseImageExportTable(PE64OptHeader* oh,
-                              uint16_t nr_of_sections,
-                              size_t start_file_offset,
-                              size_t file_size,
-                              FILE* fp,
-                              unsigned char* block_s,
-                              SVAS* svas)
+void PE_parseImageExportTable(
+    PE64OptHeader* oh,
+    uint16_t nr_of_sections,
+    size_t start_file_offset,
+    size_t file_size,
+    FILE* fp,
+    unsigned char* block_s,
+    SVAS* svas
+)
 {
     PE_IMAGE_EXPORT_DIRECTORY ied;
 
@@ -736,8 +762,14 @@ void PE_parseImageExportTable(PE64OptHeader* oh,
     // iterate functions
     // converte rvas: function, name, nameordinal
     functions_offset = PE_Rva2Foa(ied.AddressOfFunctions, svas, nr_of_sections);
+    functions_offset += start_file_offset;
+
     names_offset = PE_Rva2Foa(ied.AddressOfNames, svas, nr_of_sections);
+    names_offset += start_file_offset;
+
     names_ordinal_offset = PE_Rva2Foa(ied.AddressOfNameOrdinals, svas, nr_of_sections);
+    names_ordinal_offset += start_file_offset;
+
 
     PE_printImageExportDirectoryHeader();
 
@@ -773,7 +805,13 @@ void PE_parseImageExportTable(PE64OptHeader* oh,
         if ( name_rva > 0 )
         {
             name_fo = PE_Rva2Foa(name_rva, svas, nr_of_sections);
-            name_size = readFile(fp, name_fo, BLOCKSIZE, (unsigned char*)name);
+            //printf("name_fo: 0x%zx\n", name_fo);
+            if ( name_fo != 0 )
+            {
+                name_fo += start_file_offset;
+                name_size = readFile(fp, name_fo, BLOCKSIZE, (unsigned char*)name);
+            }
+            //printf("name_size: 0x%zx\n", name_size);
             if ( name_size < 2 || name_fo == 0 )
             {
                 name_size = 0;
@@ -791,7 +829,11 @@ void PE_parseImageExportTable(PE64OptHeader* oh,
         if ( function_rva > 0 )
         {
             function_fo = PE_Rva2Foa(function_rva, svas, nr_of_sections);
-            bytes_size = readFile(fp, function_fo, BLOCKSIZE, block_s);
+            if ( function_fo != 0 )
+            {
+                function_fo += start_file_offset;
+                bytes_size = readFile(fp, function_fo, BLOCKSIZE, block_s);
+            }
             
             if ( bytes_size == 0 || function_fo == 0)
             {
@@ -902,10 +944,15 @@ void PE_parseImageTLSTable(PE64OptHeader* oh,
 
         s_offset = (size_t)(tls.StartAddressOfRawData - oh->ImageBase);
         s_offset = PE_Rva2Foa((uint32_t)s_offset, svas, nr_of_sections);
+        s_offset += start_file_offset;
+
         e_offset = (size_t)(tls.EndAddressOfRawData - oh->ImageBase);
         e_offset = PE_Rva2Foa((uint32_t)e_offset, svas, nr_of_sections);
+        e_offset += start_file_offset;
+        
         cb_offset = (size_t)(tls.AddressOfCallBacks - oh->ImageBase);
         cb_offset = PE_Rva2Foa((uint32_t)cb_offset, svas, nr_of_sections);
+        cb_offset += start_file_offset;
 
         PE_printTLSEntry(&tls, i+1, bitness, *abs_file_offset+offset, s_offset, e_offset, cb_offset, file_size, fp, block_s);
 
@@ -1004,14 +1051,23 @@ void PE_parseImageLoadConfigTable(PE64OptHeader* oh,
     
     to.seh = (size_t)(lcd.SEHandlerTable - oh->ImageBase);
     to.seh = PE_Rva2Foa((uint32_t)to.seh, svas, nr_of_sections);
+    to.seh += start_file_offset;
+
     to.fun = (size_t)(lcd.GuardCFFunctionTable - oh->ImageBase);
     to.fun = PE_Rva2Foa((uint32_t)to.fun, svas, nr_of_sections);
+    to.fun += start_file_offset;
+
     to.iat = (size_t)(lcd.GuardAddressTakenIatEntryTable - oh->ImageBase);
     to.iat = PE_Rva2Foa((uint32_t)to.iat, svas, nr_of_sections);
+    to.iat += start_file_offset;
+
     to.jmp = (size_t)(lcd.GuardLongJumpTargetTable - oh->ImageBase);
     to.jmp = PE_Rva2Foa((uint32_t)to.jmp, svas, nr_of_sections);
+    to.jmp += start_file_offset;
+
     to.ehc = (size_t)(lcd.GuardEHContinuationTable - oh->ImageBase);
     to.ehc = PE_Rva2Foa((uint32_t)to.ehc, svas, nr_of_sections);
+    to.ehc += start_file_offset;
 
     PE_printImageLoadConfigDirectory(&lcd, *abs_file_offset + table_fo, bitness, &to, file_size, fp, block_s);
 }
@@ -1153,8 +1209,7 @@ void PE_parseImageResourceTable(PE64OptHeader* oh,
     PE_IMAGE_RESOURCE_DIRECTORY rd;
     size_t table_fo;
 
-    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_RESOURCE,
-                                                 nr_of_sections, "Resource", svas);
+    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_RESOURCE, nr_of_sections, "Resource", svas);
     if ( table_fo == 0 )
         return;
 
@@ -1188,6 +1243,7 @@ int PE_fillImageResourceDirectory(PE_IMAGE_RESOURCE_DIRECTORY* rd,
     offset = 0;
 
     ptr = &block_s[offset];
+    
     memset(rd, 0, PE_RESOURCE_DIRECTORY_SIZE);
     rd->Characteristics = GetIntXValueAtOffset(uint32_t, ptr, offsets.Characteristics);
     rd->TimeDateStamp = GetIntXValueAtOffset(uint32_t, ptr, offsets.TimeDateStamp);
@@ -1284,6 +1340,7 @@ int PE_parseResourceDirectoryEntry(
     {
         PE_fillImageResourceDataEntry(&de, dir_offset, start_file_offset, file_size, fp, block_s);
         fotd = (uint32_t)PE_Rva2Foa(de.OffsetToData, svas, nr_of_sections);
+        fotd += (uint32_t)start_file_offset;
         PE_printImageResourceDataEntry(&de, fotd, dir_offset, level);
     }
     
@@ -1305,6 +1362,7 @@ int PE_fillImageResourceDirectoryEntry(PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
     if ( !checkFileSpace(offset, start_file_offset, PE_RESOURCE_ENTRY_SIZE, file_size))
         return 1;
 
+    offset += start_file_offset;
     size = readFile(fp, offset, BLOCKSIZE, block_s);
     if ( size == 0 )
         return 2;
@@ -1330,8 +1388,8 @@ int PE_fillImageResourceDataEntry(PE_IMAGE_RESOURCE_DATA_ENTRY* de,
     
     if ( !checkFileSpace(offset, start_file_offset, PE_RESOURCE_DATA_ENTRY_SIZE, file_size))
         return 1;
-
-//	size = readCustomBlock(file_name, offset, BLOCKSIZE, block_s);
+    
+    offset += start_file_offset;
     size = readFile(fp, offset, BLOCKSIZE, block_s);
     if ( size == 0 )
         return 2;

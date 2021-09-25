@@ -305,7 +305,7 @@ int parsePEHeader(
 
     if (pep->info_level & INFO_LEVEL_PE_DIMP )
         PE_parseImageDelayImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
-            &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
+            &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard, pep->info_level & INFO_LEVEL_PE_DIMP_EX);
 
     if (pep->info_level & INFO_LEVEL_PE_BIMP )
         PE_parseImageBoundImportTable(opt_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
