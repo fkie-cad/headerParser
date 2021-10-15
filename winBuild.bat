@@ -7,7 +7,7 @@ set /a bitness=64
 set platform=x64
 set mode=Release
 set /a rt=0
-set pdb=no
+set pdb=0
 set buildTools="C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\"
 
 set prog_name=%~n0
@@ -50,7 +50,7 @@ GOTO :ParseParams
         goto reParseParams
     )
     IF /i "%~1"=="/pdb" (
-        SET pdb=yes
+        SET pdb=1
         goto reParseParams
     )
     
@@ -117,7 +117,7 @@ if /i [%mode%] == [debug] (
     if [%rt%] == [1] (
         set rtlib=Debug
     )
-    set pdb=yes
+    set pdb=1
     set valid=1
 ) else (
     if /i [%mode%] == [release] (

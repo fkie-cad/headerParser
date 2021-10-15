@@ -81,6 +81,7 @@
       <ExceptionHandling></ExceptionHandling>
       <PrecompiledHeader></PrecompiledHeader>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks> <!-- /RTC -->
+      <StringPooling>true</StringPooling>
       <!--<FunctionLevelLinking>true</FunctionLevelLinking>-->
       <!--<IntrinsicFunctions>true</IntrinsicFunctions>-->
       <!--<PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>-->
@@ -103,6 +104,7 @@
       <Optimization>Disabled</Optimization>
     </ClCompile>
   </ItemDefinitionGroup>
+  
   <ItemDefinitionGroup Condition="'$(RunTimeLib)'=='Release'">
     <ClCompile>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -113,13 +115,15 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(PDB)'=='no'">
+  
+  <ItemDefinitionGroup Condition="'$(PDB)'!='1'">
     <ClCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>false</GenerateDebugInformation>
+      <AdditionalOptions>/NOCOFFGRPINFO %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
 

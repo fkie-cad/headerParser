@@ -27,8 +27,8 @@
 //#define DILLER
 
 #define BIN_NAME "headerParser"
-#define BIN_VS "1.12.0"
-#define BIN_DATE "25.09.2021"
+#define BIN_VS "1.12.1"
+#define BIN_DATE "15.10.2021"
 
 #define LIN_PARAM_IDENTIFIER ('-')
 #define WIN_PARAM_IDENTIFIER ('/')
@@ -201,7 +201,8 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
     int start_i = 1;
     int end_i = argc;
     int i;
-    int s;
+    int s = 0;
+    char* arg = NULL;
 
     if ( isArgOfType(argv[1], "-h"))
     {
@@ -211,20 +212,13 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
 
     gp->info_level = INFO_LEVEL_BASIC;
 
-    // if first argument is the input file
-    //if ( argv[1][0] != '-' )
-    //{
-    //    expandFilePath(argv[1], file_name);
-    //    start_i = 2;
-    //    end_i = argc;
-    //}
-
     for ( i = start_i; i < end_i; i++ )
     {
-        //if ( argv[i][0] != LIN_PARAM_IDENTIFIER &&  )
+        arg = argv[i];
+        //if ( arg[0] != LIN_PARAM_IDENTIFIER &&  )
         //    break;
 
-        if ( isArgOfType(argv[i], "-s") )
+        if ( isArgOfType(arg, "-s") )
         {
             if ( hasValue("-s", i, end_i))
             {
@@ -235,7 +229,7 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
                 i++;
             }
         }
-        else if ( isArgOfType(argv[i], "-i") )
+        else if ( isArgOfType(arg, "-i") )
         {
             if ( hasValue("-i", i, end_i))
             {
@@ -243,68 +237,72 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
                 i++;
             }
         }
-        else if ( isArgOfType(argv[i], "-f") )
+        else if ( isArgOfType(arg, "-f") )
         {
             if ( hasValue("-f", i, end_i))
             {
                 *force = getForceOption(argv[i + 1]);
+                if ( *force == FORCE_NONE )
+                {
+                    header_info("INFO: Unknown force option \"%s\"\n", argv[i + 1]);
+                }
                 i++;
             }
         }
-        else if ( isArgOfType(argv[i], "-offs") )
+        else if ( isArgOfType(arg, "-offs") )
         {
             gp->info_show_offsets = 1;
         }
-        else if ( isArgOfType(argv[i], "-dosh") )
+        else if ( isArgOfType(arg, "-dosh") )
         {
             pep->info_level |= INFO_LEVEL_PE_DOS_H;
         }
-        else if ( isArgOfType(argv[i], "-coffh") )
+        else if ( isArgOfType(arg, "-coffh") )
         {
             pep->info_level |= INFO_LEVEL_PE_COFF_H;
         }
-        else if ( isArgOfType(argv[i], "-opth") )
+        else if ( isArgOfType(arg, "-opth") )
         {
             pep->info_level |= INFO_LEVEL_PE_OPT_H;
         }
-        else if ( isArgOfType(argv[i], "-sech") )
+        else if ( isArgOfType(arg, "-sech") )
         {
             pep->info_level |= INFO_LEVEL_PE_SEC_H;
             elfp->info_level |= INFO_LEVEL_ELF_SEC_H;
         }
-        else if ( isArgOfType(argv[i], "-imp") )
+        else if ( isArgOfType(arg, "-imp") )
         {
             pep->info_level |= INFO_LEVEL_PE_IMP;
         }
-        else if ( isArgOfType(argv[i], "-impx") )
+        else if ( isArgOfType(arg, "-impx") )
         {
             pep->info_level |= INFO_LEVEL_PE_IMP | INFO_LEVEL_PE_IMP_EX;
         }
-        else if ( isArgOfType(argv[i], "-exp") )
+        else if ( isArgOfType(arg, "-exp") )
         {
             pep->info_level |= INFO_LEVEL_PE_EXP;
         }
-        else if ( isArgOfType(argv[i], "-expx") )
+        else if ( isArgOfType(arg, "-expx") )
         {
             pep->info_level |= INFO_LEVEL_PE_EXP | INFO_LEVEL_PE_EXP_EX;
         }
-        else if (isArgOfType(argv[i], "-res"))
+        else if (isArgOfType(arg, "-res"))
         {
             pep->info_level |= INFO_LEVEL_PE_RES;
         }
-        else if (isArgOfType(argv[i], "-tls"))
+        else if (isArgOfType(arg, "-tls"))
         {
             pep->info_level |= INFO_LEVEL_PE_TLS;
         }
-        else if (isArgOfType(argv[i], "-rel"))
+        else if (isArgOfType(arg, "-rel"))
         {
             pep->info_level |= INFO_LEVEL_PE_REL;
         }
-        else if ( isArgOfType(argv[i], "-crt") )
+        else if ( isArgOfType(arg, "-crt") )
         {
             pep->info_level |= INFO_LEVEL_PE_CRT;
         }
-        else if ( isArgOfType(argv[i], "-cod") )
+        else if ( isArgOfType(arg, "-cod") )
         {
             if ( hasValue("-cod", i, end_i))
             {
@@ -314,39 +312,40 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
                 i++;
             }
         }
-        else if (isArgOfType(argv[i], "-dimp"))
+        else if (isArgOfType(arg, "-dimp"))
         {
             pep->info_level |= INFO_LEVEL_PE_DIMP;
         }
-        else if (isArgOfType(argv[i], "-dimpx"))
+        else if (isArgOfType(arg, "-dimpx"))
         {
             pep->info_level |= INFO_LEVEL_PE_DIMP | INFO_LEVEL_PE_DIMP_EX;
         }
-        else if (isArgOfType(argv[i], "-bimp"))
+        else if (isArgOfType(arg, "-bimp"))
         {
             pep->info_level |= INFO_LEVEL_PE_BIMP;
         }
-        else if (isArgOfType(argv[i], "-lcfg"))
+        else if (isArgOfType(arg, "-lcfg"))
         {
             pep->info_level |= INFO_LEVEL_PE_LCFG;
         }
-        else if (isArgOfType(argv[i], "-fileh"))
+        else if (isArgOfType(arg, "-fileh"))
         {
             elfp->info_level |= INFO_LEVEL_ELF_FILE_H;
         }
-        else if (isArgOfType(argv[i], "-progh"))
+        else if (isArgOfType(arg, "-progh"))
         {
             elfp->info_level |= INFO_LEVEL_ELF_PROG_H;
         }
+        else if ( arg[0] != '-' )
+        {
+            expandFilePath(arg, file_name);
+        }
         else
         {
-            //header_info("INFO: Unknown option \"%s\"\n", argv[i]);
-            expandFilePath(argv[i], file_name);
+            header_info("INFO: Unknown Option \"%s\"\n", arg);
         }
     }
 
-    //if ( start_i == 1 )
-    //    expandFilePath(argv[i], file_name);
 
     // maybe move to pe/elf parsing
     if ( gp->info_level >= INFO_LEVEL_EXTENDED )
@@ -359,23 +358,34 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
         gp->info_level = INFO_LEVEL_EXTENDED;
     }
 
+    if ( file_name[0] == 0 )
+    {
+        header_info("ERROR: No file set!\n");
+        s = -1;
+    }
+    else if ( !fileExists(file_name) )
+    {
+        header_info("ERROR: File not found!\n");
+        s = -1;
+    }
+
     if ( pep->certificate_directory!=NULL )
     {
         if ( strnlen(pep->certificate_directory, PATH_MAX) >= PATH_MAX-10 )
         {
             header_info("ERROR: Certificate output directory path \"%.*s\" too long!\n", PATH_MAX, pep->certificate_directory);
             pep->certificate_directory = NULL;
-            return -1;
+            s = -2;
         }
         if ( !dirExists(pep->certificate_directory) )
         {
             header_info("ERROR: Certificate output directory \"%.*s\" does not exist!\n", PATH_MAX, pep->certificate_directory);
             pep->certificate_directory = NULL;
-            return -1;
+            s = -3;
         }
     }
 
-    return 0;
+    return s;
 }
 
 void sanitizeArgs(PGlobalParams gp)

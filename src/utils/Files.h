@@ -177,6 +177,9 @@ int fileExists(const char* path)
 #else
     struct stat s;
 #endif
+    if ( path == NULL )
+        return 0;
+
     if ( stat(path, &s) == 0 )
     {
         if ( s.st_mode & S_IFREG )
