@@ -27,8 +27,8 @@
 //#define DILLER
 
 #define BIN_NAME "headerParser"
-#define BIN_VS "1.12.1"
-#define BIN_DATE "15.10.2021"
+#define BIN_VS "1.13.0"
+#define BIN_DATE "24.10.2021"
 
 #define LIN_PARAM_IDENTIFIER ('-')
 #define WIN_PARAM_IDENTIFIER ('/')
@@ -108,10 +108,12 @@ main(int argc, char** argv)
 
     sanitizeArgs(&gp);
 
+#ifdef DEBUG_PRINT_INFO
     debug_info("file_name: %s\n", file_name);
     debug_info("abs_file_offset: 0x%zx\n", gp.abs_file_offset);
     debug_info("abs_file_offset: 0x%zx\n", gp.abs_file_offset);
     debug_info("start_file_offset: 0x%zx\n", gp.start_file_offset);
+#endif
 
     n = readFile(gp.fp, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
     if ( !n )
@@ -187,6 +189,10 @@ void printHelp()
             "   * -fileh: Print file header.\n"
             "   * -progh: Print program headers.\n"
             "   * -sech: Print section headers.\n"
+            "   * -sym: Print symbol table (names only).\n"
+            "   * -symx: Print symbol table with all info.\n"
+            "   * -dym: Print dynamic symbol table (names only).\n"
+            "   * -dymx: Print dynamic symbol table with all info.\n"
     );
     printf("\n");
     printf("Examples:\n");
@@ -222,7 +228,7 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
         {
             if ( hasValue("-s", i, end_i))
             {
-                s = parseSizeAuto(argv[i + 1], &gp->abs_file_offset);
+                s = parseSizeT(argv[i + 1], &gp->abs_file_offset);
                 if ( s != 0 )
                     gp->abs_file_offset = 0;
                 gp->start_file_offset = gp->abs_file_offset;
@@ -335,6 +341,22 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
         else if (isArgOfType(arg, "-progh"))
         {
             elfp->info_level |= INFO_LEVEL_ELF_PROG_H;
+        }
+        else if (isArgOfType(arg, "-sym"))
+        {
+            elfp->info_level |= INFO_LEVEL_ELF_SYM_TAB;
+        }
+        else if (isArgOfType(arg, "-symx"))
+        {
+            elfp->info_level |= INFO_LEVEL_ELF_SYM_TAB | INFO_LEVEL_ELF_SYM_TAB_EX;
+        }
+        else if (isArgOfType(arg, "-dym"))
+        {
+            elfp->info_level |= INFO_LEVEL_ELF_DYN_SYM_TAB;
+        }
+        else if (isArgOfType(arg, "-dymx"))
+        {
+            elfp->info_level |= INFO_LEVEL_ELF_DYN_SYM_TAB | INFO_LEVEL_ELF_DYN_SYM_TAB_EX;
         }
         else if ( arg[0] != '-' )
         {

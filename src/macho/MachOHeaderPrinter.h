@@ -9,32 +9,34 @@
 #include "MachOFileHeader.h"
 #include "MachOCPUTypes.h"
 
-void MachO_printFileHeader(const MachHeader64* h, uint8_t bitness, uint8_t endian, size_t start_file_offset);
+static void MachO_printFileHeader(const MachHeader64* h, uint8_t bitness, uint8_t endian, size_t start_file_offset);
 //char* getMachO_CPUTypeName(uint32_t type);
-void MachO_getCPUSubTypeName(uint32_t type, uint32_t sub_type, char* buffer);
-char* MachO_getFileTypeName(uint32_t type);
-void MachO_printLoadCommand(LoadCommand* c, size_t offset);
+static void MachO_getCPUSubTypeName(uint32_t type, uint32_t sub_type, char* buffer);
+static char* MachO_getFileTypeName(uint32_t type);
+static void MachO_printLoadCommand(LoadCommand* c, size_t offset);
 //void printMachO_FileHeaderFlag(const MachHeader64* h, uint32_t expected, const char* label);
-void MachO_printSegmentCommand(const SegmentCommand64* c, size_t offset, uint8_t bitness);
-void MachO_printSection(const MachOSection64* c, uint32_t idx, uint32_t ln, size_t offset, uint8_t bitness);
+static void MachO_printSegmentCommand(const SegmentCommand64* c, size_t offset, uint8_t bitness);
+static void MachO_printSection(const MachOSection64* c, uint32_t idx, uint32_t ln, size_t offset, uint8_t bitness);
 //void MachO_printFlag(uint32_t flags, uint32_t expected, char* label);
-void MachO_printUuidCommand(UuidCommand* c, size_t offset);
-void MachO_printDylibCommand(DylibCommand* c, uint32_t name_ln, unsigned char* ptr, size_t offset, uint8_t ioffsets);
-void MachO_printPreboundDylibCommand(PreboundDylibCommand* c, uint32_t name_ln, unsigned char* ptr, size_t offset);
-void MachO_printSubCommand(SubCommand* c, uint32_t name_ln, unsigned char* ptr, size_t offset);
-void MachO_printSymtabCommand(SymtabCommand* c, size_t offset);
-void MachO_printDySymtabCommand(DySymtabCommand* c, size_t offset);
-void MachO_printRoutinesCommand(RoutinesCommand64* c, size_t offset, uint8_t bitness);
-void MachO_printVersionMinCommand(VersionMinCommand* c, size_t offset);
-void MachO_printThreadCommand(ThreadCommand* c, size_t offset);
-void MachO_printLinkedItDataCommand(LinkedItDataCommand* c, size_t offset);
-void MachO_printDyldInfoCommand(DyldInfoCommand* c, size_t offset);
-void MachO_printSourceVersionCommand(SourceVersionCommand* c, size_t offset);
-void MachO_printBuildVersionCommand(BuildVersionCommand* c, size_t offset);
+static void MachO_printUuidCommand(UuidCommand* c, size_t offset);
+static void MachO_printDylibCommand(DylibCommand* c, uint32_t name_ln, unsigned char* ptr, size_t offset, uint8_t ioffsets);
+static void MachO_printPreboundDylibCommand(PreboundDylibCommand* c, uint32_t name_ln, unsigned char* ptr, size_t offset);
+static void MachO_printSubCommand(SubCommand* c, uint32_t name_ln, unsigned char* ptr, size_t offset);
+static void MachO_printSymtabCommand(SymtabCommand* c, size_t offset);
+static void MachO_printDySymtabCommand(DySymtabCommand* c, size_t offset);
+static void MachO_printRoutinesCommand(RoutinesCommand64* c, size_t offset, uint8_t bitness);
+static void MachO_printVersionMinCommand(VersionMinCommand* c, size_t offset);
+static void MachO_printThreadCommand(ThreadCommand* c, size_t offset);
+static void MachO_printLinkedItDataCommand(LinkedItDataCommand* c, size_t offset);
+static void MachO_printDyldInfoCommand(DyldInfoCommand* c, size_t offset);
+static void MachO_printSourceVersionCommand(SourceVersionCommand* c, size_t offset);
+static void MachO_printBuildVersionCommand(BuildVersionCommand* c, size_t offset);
 
-void MachO_printLUhd(char* label, size_t struct_offset, size_t file_offset, uint64_t value);
-void MachO_printUhd(char* label, size_t struct_offset, size_t file_offset, uint32_t value);
-void MachO_parseV32(uint32_t value, Version32* v32);
+static void MachO_printLUhd(char* label, size_t struct_offset, size_t file_offset, uint64_t value);
+static void MachO_printUhd(char* label, size_t struct_offset, size_t file_offset, uint32_t value);
+static void MachO_parseV32(uint32_t value, Version32* v32);
+
+
 
 void MachO_printFileHeader(const MachHeader64* h, uint8_t bitness, uint8_t endian, size_t start_file_offset)
 {

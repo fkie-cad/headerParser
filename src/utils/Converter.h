@@ -71,14 +71,12 @@ int formatTimeStampD(time_t t, char* res, size_t res_size);
 int formatTimeStamp(time_t t, char* res, size_t res_size, const char* format);
 
 #if defined(_32BIT)
-int parseSizeAuto(const char* arg, uint32_t* value);
+int parseSizeT(const char* arg, uint32_t* value);
 #else
-int parseSizeAuto(const char* arg, uint64_t* value);
+int parseSizeT(const char* arg, uint64_t* value);
 #endif
-int parseUint64Auto(const char* arg, uint64_t* value);
-int parseUint64(const char* arg, uint64_t* value, uint8_t base);
-int parseUint32Auto(const char* arg, uint32_t* value);
-int parseUint32(const char* arg, uint32_t* value, uint8_t base);
+int parseUint64(const char* arg, uint64_t* value);
+int parseUint32(const char* arg, uint32_t* value);
 
 int parseUleb128(const unsigned char* ptr, uint8_t offset, uint32_t* value);
 
@@ -270,25 +268,17 @@ int formatTimeStamp(time_t t, char* res, size_t res_size, const char* format)
 }
 
 #if defined(_32BIT)
-int parseSizeAuto(const char* arg, uint32_t* value)
+int parseSizeT(const char* arg, uint32_t* value)
 {
-    return parseUint32(arg, value, 0);
+    return parseUint32(arg, value);
 }
 #else
-int parseSizeAuto(const char* arg, uint64_t* value)
+int parseSizeT(const char* arg, uint64_t* value)
 {
-    return parseUint64(arg, value, 0);
+    return parseUint64(arg, value);
 }
 #endif
 
-int parseUint64Auto(const char* arg, uint64_t* value)
-{
-    //	uint8_t base = 10;
-    //	if ( arg[0] != 0 && arg[1] != 0 && arg[0] ==  '0' && arg[1] ==  'x')
-    //		base = 16;
-
-    return parseUint64(arg, value, 0);
-}
 
 /**
  * Parse decimal or hex string to uint16_t.
@@ -297,18 +287,18 @@ int parseUint64Auto(const char* arg, uint64_t* value)
  * @param value uint64_t*
  * @return int status
  */
-int parseUint64(const char* arg, uint64_t* value, uint8_t base)
+int parseUint64(const char* arg, uint64_t* value)
 {
     char* endptr;
     int err_no = 0;
     errno = 0;
     uint64_t result;
 
-    if ( base != 10 && base != 16 && base != 0 )
-    {
-        fprintf(stderr, "Error: Unsupported base %u!\n", base);
-        return 1;
-    }
+//    if ( base != 10 && base != 16 && base != 0 )
+//    {
+//        fprintf(stderr, "Error: Unsupported base %u!\n", base);
+//        return 1;
+//    }
 
     if ( arg[0] ==  '-' )
     {
@@ -319,7 +309,7 @@ int parseUint64(const char* arg, uint64_t* value, uint8_t base)
 #if defined(_WIN32)
     result = strtoull(arg, &endptr, base);
 #else
-    result = strtoul(arg, &endptr, base);
+    result = strtoul(arg, &endptr, 0);
 #endif
     err_no = errno;
 
@@ -338,25 +328,10 @@ int parseUint64(const char* arg, uint64_t* value, uint8_t base)
     return 0;
 }
 
-int parseUint32Auto(const char* arg, uint32_t* value)
+int parseUint32(const char* arg, uint32_t* value)
 {
     uint64_t result;
-    int s = parseUint64Auto(arg, &result);
-    if ( s != 0 ) return s;
-    if ( result > UINT32_MAX )
-    {
-        fprintf(stderr, "Error: %s could not be converted to a 4 byte int: Out of range!\n", arg);
-        return 5;
-    }
-
-    *value = (uint32_t) result;
-    return 0;
-}
-
-int parseUint32(const char* arg, uint32_t* value, uint8_t base)
-{
-    uint64_t result;
-    int s = parseUint64(arg, &result, base);
+    int s = parseUint64(arg, &result);
     if ( s != 0 ) return s;
     if ( s > UINT32_MAX )
     {

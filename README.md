@@ -18,8 +18,8 @@ Compiles and runs under
 
 
 ## Version ##
-1.12.1  
-Last changed: 15.10.2021
+1.13.0  
+Last changed: 24.10.2021
 
 ## REQUIREMENTS ##
 - Linux
@@ -96,6 +96,10 @@ Options:
    * -fileh: Print file header.
    * -progh: Print program headers.
    * -sech: Print section headers.
+   * -sym: Print symbol table (names only).
+   * -symx: Print symbol table with all info.
+   * -dym: Print dynamic symbol table (names only).
+   * -dymx: Print dynamic symbol table with all info.
  
 ## EXAMPLE ##
 ```bash

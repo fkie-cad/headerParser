@@ -25,6 +25,18 @@ static char* Elf_getPHTypeString(uint32_t type);
 static void Elf_printSectionHeaderTableEntry(Elf64SectionHeader* sh, uint16_t idx, uint16_t e_shnum, char* name, size_t offset, uint8_t bitness);
 static char* Elf_getSHTypeString(uint32_t type);
 
+void Elf_printSymTabEntry(
+    Elf64_Sym* sym,
+    char* name,
+    size_t i,
+    size_t nr_syms,
+    uint8_t bitness,
+    size_t offset,
+    uint8_t ex
+);
+char* Elf_getSymbolBind(unsigned char st_info);
+char* Elf_getSymbolType(unsigned char st_info);
+char* Elf_getSymbolVisibility(unsigned char st_other);
 
 
 void Elf_printFileHeader(Elf64FileHeader* fh, size_t start_file_offset)
@@ -221,6 +233,101 @@ char* Elf_getSHTypeString(uint32_t type)
     else if ( type == ElfSectionHeaderTypes.SHT_LOUSER ) return "Start of application-specific";
     else if ( type == ElfSectionHeaderTypes.SHT_HIUSER ) return "End of application-specific";
     else return "unsupported";
+}
+
+void Elf_printSymTabEntry(
+    Elf64_Sym* sym,
+    char* name,
+    size_t i,
+    size_t nr_syms,
+    uint8_t bitness,
+    size_t offset,
+    uint8_t ex
+)
+{
+    Elf_Sym_Offsets offsets = (bitness==32)?Elf32SymOffsets:Elf64SymOffsets;
+
+    printf("%zu/%zu%s: %s\n", i, nr_syms, fillOffset(offsets.st_name, offset, 0), name);
+    if ( ex )
+    {
+//        printf(" - st_info%s: bind: %s, type: %s (0x%x)\n", fillOffset(offsets.st_name, offset, 0), Elf_getSymbolBind(sym->st_info), Elf_getSymbolType(sym->st_info), sym->st_info);
+//        printf(" - st_other%s: visibility: %s (0x%x)\n", fillOffset(offsets.st_name, offset, 0), Elf_getSymbolVisibility(sym->st_other), sym->st_other);
+        printf(" - st_info%s: 0x%x\n", fillOffset(offsets.st_name, offset, 0), sym->st_info);
+        printf("   - bind: %s (0x%x), type: %s (0x%x)\n", Elf_getSymbolBind(sym->st_info), ELF64_ST_BIND(sym->st_info), Elf_getSymbolType(sym->st_info), ELF32_ST_TYPE(sym->st_info));
+        printf(" - st_other%s: 0x%x\n", fillOffset(offsets.st_name, offset, 0), sym->st_other);
+        printf("   - visibility: %s (0x%x)\n", Elf_getSymbolVisibility(sym->st_other), ELF64_ST_VISIBILITY(sym->st_other));
+        printf(" - st_shndx%s: 0x%x\n", fillOffset(offsets.st_name, offset, 0), sym->st_shndx);
+        printf(" - st_value%s: 0x%"PRIx64"\n", fillOffset(offsets.st_name, offset, 0), sym->st_value);
+        printf(" - st_size%s: 0x%"PRIx64"\n", fillOffset(offsets.st_name, offset, 0), sym->st_size);
+    }
+}
+
+char* Elf_getSymbolBind(unsigned char st_info)
+{
+    uint8_t b = ELF64_ST_BIND(st_info);
+
+    if ( b == ELF_STB_LOCAL )
+        return "ELF_STB_LOCAL";
+    else if ( b == ELF_STB_GLOBAL )
+        return "ELF_STB_GLOBAL";
+    else if ( b == ELF_STB_WEAK )
+        return "ELF_STB_WEAK";
+    else if ( b == ELF_STB_LOOS )
+        return "ELF_STB_LOOS";
+    else if ( b == ELF_STB_HIOS )
+        return "ELF_STB_HIOS";
+    else if ( b == ELF_STB_LOPROC )
+        return "ELF_STB_LOPROC";
+    else if ( b == ELF_STB_HIPROC )
+        return "ELF_STB_HIPROC";
+    else
+        return "None";
+}
+
+char* Elf_getSymbolType(unsigned char st_info)
+{
+    uint8_t b = ELF32_ST_TYPE(st_info);
+
+    if ( b == ELF_STT_NOTYPE )
+        return "ELF_STT_NOTYPE";
+    else if ( b == ELF_STT_OBJECT )
+        return "ELF_STT_OBJECT";
+    else if ( b == ELF_STT_FUNC )
+        return "ELF_STT_FUNC";
+    else if ( b == ELF_STT_SECTION )
+        return "ELF_STT_SECTION";
+    else if ( b == ELF_STT_FILE )
+        return "ELF_STT_FILE";
+    else if ( b == ELF_STT_COMMON )
+        return "ELF_STT_COMMON";
+    else if ( b == ELF_STT_LOOS )
+        return "ELF_STT_LOOS";
+    else if ( b == ELF_STT_HIOS )
+        return "ELF_STT_HIOS";
+    else if ( b == ELF_STT_LOPROC )
+        return "ELF_STT_LOPROC";
+//    else if ( b == ELF_STT_SPARC_REGISTER )
+//        return "ELF_STT_SPARC_REGISTER";
+    else if ( b == ELF_STT_HIPROC )
+        return "ELF_STT_HIPROC";
+    else
+        return "None";
+}
+
+char* Elf_getSymbolVisibility(unsigned char st_other)
+{
+    uint8_t v = ELF64_ST_VISIBILITY(st_other);
+
+    if ( v == ELF_STV_DEFAULT )
+        return "ELF_STV_DEFAULT";
+    else if ( v == ELF_STV_INTERNAL )
+        return "ELF_STV_INTERNAL";
+    else if ( v == ELF_STV_HIDDEN )
+        return "ELF_STV_HIDDEN";
+    else if ( v == ELF_STV_PROTECTED )
+        return "ELF_STV_PROTECTED";
+    else
+        return "None";
 }
 
 /*char* ElfgetEMachineString(ElfInstructionSetArchitecture type)

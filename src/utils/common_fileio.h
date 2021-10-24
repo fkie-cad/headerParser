@@ -240,10 +240,7 @@ size_t readFile(FILE* fi, size_t begin, size_t size, unsigned char* data)
 {
     size_t n = 0;
 
-//	if ( begin )
-    {
-        fseek(fi, begin, SEEK_SET);
-    }
+    fseek(fi, begin, SEEK_SET);
 
     n = fread(data, 1, size, fi);
 
@@ -264,7 +261,7 @@ size_t readFileA(FILE* fi, size_t begin, size_t size, unsigned char** data)
 {
     size_t n = 0;
 
-    *data = (unsigned char *) malloc(size);
+    *data = (uint8_t*) malloc(size);
     if (!(*data))
     {
 //		prog_error("Malloc failed.\n");

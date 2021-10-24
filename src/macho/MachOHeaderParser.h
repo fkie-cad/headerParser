@@ -16,37 +16,61 @@
 #include "MachOHeaderPrinter.h"
 
 
+static
+void parseMachOHeader(
+    PHeaderData hd,
+    PGlobalParams gp
+);
 
-void parseMachOHeader(PHeaderData hd, PGlobalParams gp);
+static
+void MachO_fillHeaderDataWithMagic(
+    PHeaderData hd,
+    unsigned char* block_l
+);
 
-void MachO_fillHeaderDataWithMagic(PHeaderData hd,
-                                   unsigned char* block_l);
-int MachO_fillMachHeader(MachHeader64* h,
-                         size_t start_file_offset,
-                         size_t file_size,
-                         uint8_t bitness,
-                         uint8_t endian,
-                         unsigned char* block_l);
-void MachO_readCommands(uint32_t ncmds,
-                        size_t* abs_file_offset,
-                        size_t file_size,
-                        uint8_t ilevel,
-                        PHeaderData hd,
-                        FILE* fp,
-                        unsigned char* block_l);
-void MachO_fillLoadCommand(LoadCommand* lc,
-                           size_t offset,
-                           PHeaderData hd,
-                           unsigned char* block_l);
-size_t MachO_fillSegmentCommand(size_t sc_offset,
-                                  SegmentCommand64* sc,
-                                  Segment_Command_Offsets offsets,
-                                  size_t* abs_file_offset,
-                                  size_t file_size,
-                                  uint8_t ilevel,
-                                  PHeaderData hd,
-                                  FILE* fp,
-                                  unsigned char* block_l);
+static
+int MachO_fillMachHeader(
+    MachHeader64* h,
+    size_t start_file_offset,
+    size_t file_size,
+    uint8_t bitness,
+    uint8_t endian,
+    unsigned char* block_l
+);
+
+static
+void MachO_readCommands(
+    uint32_t ncmds,
+    size_t* abs_file_offset,
+    size_t file_size,
+    uint8_t ilevel,
+    PHeaderData hd,
+    FILE* fp,
+    unsigned char* block_l
+);
+
+static
+void MachO_fillLoadCommand(
+    LoadCommand* lc,
+    size_t offset,
+    PHeaderData hd,
+    unsigned char* block_l
+);
+
+static
+size_t MachO_fillSegmentCommand(
+    size_t sc_offset,
+    SegmentCommand64* sc,
+    Segment_Command_Offsets offsets,
+    size_t* abs_file_offset,
+    size_t file_size,
+    uint8_t ilevel,
+    PHeaderData hd,
+    FILE* fp,
+    unsigned char* block_l
+);
+
+static
 size_t MachO_readSections(SegmentCommand64* c,
                             size_t offset,
                             size_t* abs_file_offset,
@@ -55,97 +79,141 @@ size_t MachO_readSections(SegmentCommand64* c,
                             PHeaderData hd,
                             FILE* fp,
                             unsigned char* block_l);
+
+static
 void MachO_readSection(MachOSection64* sec,
                        size_t offset,
                        MachO_Section_Offsets offsets,
                        uint8_t bitness,
                        uint8_t endian,
                        unsigned char* block_l);
-uint8_t MachO_isExecutableSection(const MachOSection64* sec);
-CodeRegionData MachO_fillCodeRegion(const MachOSection64* sec);
-void MachO_fillUuidCommand(UuidCommand* c,
-                           size_t offset,
-                           size_t abs_file_offset,
-                           uint8_t ilevel,
-                           unsigned char* block_l);
+
+static
+uint8_t MachO_isExecutableSection(
+    const MachOSection64* sec
+);
+
+static
+CodeRegionData MachO_fillCodeRegion(
+    const MachOSection64* sec
+);
+
+static
+void MachO_fillUuidCommand(
+    UuidCommand* c,
+    size_t offset,
+    size_t abs_file_offset,
+    uint8_t ilevel,
+    unsigned char* block_l
+);
+
+static
 void MachO_fillDylibCommand(DylibCommand* c,
                             size_t offset,
                             size_t abs_file_offset,
                             uint8_t ilevel,
                             PHeaderData hd,
                             unsigned char* block_l);
+
+static
 void MachO_fillPreboundDylibCommand(PreboundDylibCommand* c,
                                     size_t offset,
                                     size_t abs_file_offset,
                                     uint8_t ilevel,
                                     PHeaderData hd,
                                     unsigned char* block_l);
+
+static
 void MachO_fillSubCommand(SubCommand* c,
                           size_t offset,
                           size_t abs_file_offset,
                           uint8_t ilevel,
                           PHeaderData hd,
                           unsigned char* block_l);
+
+static
 void MachO_fillSymtabCommand(SymtabCommand* c,
                              size_t offset,
                              size_t abs_file_offset,
                              uint8_t ilevel,
                              PHeaderData hd,
                              unsigned char* block_l);
+
+static
 void MachO_fillDySymtabCommand(DySymtabCommand* c,
                                size_t offset,
                                size_t abs_file_offset,
                                uint8_t ilevel,
                                PHeaderData hd,
                                unsigned char* block_l);
+
+static
 void MachO_fillRoutinesCommand(RoutinesCommand64* c,
                                size_t offset,
                                size_t abs_file_offset,
                                uint8_t ilevel,
                                PHeaderData hd,
                                unsigned char* block_l);
+
+static
 void MachO_fillVersionMinCommand(VersionMinCommand* c,
                                  size_t offset,
                                  size_t abs_file_offset,
                                  uint8_t ilevel,
                                  PHeaderData hd,
                                  unsigned char* block_l);
+
+static
 void MachO_fillThreadCommand(ThreadCommand* c,
                              size_t offset,
                              size_t abs_file_offset,
                              uint8_t ilevel,
                              PHeaderData hd,
                              unsigned char* block_l);
+
+static
 void MachO_fillLinkedItDataCommand(LinkedItDataCommand* c,
                                    size_t offset,
                                    size_t abs_file_offset,
                                    uint8_t ilevel,
                                    PHeaderData hd,
                                    unsigned char* block_l);
+
+static
 void MachO_fillDyldInfoCommand(DyldInfoCommand* c,
                                size_t offset,
                                size_t abs_file_offset,
                                uint8_t ilevel,
                                PHeaderData hd,
                                unsigned char* block_l);
+
+static
 void MachO_fillSourceVersionCommand(SourceVersionCommand* c,
                                     size_t offset,
                                     size_t abs_file_offset,
                                     uint8_t ilevel,
                                     PHeaderData hd,
                                     unsigned char* block_l);
-void MachO_fillMainDylibCommand(MainDylibCommand* c,
-                                size_t offset,
-                                size_t abs_file_offset,
-                                uint8_t ilevel,
-                                PHeaderData hd,
-                                unsigned char* block_l);
-void MachO_fillBuildVersionCommand(BuildVersionCommand* c,
-                                   size_t offset,
-                                   size_t abs_file_offset,
-                                   uint8_t ilevel,
-                                   PHeaderData hd,
-                                   unsigned char* block_l);
+
+static
+void MachO_fillMainDylibCommand(
+    MainDylibCommand* c,
+    size_t offset,
+    size_t abs_file_offset,
+    uint8_t ilevel,
+    PHeaderData hd,
+    unsigned char* block_l
+);
+
+static
+void MachO_fillBuildVersionCommand(
+    BuildVersionCommand* c,
+    size_t offset,
+    size_t abs_file_offset,
+    uint8_t ilevel,
+    PHeaderData hd,
+    unsigned char* block_l
+);
 
 
 

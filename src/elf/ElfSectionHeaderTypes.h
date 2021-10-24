@@ -213,4 +213,55 @@ const Elf_Sym_Offsets Elf64SymOffsets = {
 // st_other
 #define ELF32_ST_VISIBILITY(o)       ((o)&0x3)
 #define ELF64_ST_VISIBILITY(o)       ((o)&0x3)
+
+#define ELF_STV_DEFAULT   (0x00) // default visibility rules
+#define ELF_STV_INTERNAL  (0x01) // Processor specific hidden class
+#define ELF_STV_HIDDEN    (0x02) // symbol is not available for reference in other modules
+#define ELF_STV_PROTECTED (0x03) // protected symbol.
+
+// Local symbol. These symbols are not visible outside the object file containing their definition. Local symbols of the same name can exist in multiple files without interfering with each other.
+#define ELF_STB_LOCAL (0)
+// Global symbols. These symbols are visible to all object files being combined. One file's definition of a global symbol will satisfy another file's undefined reference to the same global symbol.
+#define ELF_STB_GLOBAL (1)
+// Weak symbols. These symbols resemble global symbols, but their definitions have lower precedence.
+#define ELF_STB_WEAK (2)
+// STB_LOOS - STB_HIOS
+// Values in this inclusive range are reserved for operating system-specific semantics.
+#define ELF_STB_LOOS (10)
+#define ELF_STB_HIOS (12)
+//STB_LOPROC - STB_HIPROC
+//Values in this inclusive range are reserved for processor-specific semantics.
+#define ELF_STB_LOPROC (13)
+#define ELF_STB_HIPROC (15)
+
+// Global and weak symbols differ in two major ways:
+// When the link-editor combines several relocatable object files, it does not allow multiple definitions of STB_GLOBAL symbols with the same name. On the other hand, if a defined global symbol exists, the appearance of a weak symbol with the same name will not cause an error. The link-editor honors the global definition and ignores the weak ones.
+// Similarly, if a common symbol exists, the appearance of a weak symbol with the same name does not cause an error. The link-editor uses the common definition and ignores the weak one. A common symbol has the st_shndx field holding SHN_COMMON. See "Symbol Resolution".
+// When the link-editor searches archive libraries it extracts archive members that contain definitions of undefined or tentative global symbols. The member's definition can be either a global or a weak symbol.
+// The link-editor, by default, does not extract archive members to resolve undefined weak symbols. Unresolved weak symbols have a zero value. The use of -z weakextract overrides this default behavior. It enables weak references to cause the extraction of archive members.
+
+
+// The symbol type is not specified.
+#define ELF_STT_NOTYPE (0x00)
+// This symbol is associated with a data object, such as a variable, an array, and so forth.
+#define ELF_STT_OBJECT (0x01)
+// This symbol is associated with a function or other executable code.
+#define ELF_STT_FUNC (0x02)
+// This symbol is associated with a section. Symbol table entries of this type exist primarily for relocation and normally have STB_LOCAL binding.
+#define ELF_STT_SECTION (0x03)
+// Conventionally, the symbol's name gives the name of the source file associated with the object file. A file symbol has STB_LOCAL binding and its section index is SHN_ABS. This symbol, if present, precedes the other STB_LOCAL symbols for the file. Symbol index 1 of the SHT_SYMTAB is an STT_FILE symbol representing the file itself. Conventionally, this symbols is followed by the files STT_SECTION symbols, and any global symbols that have been reduced to locals.
+#define ELF_STT_FILE (0x04)
+// This symbol labels an uninitialized common block. It is treated exactly the same as STT_OBJECT.
+#define ELF_STT_COMMON (0x05)
+// STT_LOOS - STT_HIOS
+// Values in this inclusive range are reserved for operating system-specific semantics.
+#define ELF_STT_LOOS (0x0a)
+#define ELF_STT_HIOS (0xc)
+// STT_LOPROC - STT_HIPROC
+// Values in this inclusive range are reserved for processor-specific semantics.
+#define ELF_STT_LOPROC (0x0d)
+//#define ELF_STT_SPARC_REGISTER (0x0d)
+#define ELF_STT_HIPROC (0x0f)
+
+
 #endif

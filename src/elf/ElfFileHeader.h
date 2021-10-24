@@ -66,4 +66,27 @@ typedef struct Elf64FileHeader
 #define ELF_SIZE_OF_FILE_HEADER_32 (sizeof(Elf32FileHeader))
 #define ELF_SIZE_OF_FILE_HEADER_64 (sizeof(Elf64FileHeader))
 
+
+
+
+// custom type to pass around
+typedef struct _Elf_StringTables {
+    uint32_t shstrtab_size;
+    uint8_t* shstrtab;
+    uint32_t strtab_size;
+    uint8_t* strtab;
+    uint32_t dynstr_size;
+    uint8_t* dynstr;
+} Elf_StringTables;
+
+void cleanStrTabs(Elf_StringTables* t)
+{
+    if ( t->shstrtab )
+        free(t->shstrtab);
+    if ( t->strtab )
+        free(t->strtab);
+    if ( t->dynstr )
+        free(t->dynstr);
+}
+
 #endif
