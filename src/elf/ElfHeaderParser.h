@@ -610,30 +610,27 @@ void Elf_readSectionHeaderTable(
     Elf_readSectionHeaderEntries(fh, &strtabs, start_file_offset, abs_file_offset, file_size, ilevel, fp, block_l, hd);
 
     // print section info of set INFO_LEVEL_ELF_XX flags
-    if ( LIB_MODE == 0 )
+#if defined(LIB_MODE) && LIB_MODE==0
+    Elf64SectionHeader sht_entry;
+
+    if ( ilevel & (INFO_LEVEL_ELF_SYM_TAB|INFO_LEVEL_ELF_SYM_TAB_EX) )
     {
-        Elf64SectionHeader sht_entry;
-
-        if ( ilevel & (INFO_LEVEL_ELF_SYM_TAB|INFO_LEVEL_ELF_SYM_TAB_EX) )
-        {
-//            uint8_t buffer[BLOCKSIZE];
-            s = Elf_getSectionTableEntryByNameType(NULL, ElfSectionHeaderTypes.SHT_SYMTAB, &sht_entry, &strtabs, fh, start_file_offset, abs_file_offset, file_size, block_l, fp);
-            if ( s == 0 )
-                Elf_parseSymTab(strtabs.strtab, strtabs.strtab_size, start_file_offset, abs_file_offset, file_size, fp, &sht_entry, block_l, BLOCKSIZE, bitness, fh->EI_DATA, (ilevel&INFO_LEVEL_ELF_SYM_TAB_EX));
-            else
-                printf("No symbol table found.\n");
-        }
-
-        if ( ilevel & (INFO_LEVEL_ELF_DYN_SYM_TAB|INFO_LEVEL_ELF_DYN_SYM_TAB_EX) )
-        {
-//            uint8_t buffer[BLOCKSIZE];
-            s = Elf_getSectionTableEntryByNameType(NULL, ElfSectionHeaderTypes.SHT_DYNSYM, &sht_entry, &strtabs, fh, start_file_offset, abs_file_offset, file_size, block_l, fp);
-            if ( s == 0 )
-                Elf_parseSymTab(strtabs.dynstr, strtabs.dynstr_size, start_file_offset, abs_file_offset, file_size, fp, &sht_entry, block_l, BLOCKSIZE, bitness, fh->EI_DATA, (ilevel&INFO_LEVEL_ELF_DYN_SYM_TAB_EX));
-            else
-                printf("No dynamic symbol table found.\n");
-        }
+        s = Elf_getSectionTableEntryByNameType(NULL, ElfSectionHeaderTypes.SHT_SYMTAB, &sht_entry, &strtabs, fh, start_file_offset, abs_file_offset, file_size, block_l, fp);
+        if ( s == 0 )
+            Elf_parseSymTab(strtabs.strtab, strtabs.strtab_size, start_file_offset, abs_file_offset, file_size, fp, &sht_entry, block_l, BLOCKSIZE, bitness, fh->EI_DATA, (ilevel&INFO_LEVEL_ELF_SYM_TAB_EX));
+        else
+            printf("No symbol table found.\n");
     }
+
+    if ( ilevel & (INFO_LEVEL_ELF_DYN_SYM_TAB|INFO_LEVEL_ELF_DYN_SYM_TAB_EX) )
+    {
+        s = Elf_getSectionTableEntryByNameType(NULL, ElfSectionHeaderTypes.SHT_DYNSYM, &sht_entry, &strtabs, fh, start_file_offset, abs_file_offset, file_size, block_l, fp);
+        if ( s == 0 )
+            Elf_parseSymTab(strtabs.dynstr, strtabs.dynstr_size, start_file_offset, abs_file_offset, file_size, fp, &sht_entry, block_l, BLOCKSIZE, bitness, fh->EI_DATA, (ilevel&INFO_LEVEL_ELF_DYN_SYM_TAB_EX));
+        else
+            printf("No dynamic symbol table found.\n");
+    }
+#endif 
 
 clean:
     cleanStrTabs(&strtabs);
@@ -667,12 +664,12 @@ int Elf_readSectionByNameType(
     if ( s != 0 )
         return s;
 
-    if ( !checkFileSpace(sht_entry.sh_offset, start_file_offset, sht_entry.sh_size, file_size) )
+    if ( !checkFileSpace((size_t)sht_entry.sh_offset, start_file_offset, (size_t)sht_entry.sh_size, file_size) )
         return -5;
 
     sht_entry.sh_offset += start_file_offset;
 
-    *section_size = (uint32_t)readFileA(fp, (size_t)sht_entry.sh_offset, sht_entry.sh_size, section);
+    *section_size = (uint32_t)readFileA(fp, (size_t)sht_entry.sh_offset, (size_t)sht_entry.sh_size, section);
     if ( *section_size == 0)
         return -6;
 

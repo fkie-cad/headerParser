@@ -31,7 +31,7 @@ int Elf_parseSymTab(
     unsigned char* ptr = NULL;
     size_t offset = 0;
     size_t h_size = sizeof(Elf64_Sym);
-    size_t nr_syms = sh->sh_size / h_size;
+    size_t nr_syms = (size_t)(sh->sh_size / h_size);
     size_t sym_i = 1;
     Elf64_Sym sym;
     size_t h_offset = 0;
@@ -42,7 +42,7 @@ int Elf_parseSymTab(
         return -1;
     }
 
-    if ( !checkFileSpace((size_t)sh->sh_offset, start_file_offset, sh->sh_size, file_size) )
+    if ( !checkFileSpace((size_t)sh->sh_offset, start_file_offset, (size_t)sh->sh_size, file_size) )
         return -1;
 
     // read new block to ease up offsetting

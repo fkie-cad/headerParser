@@ -307,7 +307,7 @@ int parseUint64(const char* arg, uint64_t* value)
     }
 
 #if defined(_WIN32)
-    result = strtoull(arg, &endptr, base);
+    result = strtoull(arg, &endptr, 0);
 #else
     result = strtoul(arg, &endptr, 0);
 #endif
