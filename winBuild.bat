@@ -157,9 +157,9 @@ if [%test%] == [0] (
 :build
     cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:Configuration=%mode% /p:RuntimeLib=%rt% /p:PDB=%pdb% /p:ConfigurationType=%ct%  & exit"
 
-    if /i [%mode%]==[release] (
-        certutil -hashfile %build_dir%\%target%.exe sha256 | find /i /v "sha256" | find /i /v "certutil" > %build_dir%\%target%.sha256
-    )
+    :: if /i [%mode%]==[release] (
+    ::     certutil -hashfile %build_dir%\%target%.exe sha256 | find /i /v "sha256" | find /i /v "certutil" > %build_dir%\%target%.sha256
+    :: )
 
     exit /B 0
 
