@@ -152,9 +152,9 @@ void printUsage()
 #else
     char* pref = "./";
 #endif
-    printf("Usage: %s%s file/name [options]\n", pref, BIN_NAME);
-    printf("Usage: %s%s [options] file/name\n", pref, BIN_NAME);
-    printf("\nVersion: %s\n", BIN_VS);
+    printf("Usage: %s%s [options] file/name [options]\n", pref, BIN_NAME);
+    printf("\n");
+    printf("Version: %s\n", BIN_VS);
     printf("Last changed: %s\n", BIN_DATE);
 }
 
@@ -202,6 +202,13 @@ void printHelp()
     printf("$ ./%s path/to/a.file -f pe\n", BIN_NAME);
 }
 
+int isAskForHelp(const char* arg)
+{
+    return ( arg[0] == LIN_PARAM_IDENTIFIER || arg[0] == WIN_PARAM_IDENTIFIER ) &&
+            ( arg[1] == '?' || arg[1] == 'h' ) &&
+            arg[2] == 0;
+}
+
 int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams elfp, uint8_t* force, char* file_name)
 {
     int start_i = 1;
@@ -210,7 +217,7 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
     int s = 0;
     char* arg = NULL;
 
-    if ( isArgOfType(argv[1], "-h"))
+    if ( isAskForHelp(argv[1]) )
     {
         printHelp();
         return 1;

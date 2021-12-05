@@ -224,7 +224,6 @@ size_t readCharArrayFile(const char* finame, unsigned char ** pData, size_t begi
     *pData = data;
 
     return n; 
-    // returns read data points (char's in this case)
 }
 
 /**
