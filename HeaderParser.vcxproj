@@ -24,6 +24,7 @@
     <RootNamespace>$(MSBuildProjectName)</RootNamespace>
     <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
+    <ReadOnlyProject>true</ReadOnlyProject>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
@@ -133,6 +134,7 @@
   <ItemGroup Condition="'$(ConfigurationType)'=='DynamicLibrary'">
     <ClCompile Include="src\headerParserLib.c" />
   </ItemGroup>
+  
   <ItemGroup>
     <ResourceCompile Include="res\headerparser.rc" />
   </ItemGroup>
@@ -143,10 +145,10 @@
     <Message Text="PlatformToolset = $(PlatformToolset)" />
     <Message Text="Project Name = $(MSBuildProjectName)" />
     <Message Text="Project File Name = $(MSBuildProjectFile)" />
-	<Message Text="ConfigurationType = $(ConfigurationType)" />
-	<Message Text="Configuration = $(Configuration)" />
-	<Message Text="Platform = $(Platform)" />
-	<Message Text="RunTimeLib = $(RunTimeLib)" />
+	  <Message Text="ConfigurationType = $(ConfigurationType)" />
+    <Message Text="Configuration = $(Configuration)" />
+    <Message Text="Platform = $(Platform)" />
+    <Message Text="RunTimeLib = $(RunTimeLib)" />
     <Message Text="IntDir = $(IntDir)" />
     <Message Text="OutDir = $(OutDir)" />
     <Message Text="TargetPath = $(TargetPath)" />

@@ -894,36 +894,39 @@ const char* PE_getImageSecAlignmentString(uint32_t ch)
 {
     uint32_t a = ch & PE_IMAGE_SCN_ALIGN_MASK;
 
-    if ( a == 0x00100000 )
-        return "IMAGE_SCN_ALIGN_1BYTES";
-    if ( a == 0x00200000 )
-        return "IMAGE_SCN_ALIGN_2BYTES";
-    if ( a == 0x00300000 )
-        return "IMAGE_SCN_ALIGN_4BYTES";
-    if ( a == 0x00400000 )
-        return "IMAGE_SCN_ALIGN_8BYTES";
-    if ( a == 0x00500000 )
-        return "IMAGE_SCN_ALIGN_16BYTES";
-    if ( a == 0x00600000 )
-        return "IMAGE_SCN_ALIGN_32BYTES";
-    if ( a == 0x00700000 )
-        return "IMAGE_SCN_ALIGN_64BYTES";
-    if ( a == 0x00800000 )
-        return "IMAGE_SCN_ALIGN_128BYTES";
-    if ( a == 0x00900000 )
-        return "IMAGE_SCN_ALIGN_256BYTES";
-    if ( a == 0x00a00000 )
-        return "IMAGE_SCN_ALIGN_512BYTES";
-    if ( a == 0x00b00000 )
-        return "IMAGE_SCN_ALIGN_1024BYTES";
-    if ( a == 0x00c00000 )
-        return "IMAGE_SCN_ALIGN_2048BYTES";
-    if ( a == 0x00d00000 )
-        return "IMAGE_SCN_ALIGN_4096BYTES";
-    if ( a == 0x00e00000 )
-        return "IMAGE_SCN_ALIGN_8192BYTES";
-
-    return "NONE";
+    switch ( a )
+    {
+        case 0x00100000:
+            return "IMAGE_SCN_ALIGN_1BYTES";
+        case 0x00200000:
+            return "IMAGE_SCN_ALIGN_2BYTES";
+        case 0x00300000:
+            return "IMAGE_SCN_ALIGN_4BYTES";
+        case 0x00400000:
+            return "IMAGE_SCN_ALIGN_8BYTES";
+        case 0x00500000:
+            return "IMAGE_SCN_ALIGN_16BYTES";
+        case 0x00600000:
+            return "IMAGE_SCN_ALIGN_32BYTES";
+        case 0x00700000:
+            return "IMAGE_SCN_ALIGN_64BYTES";
+        case 0x00800000:
+            return "IMAGE_SCN_ALIGN_128BYTES";
+        case 0x00900000:
+            return "IMAGE_SCN_ALIGN_256BYTES";
+        case 0x00a00000:
+            return "IMAGE_SCN_ALIGN_512BYTES";
+        case 0x00b00000:
+            return "IMAGE_SCN_ALIGN_1024BYTES";
+        case 0x00c00000:
+            return "IMAGE_SCN_ALIGN_2048BYTES";
+        case 0x00d00000:
+            return "IMAGE_SCN_ALIGN_4096BYTES";
+        case 0x00e00000:
+            return "IMAGE_SCN_ALIGN_8192BYTES";
+        default:
+            return "NONE";
+    }
 }
 
 
@@ -964,6 +967,56 @@ void PE_printImageBaseRelocationBlockEntry(PE_BASE_RELOCATION_ENTRY* e)
 
     printf("     - 0x%04x | %s (%u)\n", offset, type_str, type);
 }
+
+
+
+
+void PE_printDebugTableHeader()
+{
+    printf("Debug Table:\n");
+}
+
+const char* Pe_getDebugTypeString(uint32_t type)
+{
+    switch ( type )
+    {
+        case PE_IMAGE_DEBUG_TYPE_UNKNOWN: return "UNKNOWN";
+        case PE_IMAGE_DEBUG_TYPE_COFF: return "COFF";
+        case PE_IMAGE_DEBUG_TYPE_CODEVIEW: return "CODEVIEW";
+        case PE_IMAGE_DEBUG_TYPE_FPO: return "FPO";
+        case PE_IMAGE_DEBUG_TYPE_MISC: return "MISC";
+        case PE_IMAGE_DEBUG_TYPE_EXCEPTION: return "EXCEPTION";
+        case PE_IMAGE_DEBUG_TYPE_FIXUP: return "FIXUP";
+        case PE_IMAGE_DEBUG_TYPE_OMAP_TO_SRC: return "OMAP_TO_SRC";
+        case PE_IMAGE_DEBUG_TYPE_OMAP_FROM_SRC: return "OMAP_FROM_SRC";
+        case PE_IMAGE_DEBUG_TYPE_BORLAND: return "BORLAND";
+        case PE_IMAGE_DEBUG_TYPE_RESERVED10: return "RESERVED10";
+        case PE_IMAGE_DEBUG_TYPE_CLSID: return "CLSID";
+        case PE_IMAGE_DEBUG_TYPE_VC_FEATURE: return "VC_FEATURE";
+        case PE_IMAGE_DEBUG_TYPE_POGO: return "POGO";
+        case PE_IMAGE_DEBUG_TYPE_ILTCG: return "ILTCG";
+        case PE_IMAGE_DEBUG_TYPE_MPX: return "_MPX";
+        case PE_IMAGE_DEBUG_TYPE_REPRO: return "REPRO";
+        case PE_IMAGE_DEBUG_TYPE_EX_DLLCHARACTERISTICS: return "EX_DLLCHARACTERISTICS";
+        default: return "UNKNOWN";
+    };
+};
+
+void PE_printDebugTableEntry(PE_DEBUG_TABLE_ENTRY* e, uint32_t i, uint32_t nr_of_entries, size_t start_file_offset)
+{
+    printf(" - Entry %u / %u:\n", i, nr_of_entries);
+    printf("   - Characteristics%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.Characteristics, 0, start_file_offset), e->Characteristics);
+    printf("   - TimeDateStamp%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.TimeDateStamp, 0, start_file_offset), e->TimeDateStamp);
+    printf("   - MajorVersion%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.MajorVersion, 0, start_file_offset), e->MajorVersion);
+    printf("   - MinorVersion%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.MinorVersion, 0, start_file_offset), e->MinorVersion);
+    printf("   - Type%s: %s (0x%x)\n", fillOffset(PeImageDebugTableEntryOffsets.Type, 0, start_file_offset), Pe_getDebugTypeString(e->Type), e->Type);
+    printf("   - SizeOfData%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.SizeOfData, 0, start_file_offset), e->SizeOfData);
+    printf("   - AddressOfRawData%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.AddressOfRawData, 0, start_file_offset), e->AddressOfRawData);
+    printf("   - PointerToRawData%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.PointerToRawData, 0, start_file_offset), e->PointerToRawData);
+}
+
+
+
 
 
 

@@ -766,6 +766,289 @@ typedef struct PE_IMAGE_LOAD_CONFIG_DIRECTORY64 {
 
 
 
+typedef struct _PE_IMAGE_EXCEPTION_TABLE_ENTRY {
+    uint32_t BeginAddress; // 32-bit MIPS, x64 and Itanium
+    union {
+        uint32_t EndAddress; // 32-bit MIPS, x64 and Itanium
+        uint32_t Flags; // 32-bit MIPS, x64 and Itanium
+        struct {  // ARM, PowerPC, SH3 and SH4 Windows CE
+            uint32_t PrologLength : 8;
+            uint32_t FunctionLength : 22;
+            uint32_t BitFlag32 : 1;
+            uint32_t ExceptionFlag : 1;
+        };
+    };
+    union {
+        uint32_t ExceptionHandler; // 32-bit MIPS
+        uint32_t UnwindInformation; // x64 and Itanium, rva to UNWIND_INFO
+    };
+    uint32_t HandlerData; // 32-bit MIPS
+    uint32_t PrologEndAddress; // 32-bit MIPS
+} PE_IMAGE_EXCEPTION_TABLE_ENTRY, * PPE_IMAGE_EXCEPTION_TABLE_ENTRY;
+#define PE_IMAGE_MIPS_EXCEPTION_TABLE_ENTRY_SIZE (5*sizeof(uint32_t))
+#define PE_IMAGE_ARM_EXCEPTION_TABLE_ENTRY_SIZE (2*sizeof(uint32_t))
+#define PE_IMAGE_X64_EXCEPTION_TABLE_ENTRY_SIZE (3*sizeof(uint32_t))
+
+//For 32-bit MIPS images, function table entries have the following format:
+//Offset	Size	Field	Description
+//0 4 Begin Address - The VA of the corresponding function.
+//4 4 End Address - The VA of the end of the function.
+//8 4 Exception Handler - The pointer to the exception handler to be executed.
+//12 4 Handler Data - The pointer to additional information to be passed to the handler.
+//16 4 Prolog End Address - The VA of the end of the function's prolog.
+// 
+//
+//For the ARM, PowerPC, SH3 and SH4 Windows CE platforms, function table entries have the following format:
+//Offset	Size	Field	Description
+//0 4 Begin Address - The VA of the corresponding function.
+//4 8 bits - Prolog Length - The number of instructions in the function's prolog.
+//    4 22 bits Function Length - The number of instructions in the function.
+//    4 1 bit 32-bit Flag - If set, the function consists of 32-bit instructions. If clear, the function consists of 16-bit instructions.
+//    4 1 bit Exception Flag - If set, an exception handler exists for the function. Otherwise, no exception handler exists.
+// 
+//
+//For x64 and Itanium platforms, function table entries have the following format:
+//Offset	Size	Field	Description
+//0 4 Begin Address - The RVA of the corresponding function.
+//4 4 End Address - The RVA of the end of the function.
+//8 4 Unwind Information - The RVA of the unwind information.
+
+// All addresses are image relative, that is, they're 32-bit offsets from the starting address of the image that contains the function table entry. 
+// These entries are sorted, and put in the .pdata section of a PE32+ image. 
+
+//The unwind data info structure is used to record the effects a function has on the stack pointer, and where the nonvolatile registers are saved on the stack:
+#define UNW_FLAG_NHANDLER 0x0
+#define UNW_FLAG_EHANDLER 0x1
+#define UNW_FLAG_UHANDLER 0x2
+#define UNW_FLAG_CHAININFO 0x4
+
+//UNWIND_CODE
+//   +0x000 CodeOffset       : UChar
+//   +0x001 UnwindOp         : Pos 0, 4 Bits
+//   +0x001 OpInfo           : Pos 4, 4 Bits
+//   +0x000 FrameOffset      : Uint2B
+typedef union _PE_UNWIND_CODE {
+    struct {
+        uint8_t CodeOffset;
+        struct {
+            uint8_t UnwindOp : 4;
+            uint8_t OpInfo   : 4;
+        };
+    };
+    uint16_t FrameOffset;
+} PE_UNWIND_CODE, *PPE_UNWIND_CODE;
+
+typedef struct _PE_UNWIND_INFO {
+    uint8_t Version         : 3;
+    uint8_t Flags           : 5;
+    uint8_t SizeOfProlog;
+    uint8_t CountOfCodes;
+    uint8_t FrameRegister  : 4;
+    uint8_t FrameOffset    : 4;
+    PE_UNWIND_CODE UnwindCode[1];
+    union {
+        //
+        // If (Flags & UNW_FLAG_EHANDLER)
+        //
+        uint32_t ExceptionHandler;
+        //
+        // Else if (Flags & UNW_FLAG_CHAININFO)
+        //
+        uint32_t FunctionEntry;
+    };
+    //
+    // If (Flags & UNW_FLAG_EHANDLER)
+    //
+    uint32_t ExceptionData; // an offset to a pointer to a SCOPE_TABLE
+} PE_UNWIND_INFO, *PPE_UNWIND_INFO;
+
+typedef struct _PPE_SCOPE_TABLE {
+     uint32_t Count;
+     struct
+     {
+         uint32_t BeginAddress; // offset of the first instruction within a __try block located in the function
+         uint32_t EndAddress; // offset to the instruction after the last instruction within the __try block (conceptually the __except statement).
+         uint32_t HandlerAddress; // offset to the instruction after the last instruction within the __try block (conceptually the __except statement). Or 1 for EXCEPTION_EXECUTE_HANDLER, ...
+         uint32_t JumpTarget; // offset to the first instruction in the __except block associated with the __try block
+     } ScopeRecord[1];
+ } PPE_SCOPE_TABLE, *PPPE_SCOPE_TABLE;
+
+
+
+
+typedef struct _PE_DEBUG_TABLE_ENTRY {
+    uint32_t Characteristics; // 0 4 Characteristics Reserved, must be zero.
+    uint32_t TimeDateStamp; // 4 4  The time and date that the debug data was created.
+    uint16_t MajorVersion; // 8 2  The major version number of the debug data format.
+    uint16_t MinorVersion; // 10 2  The minor version number of the debug data format.
+    uint32_t Type; // 12 4  The format of debugging information. This field enables support of multiple debuggers. For more information, see Debug Type.
+    uint32_t SizeOfData; // 16 4  The size of the debug data (not including the debug directory itself).
+    uint32_t AddressOfRawData; // 20 4  The address of the debug data when loaded, relative to the image base.
+    uint32_t PointerToRawData; // 24 4  The file pointer to the debug data.
+} PE_DEBUG_TABLE_ENTRY, *PPE_DEBUG_TABLE_ENTRY;
+#define PE_DEBUG_TABLE_ENTRY_SIZE (sizeof(PE_DEBUG_TABLE_ENTRY))
+
+//Debug Type
+#define PE_IMAGE_DEBUG_TYPE_UNKNOWN (0x0) // An unknown value that is ignored by all tools.
+#define PE_IMAGE_DEBUG_TYPE_COFF (0x1) // The COFF debug information (line numbers, symbol table, and string table). This type of debug information is also pointed to by fields in the file headers.
+#define PE_IMAGE_DEBUG_TYPE_CODEVIEW (0x2) // The Visual C++ debug information.
+#define PE_IMAGE_DEBUG_TYPE_FPO (0x3) // The frame pointer omission (FPO) information. This information tells the debugger how to interpret nonstandard stack frames, which use the EBP register for a purpose other than as a frame pointer.
+#define PE_IMAGE_DEBUG_TYPE_MISC (0x4) // The location of DBG file.
+#define PE_IMAGE_DEBUG_TYPE_EXCEPTION (0x5) // A copy of .pdata section.
+#define PE_IMAGE_DEBUG_TYPE_FIXUP (0x6) // Reserved.
+#define PE_IMAGE_DEBUG_TYPE_OMAP_TO_SRC (0x7) // The mapping from an RVA in image to an RVA in source image.
+#define PE_IMAGE_DEBUG_TYPE_OMAP_FROM_SRC (0x8) // The mapping from an RVA in source image to an RVA in image.
+#define PE_IMAGE_DEBUG_TYPE_BORLAND (0x9) // Reserved for Borland.
+#define PE_IMAGE_DEBUG_TYPE_RESERVED10 (0xA) // Reserved.
+#define PE_IMAGE_DEBUG_TYPE_CLSID (0xB) // Reserved.
+#define PE_IMAGE_DEBUG_TYPE_VC_FEATURE  (0xC)
+#define PE_IMAGE_DEBUG_TYPE_POGO (0xD)
+#define PE_IMAGE_DEBUG_TYPE_ILTCG (0xE)
+#define PE_IMAGE_DEBUG_TYPE_MPX (0xF)
+#define PE_IMAGE_DEBUG_TYPE_REPRO (0x10) // PE determinism or reproducibility.
+#define PE_IMAGE_DEBUG_TYPE_EX_DLLCHARACTERISTICS (0x14) // Extended DLL characteristics bits.
+
+
+#define PE_IMAGE_DLLCHARACTERISTICS_EX_CET_COMPAT                                  0x01
+#define PE_IMAGE_DLLCHARACTERISTICS_EX_CET_COMPAT_STRICT_MODE                      0x02
+#define PE_IMAGE_DLLCHARACTERISTICS_EX_CET_SET_CONTEXT_IP_VALIDATION_RELAXED_MODE  0x04
+#define PE_IMAGE_DLLCHARACTERISTICS_EX_CET_DYNAMIC_APIS_ALLOW_IN_PROC              0x08
+#define PE_IMAGE_DLLCHARACTERISTICS_EX_CET_RESERVED_1                              0x10  // Reserved for CET policy *downgrade* only!
+#define PE_IMAGE_DLLCHARACTERISTICS_EX_CET_RESERVED_2                              0x20  // Reserved for CET policy *downgrade* only!
+
+
+typedef struct _PE_IMAGE_COFF_SYMBOLS_HEADER {
+    uint32_t NumberOfSymbols;
+    uint32_t LvaToFirstSymbol;
+    uint32_t NumberOfLinenumbers;
+    uint32_t LvaToFirstLinenumber;
+    uint32_t RvaToFirstByteOfCode;
+    uint32_t RvaToLastByteOfCode;
+    uint32_t RvaToFirstByteOfData;
+    uint32_t RvaToLastByteOfData;
+} PE_IMAGE_COFF_SYMBOLS_HEADER, *PPE_IMAGE_COFF_SYMBOLS_HEADER;
+
+#define PE_FRAME_FPO   0               
+#define PE_FRAME_TRAP  1
+#define PE_FRAME_TSS   2
+#define PE_FRAME_NONFPO    3
+
+typedef struct _PE_FPO_DATA {
+    uint32_t ulOffStart;            // offset 1st byte of function code
+    uint32_t cbProcSize;            // # bytes in function
+    uint32_t cdwLocals;             // # bytes in locals/4
+    uint16_t cdwParams;             // # bytes in params/4
+    uint16_t cbProlog : 8;          // # bytes in prolog
+    uint16_t cbRegs   : 3;          // # regs saved
+    uint16_t fHasSEH  : 1;          // TRUE if SEH in func
+    uint16_t fUseBP   : 1;          // TRUE if EBP has been allocated
+    uint16_t reserved : 1;          // reserved for future use
+    uint16_t cbFrame  : 2;          // frame type
+} PE_FPO_DATA;
+#define SIZEOF_PE_RFPO_DATA 16
+
+
+#define PE_IMAGE_DEBUG_MISC_EXENAME    1
+
+typedef struct _PE_IMAGE_DEBUG_MISC {
+    uint32_t DataType;               // type of misc data, see defines
+    uint32_t Length;                 // total length of record, rounded to four
+                                        // byte multiple.
+    uint8_t Unicode;                // TRUE if data is unicode string
+    uint8_t Reserved[3];
+    uint8_t Data[1];              // Actual data
+} PE_IMAGE_DEBUG_MISC, *PPE_IMAGE_DEBUG_MISC;
+
+
+//
+// Function table extracted from MIPS/ALPHA/IA64 images.  Does not contain
+// information needed only for runtime support.  Just those fields for
+// each entry needed by a debugger.
+//
+
+typedef struct _PE_IMAGE_FUNCTION_ENTRY {
+    uint32_t   StartingAddress;
+    uint32_t   EndingAddress;
+    uint32_t   EndOfPrologue;
+} PE_IMAGE_FUNCTION_ENTRY, *PPE_IMAGE_FUNCTION_ENTRY;
+
+typedef struct _PE_IMAGE_FUNCTION_ENTRY64 {
+    uint64_t   StartingAddress;
+    uint64_t   EndingAddress;
+    union {
+        uint64_t   EndOfPrologue;
+        uint64_t   UnwindInfoAddress;
+    } DUMMYUNIONNAME;
+} PE_IMAGE_FUNCTION_ENTRY64, *PPE_IMAGE_FUNCTION_ENTRY64;
+
+//
+// Debugging information can be stripped from an image file and placed
+// in a separate .DBG file, whose file name part is the same as the
+// image file name part (e.g. symbols for CMD.EXE could be stripped
+// and placed in CMD.DBG).  This is indicated by the IMAGE_FILE_DEBUG_STRIPPED
+// flag in the Characteristics field of the file header.  The beginning of
+// the .DBG file contains the following structure which captures certain
+// information from the image file.  This allows a debug to proceed even if
+// the original image file is not accessable.  This header is followed by
+// zero of more IMAGE_SECTION_HEADER structures, followed by zero or more
+// IMAGE_DEBUG_DIRECTORY structures.  The latter structures and those in
+// the image file contain file offsets relative to the beginning of the
+// .DBG file.
+//
+// If symbols have been stripped from an image, the IMAGE_DEBUG_MISC structure
+// is left in the image file, but not mapped.  This allows a debugger to
+// compute the name of the .DBG file, from the name of the image in the
+// IMAGE_DEBUG_MISC structure.
+//
+
+typedef struct _PE_IMAGE_SEPARATE_DEBUG_HEADER {
+    uint16_t Signature;
+    uint16_t Flags;
+    uint16_t Machine;
+    uint16_t Characteristics;
+    uint32_t TimeDateStamp;
+    uint32_t CheckSum;
+    uint32_t ImageBase;
+    uint32_t SizeOfImage;
+    uint32_t NumberOfSections;
+    uint32_t ExportedNamesSize;
+    uint32_t DebugDirectorySize;
+    uint32_t SectionAlignment;
+    uint32_t Reserved[2];
+} PE_IMAGE_SEPARATE_DEBUG_HEADER, *PPE_IMAGE_SEPARATE_DEBUG_HEADER;
+
+// begin_ntoshvp
+
+typedef struct _PE_NON_PAGED_DEBUG_INFO {
+    uint16_t Signature;
+    uint16_t Flags;
+    uint32_t Size;
+    uint16_t Machine;
+    uint16_t Characteristics;
+    uint32_t TimeDateStamp;
+    uint32_t CheckSum;
+    uint32_t SizeOfImage;
+    uint64_t ImageBase;
+    //DebugDirectorySize
+    //IMAGE_DEBUG_DIRECTORY
+} PE_NON_PAGED_DEBUG_INFO, *PPE_NON_PAGED_DEBUG_INFO;
+
+// end_ntoshvp
+
+#ifndef _MAC
+#define PE_IMAGE_SEPARATE_DEBUG_SIGNATURE 0x4944
+#define PE_NON_PAGED_DEBUG_SIGNATURE      0x494E
+#else
+#define PE_IMAGE_SEPARATE_DEBUG_SIGNATURE 0x4449  // DI
+#define PE_NON_PAGED_DEBUG_SIGNATURE      0x4E49  // NI
+#endif
+
+#define PE_IMAGE_SEPARATE_DEBUG_FLAGS_MASK 0x8000
+#define PE_IMAGE_SEPARATE_DEBUG_MISMATCH   0x8000  // when DBG was updated, the
+                                                // old checksum didn't match.
+
+
+
 
 // custom
 

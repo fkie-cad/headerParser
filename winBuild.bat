@@ -52,6 +52,8 @@ GOTO :ParseParams
     IF /i "%~1"=="/pdb" (
         SET pdb=1
         goto reParseParams
+    ) ELSE (
+        echo Unknown option : "%~1"
     )
     
     :reParseParams

@@ -27,8 +27,8 @@
 //#define DILLER
 
 #define BIN_NAME "headerParser"
-#define BIN_VS "1.13.0"
-#define BIN_DATE "24.10.2021"
+#define BIN_VS "1.14.0"
+#define BIN_DATE "04.02.2022"
 
 #define LIN_PARAM_IDENTIFIER ('-')
 #define WIN_PARAM_IDENTIFIER ('/')
@@ -41,9 +41,10 @@
 
 static void printUsage();
 static void printHelp();
+static bool isCallForHelp(const char* arg1);
 static int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams elfp, uint8_t* force, char* file_name);
 static void sanitizeArgs(PGlobalParams gp);
-static uint8_t isArgOfType(char* arg, char* type);
+static uint8_t isArgOfType(const char* arg, char* type);
 static uint8_t hasValue(char* type, int i, int end_i);
 static uint8_t getInfoLevel(char* arg);
 static void printHeaderData(uint8_t, PHeaderData hd, unsigned char* block);
@@ -84,6 +85,13 @@ main(int argc, char** argv)
     {
         printUsage();
         return 0;
+    }
+    
+
+    if ( isCallForHelp(argv[1]) )
+    {
+        printHelp();
+        return 1;
     }
 
     if ( parseArgs(argc, argv, &gp, &pep, &elfp, &force, file_name) != 0 )
@@ -158,6 +166,13 @@ void printUsage()
     printf("Last changed: %s\n", BIN_DATE);
 }
 
+bool isCallForHelp(const char* arg1)
+{
+    return isArgOfType(arg1, "-h") || 
+           isArgOfType(arg1, "/h") || 
+           isArgOfType(arg1, "/?");
+}
+
 void printHelp()
 {
     printUsage();
@@ -177,6 +192,8 @@ void printHelp()
             "   * -imp: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT) dll names and info.\n"
             "   * -impx: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT) dll names, info and imported functions.\n"
             "   * -res: Print the Image Resource Table (IMAGE_DIRECTORY_ENTRY_RESOURCE).\n"
+            "   * -dbg: Print the Debug Table (IMAGE_DIRECTORY_ENTRY_DEBUG).\n"
+            //"   * -exc: Print the Exception Table (IMAGE_DIRECTORY_ENTRY_EXCEPTION).\n"
             "   * -crt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE).\n"
             "   * -cod: Directory to save found certificates in (Needs -crt).\n"
             "   * -rel: Print the Image Base Relocation Table (IMAGE_DIRECTORY_ENTRY_BASE_RELOC).\n"
@@ -209,12 +226,6 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
     int i;
     int s = 0;
     char* arg = NULL;
-
-    if ( isArgOfType(argv[1], "-h"))
-    {
-        printHelp();
-        return 1;
-    }
 
     gp->info_level = INFO_LEVEL_BASIC;
 
@@ -296,6 +307,14 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
         {
             pep->info_level |= INFO_LEVEL_PE_RES;
         }
+        else if (isArgOfType(arg, "-dbg"))
+        {
+            pep->info_level |= INFO_LEVEL_PE_DBG;
+        }
+        //else if (isArgOfType(arg, "-exc"))
+        //{
+        //    pep->info_level |= INFO_LEVEL_PE_EXC;
+        //}
         else if (isArgOfType(arg, "-tls"))
         {
             pep->info_level |= INFO_LEVEL_PE_TLS;
@@ -436,7 +455,7 @@ uint8_t getForceOption(const char* arg)
     return FORCE_NONE;
 }
 
-uint8_t isArgOfType(char* arg, char* type)
+uint8_t isArgOfType(const char* arg, char* type)
 {
     size_t i;
     size_t type_ln;

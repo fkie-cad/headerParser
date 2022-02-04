@@ -728,4 +728,50 @@ static const struct PE_IMAGE_LOAD_CONFIG_DIRECTORY_OFFSETS PeImageLoadConfigDire
     .GuardEHContinuationCount = 272
 };
 
+
+
+
+struct _PE_IMAGE_EXCEPTION_TABLE_ENTRY_OFFSETS {
+    uint8_t BeginAddress;
+    uint8_t EndAddress;
+    uint8_t Flags;
+    uint8_t ExceptionHandler;
+    uint8_t UnwindInformation;
+    uint8_t HandlerData;
+    uint8_t PrologEndAddress;
+};
+static const struct _PE_IMAGE_EXCEPTION_TABLE_ENTRY_OFFSETS PeImageExceptionTableEntryOffsets = {
+    .BeginAddress = 0, 
+    .EndAddress = 4,
+    .Flags = 4,
+    .ExceptionHandler = 8,
+    .UnwindInformation = 8,
+    .HandlerData = 12,
+    .PrologEndAddress = 16,
+};
+
+
+
+
+struct _PE_IMAGE_DEBUG_TABLE_ENTRY_OFFSETS {
+    uint8_t Characteristics;
+    uint8_t TimeDateStamp;
+    uint8_t MajorVersion;
+    uint8_t MinorVersion;
+    uint8_t Type;
+    uint8_t SizeOfData;
+    uint8_t AddressOfRawData;
+    uint8_t PointerToRawData;
+};
+static const struct _PE_IMAGE_DEBUG_TABLE_ENTRY_OFFSETS PeImageDebugTableEntryOffsets = {
+    .Characteristics = 0, 
+    .TimeDateStamp = 4,
+    .MajorVersion = 8,
+    .MinorVersion = 10,
+    .Type = 12,
+    .SizeOfData = 16,
+    .AddressOfRawData = 20,
+    .PointerToRawData = 24,
+};
+
 #endif

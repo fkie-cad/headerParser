@@ -214,14 +214,7 @@ int parsePEHeader(
         return -1;
     }
 
-    if ( pep->info_level & INFO_LEVEL_PE_EXP ||
-         pep->info_level & INFO_LEVEL_PE_IMP ||
-         pep->info_level & INFO_LEVEL_PE_RES || 
-         pep->info_level & INFO_LEVEL_PE_REL || 
-         pep->info_level & INFO_LEVEL_PE_TLS ||
-         pep->info_level & INFO_LEVEL_PE_LCFG ||
-         pep->info_level & INFO_LEVEL_PE_BIMP ||
-         pep->info_level & INFO_LEVEL_PE_DIMP )
+    if ( pep->info_level & INFO_LEVEL_PE_SVAS )
     {
         parse_svas = 1;
     }
@@ -315,6 +308,12 @@ int parsePEHeader(
 
     if ( pep->info_level & INFO_LEVEL_PE_RES )
         PE_parseImageResourceTable(opt_header, coff_header->NumberOfSections, gp->start_file_offset, gp->file_size, gp->fp, gp->block_standard, pehd->svas);
+
+    if ( pep->info_level & INFO_LEVEL_PE_DBG )
+        PE_parseImageDebugTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
+
+    //if ( pep->info_level & INFO_LEVEL_PE_EXC )
+        //PE_parseImageExceptionTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
 
     if (pep->info_level & INFO_LEVEL_PE_REL )
         PE_parseImageBaseRelocationTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
