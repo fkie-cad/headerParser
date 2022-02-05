@@ -310,7 +310,7 @@ int parsePEHeader(
         PE_parseImageResourceTable(opt_header, coff_header->NumberOfSections, gp->start_file_offset, gp->file_size, gp->fp, gp->block_standard, pehd->svas);
 
     if ( pep->info_level & INFO_LEVEL_PE_DBG )
-        PE_parseImageDebugTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
+        PE_parseImageDebugTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard, pep->info_level & INFO_LEVEL_PE_DBG_EX);
 
     //if ( pep->info_level & INFO_LEVEL_PE_EXC )
         //PE_parseImageExceptionTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);

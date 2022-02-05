@@ -17,6 +17,7 @@
 #endif
 
 #define BLOCKSIZE (0x200u)
+#define BLOCKSIZE_SMALL (0x200u)
 #define BLOCKSIZE_LARGE (0x400u)
 
 #define getVarName(var)  #var
@@ -109,14 +110,16 @@ typedef struct GlobalParams
 #define INFO_LEVEL_PE_CRT            (0x400)
 #define INFO_LEVEL_PE_REL            (0x800)
 #define INFO_LEVEL_PE_DBG           (0x1000)
-#define INFO_LEVEL_PE_TLS           (0x2000)
-#define INFO_LEVEL_PE_LCFG          (0x4000)
-#define INFO_LEVEL_PE_BIMP          (0x8000)
-#define INFO_LEVEL_PE_DIMP         (0x10000)
-#define INFO_LEVEL_PE_DIMP_EX      (0x20000)
+#define INFO_LEVEL_PE_DBG_EX        (0x2000)
+#define INFO_LEVEL_PE_TLS           (0x4000)
+#define INFO_LEVEL_PE_LCFG          (0x8000)
+#define INFO_LEVEL_PE_BIMP         (0x10000)
+#define INFO_LEVEL_PE_DIMP         (0x20000)
+#define INFO_LEVEL_PE_DIMP_EX      (0x40000)
 
 #define INFO_LEVEL_PE_EXTENDED (INFO_LEVEL_PE_DOS_H | INFO_LEVEL_PE_COFF_H | INFO_LEVEL_PE_OPT_H | INFO_LEVEL_PE_SEC_H)
 #define INFO_LEVEL_PE_SVAS     (INFO_LEVEL_PE_EXP | INFO_LEVEL_PE_IMP | INFO_LEVEL_PE_EXC | INFO_LEVEL_PE_RES | INFO_LEVEL_PE_REL | INFO_LEVEL_PE_DBG | INFO_LEVEL_PE_TLS | INFO_LEVEL_PE_LCFG | INFO_LEVEL_PE_BIMP | INFO_LEVEL_PE_DIMP)
+
 
 
 #define INFO_LEVEL_ELF_FILE_H         (0x01)

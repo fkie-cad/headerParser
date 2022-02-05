@@ -997,7 +997,10 @@ const char* Pe_getDebugTypeString(uint32_t type)
         case PE_IMAGE_DEBUG_TYPE_ILTCG: return "ILTCG";
         case PE_IMAGE_DEBUG_TYPE_MPX: return "_MPX";
         case PE_IMAGE_DEBUG_TYPE_REPRO: return "REPRO";
+        case PE_IMAGE_DEBUG_TYPE_EMBEDED_PDB: return "EMBEDED_PDB";
+        case PE_IMAGE_DEBUG_TYPE_PDB_CHECK_SUM: return "PDB_CHECK_SUM";
         case PE_IMAGE_DEBUG_TYPE_EX_DLLCHARACTERISTICS: return "EX_DLLCHARACTERISTICS";
+        case PE_IMAGE_DEBUG_TYPE_R2R_PERF_MAP: return "R2R_PERF_MAP";
         default: return "UNKNOWN";
     };
 };
@@ -1015,8 +1018,64 @@ void PE_printDebugTableEntry(PE_DEBUG_TABLE_ENTRY* e, uint32_t i, uint32_t nr_of
     printf("   - PointerToRawData%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.PointerToRawData, 0, start_file_offset), e->PointerToRawData);
 }
 
+int ByteArrayToGUID(uint8_t* ba, uint32_t ba_size, char* guid, uint32_t guid_size)
+{
+    if ( ba_size != GUID_BIN_SIZE )
+        return -1;
+    if ( guid_size < GUID_STR_BUFFER_SIZE )
+        return -2;
+    
+    int32_t i;
+    int32_t j;
+
+    for ( i = 3, j = 0; i >= 0; i--, j+=2 )
+        sprintf(&guid[j], "%02x", ba[i]);
+
+    guid[8] = '-';
+
+    for ( i = 5, j = 9; i >= 4; i--, j+=2 )
+        sprintf(&guid[j], "%02x", ba[i]);
 
 
+    guid[13] = '-';
+
+    for ( i = 7, j = 14; i >= 6; i--, j+=2 )
+        sprintf(&guid[j], "%02x", ba[i]);
+
+    guid[18] = '-';
+
+    for ( i = 8, j = 19; i < 10; i++, j+=2 )
+        sprintf(&guid[j], "%02x", ba[i]);
+
+    guid[23] = '-';
+
+    for ( i = 10, j = 24; i < ba_size; i++, j+=2 )
+        sprintf(&guid[j], "%02x", ba[i]);
+    
+    guid[guid_size-1] = 0;
+
+    return 0;
+}
+void PE_printCodeViewDbgH(PPE_CODEVIEW_DBG_H entry, size_t start_file_offset, uint8_t* block_s)
+{
+    size_t i;
+    char guid_str[GUID_STR_BUFFER_SIZE];
+    ByteArrayToGUID(entry->Guid, GUID_BIN_SIZE, guid_str, GUID_STR_BUFFER_SIZE);
+
+    printf("     - CodeView:\n");
+    printf("       - Signature%s: %c%c%c%c (0x%x)\n", 
+        fillOffset(PeCodeViewDbgHOffsets.Signature, 0, start_file_offset), 
+        entry->SignatureA[0], entry->SignatureA[1], entry->SignatureA[2], entry->SignatureA[3], 
+        entry->Signature);
+    printf("       - Guid%s: ", fillOffset(PeCodeViewDbgHOffsets.Guid, 0, start_file_offset));
+    printf("{%s} (", guid_str);
+    printf("%02x", entry->Guid[0]);
+    for ( i = 1; i < GUID_BIN_SIZE; i++ )
+        printf(" %02x", entry->Guid[i]);
+    printf(")\n");
+    printf("       - Age%s: 0x%x\n", fillOffset(PeCodeViewDbgHOffsets.Age, 0, start_file_offset), entry->Age);
+    printf("       - Path%s: %s\n", fillOffset(PeCodeViewDbgHOffsets.Path, 0, start_file_offset), entry->PathPtr);
+}
 
 
 

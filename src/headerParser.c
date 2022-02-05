@@ -27,7 +27,7 @@
 //#define DILLER
 
 #define BIN_NAME "headerParser"
-#define BIN_VS "1.14.0"
+#define BIN_VS "1.15.0"
 #define BIN_DATE "04.02.2022"
 
 #define LIN_PARAM_IDENTIFIER ('-')
@@ -193,6 +193,7 @@ void printHelp()
             "   * -impx: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT) dll names, info and imported functions.\n"
             "   * -res: Print the Image Resource Table (IMAGE_DIRECTORY_ENTRY_RESOURCE).\n"
             "   * -dbg: Print the Debug Table (IMAGE_DIRECTORY_ENTRY_DEBUG).\n"
+            "   * -dbgx: Print the Debug Table (IMAGE_DIRECTORY_ENTRY_DEBUG) extended.\n"
             //"   * -exc: Print the Exception Table (IMAGE_DIRECTORY_ENTRY_EXCEPTION).\n"
             "   * -crt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE).\n"
             "   * -cod: Directory to save found certificates in (Needs -crt).\n"
@@ -310,6 +311,10 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
         else if (isArgOfType(arg, "-dbg"))
         {
             pep->info_level |= INFO_LEVEL_PE_DBG;
+        }
+        else if (isArgOfType(arg, "-dbgx"))
+        {
+            pep->info_level |= INFO_LEVEL_PE_DBG | INFO_LEVEL_PE_DBG_EX;
         }
         //else if (isArgOfType(arg, "-exc"))
         //{

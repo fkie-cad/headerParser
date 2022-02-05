@@ -1445,6 +1445,14 @@ int PE_fillDebugTableEntry(
     size_t offset,
     uint8_t* ptr
 );
+int PE_parseCodeViewDbgH(
+    PE_DEBUG_TABLE_ENTRY* dte,
+    size_t file_size,
+    size_t start_file_offset,
+    size_t* abs_file_offset,
+    FILE* fp,
+    uint8_t* block_s
+);
 int PE_parseImageDebugTable(
     PE64OptHeader* oh,
     uint16_t nr_of_sections,
@@ -1455,7 +1463,8 @@ int PE_parseImageDebugTable(
     size_t file_size,
     FILE* fp,
     uint8_t* block_l,
-    uint8_t* block_s
+    uint8_t* block_s,
+    int extended
 )
 {
     size_t table_fo;
@@ -1514,6 +1523,19 @@ int PE_parseImageDebugTable(
             break;
 
         PE_printDebugTableEntry(&entry, entry_id+1, nr_of_entries, start_file_offset);
+
+        if ( extended )
+        {
+            switch ( entry.Type )
+            {
+                case PE_IMAGE_DEBUG_TYPE_CODEVIEW:
+                    PE_parseCodeViewDbgH(&entry, file_size, start_file_offset, abs_file_offset, fp, block_s);
+                    break;
+
+                default:
+                    break;
+            }
+        }
 //#ifdef DEBUG_PRINT_INFO
         //printf(" - entry_id: 0x%x\n", entry_id);
         //printf("   - Characteristics: 0x%x\n", entry.Characteristics);
@@ -1551,6 +1573,44 @@ int PE_fillDebugTableEntry(
     entry->SizeOfData = GetIntXValueAtOffset(uint32_t, ptr, PeImageDebugTableEntryOffsets.SizeOfData);
     entry->AddressOfRawData = GetIntXValueAtOffset(uint32_t, ptr, PeImageDebugTableEntryOffsets.AddressOfRawData);
     entry->PointerToRawData = GetIntXValueAtOffset(uint32_t, ptr, PeImageDebugTableEntryOffsets.PointerToRawData);
+
+    return 0;
+}
+
+int PE_parseCodeViewDbgH(
+    PE_DEBUG_TABLE_ENTRY* dte,
+    size_t file_size,
+    size_t start_file_offset,
+    size_t* abs_file_offset,
+    FILE* fp,
+    uint8_t* block_s
+)
+{
+    size_t size;
+    size_t offset;
+    PE_CODEVIEW_DBG_H entry;
+    uint8_t* ptr = NULL;
+    size_t i;
+
+    if ( !checkFileSpace(dte->PointerToRawData, start_file_offset, dte->SizeOfData, file_size) )
+        return -1;
+
+    offset = dte->PointerToRawData + start_file_offset;
+    size = readFile(fp, offset, BLOCKSIZE_SMALL, block_s);
+    if (size == 0)
+        return -2;
+    ptr = block_s;
+
+    entry.Signature = GetIntXValueAtOffset(uint32_t, ptr, PeCodeViewDbgHOffsets.Signature);
+    for ( i = 0; i < 16; i += 8 )
+    {
+        *(uint64_t*)(&entry.Guid[i]) = GetIntXValueAtOffset(uint64_t, ptr, PeCodeViewDbgHOffsets.Guid+i);
+    }
+    entry.Age = GetIntXValueAtOffset(uint32_t, ptr, PeCodeViewDbgHOffsets.Age);
+    entry.PathPtr = (char*)&ptr[PeCodeViewDbgHOffsets.Path];
+    block_s[BLOCKSIZE_SMALL-1] = 0;
+
+    PE_printCodeViewDbgH(&entry, start_file_offset, block_s);
 
     return 0;
 }

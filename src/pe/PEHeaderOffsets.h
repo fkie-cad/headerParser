@@ -774,4 +774,17 @@ static const struct _PE_IMAGE_DEBUG_TABLE_ENTRY_OFFSETS PeImageDebugTableEntryOf
     .PointerToRawData = 24,
 };
 
+struct _PE_CODEVIEW_DBG_H_OFFSETS {
+    uint8_t Signature;
+    uint8_t Guid;
+    uint8_t Age;
+    uint8_t Path;
+};
+static const struct _PE_CODEVIEW_DBG_H_OFFSETS PeCodeViewDbgHOffsets = {
+    .Signature = 0, 
+    .Guid = 4,
+    .Age = 20,
+    .Path = 24,
+};
+
 #endif

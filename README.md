@@ -18,7 +18,7 @@ Compiles and runs under
 
 
 ## Version ##
-1.14.0  
+1.15.0  
 Last changed: 04.02.2022
 
 ## REQUIREMENTS ##
@@ -88,6 +88,7 @@ Options:
    * -cod: Directory to save found certificates in. (Needs -crt.)
    * -rel: Print the Image Base Relocation Table (IMAGE_DIRECTORY_ENTRY_BASE_RELOC).
    * -dbg: Print the Debug Table (IMAGE_DIRECTORY_ENTRY_DEBUG).
+   * -dbgx: Print the Debug Table (IMAGE_DIRECTORY_ENTRY_DEBUG) extended.
    * -tls: Print the Image TLS Table (IMAGE_DIRECTORY_ENTRY_TLS).
    * -lcfg: Print the Image Load Config Table (IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG)
    * -bimp: Print the Image Bound Import Table (IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT).

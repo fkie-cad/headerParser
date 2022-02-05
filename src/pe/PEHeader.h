@@ -876,9 +876,13 @@ typedef struct _PPE_SCOPE_TABLE {
 
 
 
+/// 
+/// DEBUG TABLE
+/// 
+
 typedef struct _PE_DEBUG_TABLE_ENTRY {
     uint32_t Characteristics; // 0 4 Characteristics Reserved, must be zero.
-    uint32_t TimeDateStamp; // 4 4  The time and date that the debug data was created.
+     uint32_t TimeDateStamp; // 4 4  The time and date that the debug data was created. The value of field TimeDateStamp in COFF File Header of a deterministic PE/COFF file does not indicate the date and time when the file was produced and should not be interpreted that way. Instead the value of the field is derived from a hash of the file content. The algorithm used to calculate this value is an implementation detail of the tool that produced the file.
     uint16_t MajorVersion; // 8 2  The major version number of the debug data format.
     uint16_t MinorVersion; // 10 2  The minor version number of the debug data format.
     uint32_t Type; // 12 4  The format of debugging information. This field enables support of multiple debuggers. For more information, see Debug Type.
@@ -905,8 +909,11 @@ typedef struct _PE_DEBUG_TABLE_ENTRY {
 #define PE_IMAGE_DEBUG_TYPE_POGO (0xD)
 #define PE_IMAGE_DEBUG_TYPE_ILTCG (0xE)
 #define PE_IMAGE_DEBUG_TYPE_MPX (0xF)
-#define PE_IMAGE_DEBUG_TYPE_REPRO (0x10) // PE determinism or reproducibility.
+#define PE_IMAGE_DEBUG_TYPE_REPRO (0x10) // PE determinism or reproducibility. The entry doesn't have any data associated with it. All fields of the entry, but Type shall be zero. Presence of this entry indicates that the containing PE/COFF file is deterministic.
+#define PE_IMAGE_DEBUG_TYPE_EMBEDED_PDB (0x11) // Embedded Portable PDB Debug Directory Entry (type 17)
+#define PE_IMAGE_DEBUG_TYPE_PDB_CHECK_SUM (0x13) // PDB Checksum Debug Directory Entry (type 19). Stores crypto hash of the content of the symbol file the PE/COFF file was built with. More than one entry can be present, in case multiple PDBs were produced during the build of the PE/COFF file (e.g. private and public symbols).
 #define PE_IMAGE_DEBUG_TYPE_EX_DLLCHARACTERISTICS (0x14) // Extended DLL characteristics bits.
+#define PE_IMAGE_DEBUG_TYPE_R2R_PERF_MAP (0x15) // R2R PerfMap Debug Directory Entry (type 21)
 
 
 #define PE_IMAGE_DLLCHARACTERISTICS_EX_CET_COMPAT                                  0x01
@@ -915,6 +922,55 @@ typedef struct _PE_DEBUG_TABLE_ENTRY {
 #define PE_IMAGE_DLLCHARACTERISTICS_EX_CET_DYNAMIC_APIS_ALLOW_IN_PROC              0x08
 #define PE_IMAGE_DLLCHARACTERISTICS_EX_CET_RESERVED_1                              0x10  // Reserved for CET policy *downgrade* only!
 #define PE_IMAGE_DLLCHARACTERISTICS_EX_CET_RESERVED_2                              0x20  // Reserved for CET policy *downgrade* only!
+
+#define GUID_BIN_SIZE (0x10)
+#define GUID_STR_SIZE (0x24)
+#define GUID_STR_BUFFER_SIZE (GUID_STR_SIZE+1)
+typedef struct _PE_CODEVIEW_DBG_H {
+    union {
+        uint32_t Signature; // 0 4 0x52 0x53 0x44 0x53 (ASCII string: "RSDS")
+        uint8_t SignatureA[4]; 
+    };
+    uint8_t Guid[GUID_BIN_SIZE]; // 4 16 GUID (Globally Unique Identifier) of the associated PDB. Guid and Age are used to match PE/COFF image with the associated PDB.
+    uint32_t Age; // 20 4 Iteration of the PDB. The first iteration is 1. The iteration is incremented each time the PDB content is augmented.
+    char* PathPtr; // 24 UTF-8 NUL-terminated path to the associated .pdb file
+} PE_CODEVIEW_DBG_H, *PPE_CODEVIEW_DBG_H;
+#define PE_RDS_SIG (0x53445352)
+
+
+typedef struct _PE_EMBEDED_PDB_DBG_H {
+    union {
+        uint32_t Signature; // 0 4 0x4D 0x50 0x44 0x42 (ASCII string: "MPDB")
+        uint8_t SignatureA[4]; // 
+    };
+    uint32_t UncompressedSize; // 4 4 The size of decompressed Portable PDB image
+    uint8_t PortablePdbImage[1]; // 8 SizeOfData - 8 Portable PDB image compressed using Deflate algorithm
+} PE_EMBEDED_PDB_DBG_H, *PPE_EMBEDED_PDB_DBG_H;
+
+
+typedef struct _PE_PDB_CHECK_SUM_DBG_H {
+    char* AlgorithmName; // 0 AlgNameLength Zero-terminated UTF8 string. The name of the crypho hash algorithm.
+    uint8_t* Checksum; // AlgNameLength ChecksumSize Blob. Checksum of the PDB content.
+} PE_PDB_CHECK_SUM_DBG_H, *PPE_PDB_CHECK_SUM_DBG_H;
+
+#define PE_PDB_CHECK_SUM_ALOG_SHA256 "SHA256"	32 // The 256-bit secure hash algorithm. Standard: FIPS 180-2, FIPS 198.
+#define PE_PDB_CHECK_SUM_ALOG_SHA256_SIZE (0x20)
+#define PE_PDB_CHECK_SUM_ALOG_SHA384 "SHA384" // The 384-bit secure hash algorithm. Standard: FIPS 180-2, FIPS 198.
+#define PE_PDB_CHECK_SUM_ALOG_SHA384_SIZE (0x30)
+#define PE_PDB_CHECK_SUM_ALOG_SHA512 "SHA512" // The 512-bit secure hash algorithm. Standard: FIPS 180-2, FIPS 198.
+#define PE_PDB_CHECK_SUM_ALOG_SHA512_SIZE (0x40)
+
+
+typedef struct _PE_R2R_PERF_MAP_DBG_H {
+    union {
+        uint32_t Magic; // 0 4 0x52 0x32 0x52 0x4D (ASCII string: "R2RM")
+        uint8_t MagicA[4]; // 
+    };
+    uint8_t Signature[0x10]; // 4 16 Byte sequence uniquely identifying the associated PerfMap
+    uint32_t Version; // 20 4 Version number of the PerfMap. Currently only version 1 is supported.
+    char Path[1]; // 24 Path UTF-8 NUL-terminated path to the associated .r2rmap file.
+} PE_R2R_PERF_MAP_DBG_H, *PPE_R2R_PERF_MAP_DBG_H;
+
 
 
 typedef struct _PE_IMAGE_COFF_SYMBOLS_HEADER {
@@ -934,16 +990,16 @@ typedef struct _PE_IMAGE_COFF_SYMBOLS_HEADER {
 #define PE_FRAME_NONFPO    3
 
 typedef struct _PE_FPO_DATA {
-    uint32_t ulOffStart;            // offset 1st byte of function code
-    uint32_t cbProcSize;            // # bytes in function
-    uint32_t cdwLocals;             // # bytes in locals/4
-    uint16_t cdwParams;             // # bytes in params/4
-    uint16_t cbProlog : 8;          // # bytes in prolog
-    uint16_t cbRegs   : 3;          // # regs saved
-    uint16_t fHasSEH  : 1;          // TRUE if SEH in func
-    uint16_t fUseBP   : 1;          // TRUE if EBP has been allocated
-    uint16_t reserved : 1;          // reserved for future use
-    uint16_t cbFrame  : 2;          // frame type
+    uint32_t ulOffStart;   // offset 1st byte of function code
+    uint32_t cbProcSize;   // # bytes in function
+    uint32_t cdwLocals;    // # bytes in locals/4
+    uint16_t cdwParams;    // # bytes in params/4
+    uint16_t cbProlog : 8; // # bytes in prolog
+    uint16_t cbRegs   : 3; // # regs saved
+    uint16_t fHasSEH  : 1; // TRUE if SEH in func
+    uint16_t fUseBP   : 1; // TRUE if EBP has been allocated
+    uint16_t reserved : 1; // reserved for future use
+    uint16_t cbFrame  : 2; // frame type
 } PE_FPO_DATA;
 #define SIZEOF_PE_RFPO_DATA 16
 
@@ -951,19 +1007,19 @@ typedef struct _PE_FPO_DATA {
 #define PE_IMAGE_DEBUG_MISC_EXENAME    1
 
 typedef struct _PE_IMAGE_DEBUG_MISC {
-    uint32_t DataType;               // type of misc data, see defines
-    uint32_t Length;                 // total length of record, rounded to four
+    uint32_t DataType; // type of misc data, see defines
+    uint32_t Length; // total length of record, rounded to four
                                         // byte multiple.
-    uint8_t Unicode;                // TRUE if data is unicode string
+    uint8_t Unicode; // TRUE if data is unicode string
     uint8_t Reserved[3];
-    uint8_t Data[1];              // Actual data
+    uint8_t Data[1];  // Actual data
 } PE_IMAGE_DEBUG_MISC, *PPE_IMAGE_DEBUG_MISC;
 
 
 //
-// Function table extracted from MIPS/ALPHA/IA64 images.  Does not contain
-// information needed only for runtime support.  Just those fields for
-// each entry needed by a debugger.
+// Function table extracted from MIPS/ALPHA/IA64 images.  
+// Does not contain information needed only for runtime support.  
+// Just those fields for each entry needed by a debugger.
 //
 
 typedef struct _PE_IMAGE_FUNCTION_ENTRY {
