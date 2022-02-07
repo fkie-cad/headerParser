@@ -134,7 +134,7 @@ main(int argc, char** argv)
     hd = (HeaderData*) malloc(sizeof(HeaderData));
     if ( hd == NULL )
     {
-        printf("Malloc failed.\n");
+        printf("Malloc HeaderData failed.\n");
         s = -3;
         goto exit;
     }
@@ -144,7 +144,7 @@ main(int argc, char** argv)
     parseHeader(force, hd, &gp, &pep, &elfp);
     printHeaderData(gp.info_level, hd, gp.block_large);
 
-    exit:
+exit:
     freeHeaderData(hd);
     hd = NULL;
     if ( gp.fp != NULL )
@@ -193,7 +193,7 @@ void printHelp()
             "   * -impx: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT) dll names, info and imported functions.\n"
             "   * -res: Print the Image Resource Table (IMAGE_DIRECTORY_ENTRY_RESOURCE).\n"
             "   * -dbg: Print the Debug Table (IMAGE_DIRECTORY_ENTRY_DEBUG).\n"
-            "   * -dbgx: Print the Debug Table (IMAGE_DIRECTORY_ENTRY_DEBUG) extended.\n"
+            "   * -dbgx: Print the Debug Table (IMAGE_DIRECTORY_ENTRY_DEBUG) (a bit more) extended.\n"
             //"   * -exc: Print the Exception Table (IMAGE_DIRECTORY_ENTRY_EXCEPTION).\n"
             "   * -crt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE).\n"
             "   * -cod: Directory to save found certificates in (Needs -crt).\n"
@@ -440,13 +440,6 @@ void sanitizeArgs(PGlobalParams gp)
     {
         header_info("INFO: filesize (0x%zx) is too small for a start offset of 0x%zx!\nSetting to 0!\n",
             gp->file_size, gp->abs_file_offset);
-//#if defined(_WIN32)
-//		header_info("INFO: filesize (%zu) is too small for a start offset of %llu!\nSetting to 0!\n",
-//					gp->file_size, gp->abs_file_offset);
-//#else
-//		header_info("INFO: filesize (%zu) is too small for a start offset of %lu!\nSetting to 0!\n",
-//					gp->file_size, gp->abs_file_offset);
-//#endif
         gp->abs_file_offset = 0;
         gp->start_file_offset = gp->abs_file_offset;
     }
@@ -514,7 +507,9 @@ void printHeaderData(uint8_t level, PHeaderData hd, unsigned char* block)
     int i = 0;
 
     if ( level == INFO_LEVEL_BASIC )
+    {
         printHeaderData1(hd);
+    }
     else if ( level >= INFO_LEVEL_EXTENDED )
     {
         if ( hd->headertype == HEADER_TYPE_NONE )
@@ -542,11 +537,6 @@ void printHeaderData1(PHeaderData hd)
     printf("coderegions:\n");
     for ( i = 0; i < hd->code_regions_size; i++ )
     {
-//#if defined(_WIN32)
-        //printf(" (%zu) %s: ( 0x%016llx - 0x%016llx )\n",
-//#else
-        //printf(" (%zu) %s: ( 0x%016lx - 0x%016lx )\n",
-//#endif
         printf(" (%zu) %s: ( 0x%016"PRIx64" - 0x%016"PRIx64" )\n",
                i + 1, hd->code_regions[i].name, hd->code_regions[i].start, hd->code_regions[i].end);
     }

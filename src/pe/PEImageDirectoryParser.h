@@ -1536,17 +1536,6 @@ int PE_parseImageDebugTable(
                     break;
             }
         }
-//#ifdef DEBUG_PRINT_INFO
-        //printf(" - entry_id: 0x%x\n", entry_id);
-        //printf("   - Characteristics: 0x%x\n", entry.Characteristics);
-        //printf("   - TimeDateStamp: 0x%x\n", entry.TimeDateStamp);
-        //printf("   - MajorVersion: 0x%x\n", entry.MajorVersion);
-        //printf("   - MinorVersion: 0x%x\n", entry.MinorVersion);
-        //printf("   - Type: 0x%x\n", entry.Type);
-        //printf("   - SizeOfData: 0x%x\n", entry.SizeOfData);
-        //printf("   - AddressOfRawData.va: 0x%x\n", entry.AddressOfRawData);
-        //printf("   - PointerToRawData.va: 0x%x\n", entry.PointerToRawData);
-//#endif
 
         dte_offset += entry_size;
         offset += entry_size;
@@ -1671,11 +1660,11 @@ int PE_parseImageExceptionTable(
     offset = 0;
     dte_offset = 0;
     
-//#ifdef DEBUG_PRINT_INFO
+#ifdef DEBUG_PRINT
     printf("offset: 0x%zx\n", offset);
     printf("abs_file_offset: 0x%zx\n", *abs_file_offset);
     printf("dte->Size: 0x%x\n", dte->Size);
-//#endif
+#endif
 
 //    PE_printImageBaseRelocationTable();
 //

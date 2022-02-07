@@ -29,10 +29,6 @@ Last changed: 04.02.2022
    - msbuild
    - [wdk]
 
-**Remarks**  
-The .vcxproj file is using `WindowsApplicationForDrivers10.0` as the `PlatformToolset`, which leads to smaller builds. 
-If the WDK is not installed, the `PlatformToolset` may be changed to `v142` and it should compile without errors.
-
 ## BUILD ##
 ### Linux (gcc) & cmake ###
 ```bash
@@ -49,10 +45,18 @@ Use `clang` instead of `gcc` in Termux on Android.
 
 ### Windows (MsBuild) ###
 ```bash
-$ winBuild.bat [/t headerParser] [/m Release|Debug] [/b 32|64] [/rt] [/pdb] [/bt a\path] [/h]
+$ winBuild.bat [/t headerParser] [/m <Release|Debug>] [/b <32|64>] [/rt] [/pdb] [/bt <a\path>] [/pts <PlatformToolset>] [/h]
 ```
 This will run in a normal cmd.  
 The correct path to your build tools may be passed as a parameter or changed in the script [winBuild.bat](winBuild.bat) itself.  
+```
+$devcmd> msbuild HeaderParser.vcxproj /p:Configuration=<Release|Debug> /p:Platform=<x64|x86> [/p:PlatformToolset=<v142|WindowsApplicationForDrivers10.0>]
+```
+Use `PlatformToolset=v142` if WDK is not installed.
+
+**Remarks**  
+The .vcxproj file is using `WindowsApplicationForDrivers10.0` as the `PlatformToolset`, which leads to smaller builds. 
+If the WDK is not installed, the `PlatformToolset` may be changed to `v142` and it should compile without errors.
 
 
 ### Windows Context Menu ###
