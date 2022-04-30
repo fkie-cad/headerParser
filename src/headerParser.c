@@ -119,12 +119,10 @@ main(int argc, char** argv)
 
     sanitizeArgs(&gp);
 
-#ifdef DEBUG_PRINT_INFO
-    debug_info("file_name: %s\n", file_name);
-    debug_info("abs_file_offset: 0x%zx\n", gp.abs_file_offset);
-    debug_info("abs_file_offset: 0x%zx\n", gp.abs_file_offset);
-    debug_info("start_file_offset: 0x%zx\n", gp.start_file_offset);
-#endif
+    DPrint("file_name: %s\n", file_name);
+    DPrint("abs_file_offset: 0x%zx\n", gp.abs_file_offset);
+    DPrint("abs_file_offset: 0x%zx\n", gp.abs_file_offset);
+    DPrint("start_file_offset: 0x%zx\n", gp.start_file_offset);
 
     n = readFile(gp.fp, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
     if ( !n )
@@ -449,7 +447,7 @@ void sanitizeArgs(PGlobalParams gp)
 
 uint8_t getForceOption(const char* arg)
 {
-    if ( strncmp(arg, FORCE_PE_STR, 2) == 0 )
+    if ( strncmp(arg, FORCE_PE_STR, 3) == 0 )
         return FORCE_PE;
 
     return FORCE_NONE;
@@ -470,8 +468,6 @@ uint8_t isArgOfType(const char* arg, char* type)
             return 0;
     }
     return arg[i] == 0;
-
-    //return strlen(arg) == type_ln && strncmp(arg, type, type_ln) == 0;
 }
 
 uint8_t hasValue(char* type, int i, int end_i)
@@ -517,12 +513,12 @@ void printHeaderData(uint8_t level, PHeaderData hd, unsigned char* block)
         if ( hd->headertype == HEADER_TYPE_NONE )
         {
             printf("unsupported header:\n");
-            for ( i = 0; i < 16; i++ )
+            for ( i = 0; i < MIN_FILE_SIZE; i++ )
             {
                 printf("%02x|", block[i]);
             }
             printf("\n");
-            for ( i = 0; i < 16; i++ )
+            for ( i = 0; i < MIN_FILE_SIZE; i++ )
             {
                 printf("%c", block[i]);
             }

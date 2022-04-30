@@ -26,7 +26,7 @@
 #define MIN_ASCII_INT (48)
 #define MAX_ASCII_INT (57)
 
-#define MIN_FILE_SIZE (16)
+#define MIN_FILE_SIZE (0x10)
 
 #include "print.h"
 

@@ -949,7 +949,7 @@ CodeRegionData PE_fillCodeRegion(const PEImageSectionHeader* sh,
     code_region_data.end = end_of_raw_data;
     code_region_data.name = name;
 
-    return code_region_data;
+    return code_region_data; // return value
 }
 
 /**
@@ -968,12 +968,12 @@ uint32_t PE_calculateSectionSize(const PEImageSectionHeader* sh)
                 && !hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_UNINITIALIZED_DATA)
                 )
             || hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_INITIALIZED_DATA)
-            || ( hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_CODE
-                                                & PESectionCharacteristics.IMAGE_SCN_MEM_READ
-                                                & PESectionCharacteristics.IMAGE_SCN_MEM_WRITE)
-                 &&
-                 !hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_UNINITIALIZED_DATA)
-               )
+            //|| ( hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_CODE
+            //                                    & PESectionCharacteristics.IMAGE_SCN_MEM_READ
+            //                                    & PESectionCharacteristics.IMAGE_SCN_MEM_WRITE)
+            //     &&
+            //     !hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_UNINITIALIZED_DATA)
+            //   )
             )
         )
     {

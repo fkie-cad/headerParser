@@ -286,7 +286,7 @@ int Elf_readFileHeader(Elf64FileHeader* file_header, uint8_t* block_l, size_t st
     else if ( file_header->EI_DATA != ELFDATA2LSB )
     {
         header_error("ERROR: No valid EI_DATA (endianess) found: 0x%x!\n", file_header->EI_DATA);
-        return -1;
+        //return -1;
     }
 
     return 0;

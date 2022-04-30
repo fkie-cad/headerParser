@@ -137,7 +137,8 @@ int PE_getNameOfStringTable(const char* short_name,
     }
 
     max_name_ln = st->size - name_offset;
-    if ( max_name_ln > MAX_SIZE_OF_SECTION_NAME ) max_name_ln = MAX_SIZE_OF_SECTION_NAME;
+    if ( max_name_ln > MAX_SIZE_OF_SECTION_NAME )
+        max_name_ln = MAX_SIZE_OF_SECTION_NAME;
 
     s_name_size = strnlen((const char*)(&st->strings[name_offset]), max_name_ln);
     name_buf_size = s_name_size+1;
