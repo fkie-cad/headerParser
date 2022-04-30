@@ -30,8 +30,8 @@
 //#define DILLER
 
 #define BIN_NAME "headerParser"
-#define BIN_VS "1.15.0"
-#define BIN_DATE "04.02.2022"
+#define BIN_VS "1.15.1"
+#define BIN_DATE "30.04.2022"
 
 #define LIN_PARAM_IDENTIFIER ('-')
 #define WIN_PARAM_IDENTIFIER ('/')
