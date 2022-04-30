@@ -16,6 +16,9 @@ set user_dir="%~dp0"
 set verbose=0
 
 
+:: default
+if [%1]==[] goto main
+
 
 GOTO :ParseParams
 
@@ -74,100 +77,101 @@ GOTO :ParseParams
 GOTO :ParseParams
 
 
+
 :main
 
-set build_dir=build\%bitness%
-if /i [%mode%]==[debug] set build_dir=build\debug\%bitness%
+    set build_dir=build\%bitness%
+    if /i [%mode%]==[debug] set build_dir=build\debug\%bitness%
 
-set valid=0
-if [%bitness%] == [32] (
-    set platform=x86
-    set valid=1
-) else (
-    if [%bitness%] == [64] (
-        set platform=x64
+    set valid=0
+    if [%bitness%] == [32] (
+        set platform=x86
         set valid=1
-    )
-)
-if [%valid%] == [0] (
-    goto help
-)
-:: test valid targets
-set valid=0
-set test=0
-if /i [%target%] == [%name%] (
-    set valid=1
-    set proj=HeaderParser.vcxproj
-)
-if /i [%target%] == [%name%_lib] (
-    set valid=1
-    set proj=HeaderParser.vcxproj
-)
-if /i [%target%] == [TestLib] (
-    set test=1
-    set valid=1
-    set proj=tests\Tests.vcxproj
-)
-if /i [%target%] == [TestPELib] (
-    set test=1
-    set valid=1
-    set proj=tests\Tests.vcxproj
-)
-if [%valid%] == [0] (
-    goto help
-)
-
-:: set ConfigurationType
-set ct=Application
-if /i [%target%] == [%name%_lib] (
-    set ct=DynamicLibrary
-)
-
-:: set runtime lib
-set rtlib=No
-set valid=0
-if /i [%mode%] == [debug] (
-    if [%rt%] == [1] (
-        set rtlib=Debug
-    )
-    set pdb=1
-    set valid=1
-) else (
-    if /i [%mode%] == [release] (
-        if [%rt%] == [1] (
-            set rtlib=Release
+    ) else (
+        if [%bitness%] == [64] (
+            set platform=x64
+            set valid=1
         )
-        set valid=1
     )
-)
-if [%valid%] == [0] (
-    goto help
-)
+    if [%valid%] == [0] (
+        goto help
+    )
+    :: test valid targets
+    set valid=0
+    set test=0
+    if /i [%target%] == [%name%] (
+        set valid=1
+        set proj=HeaderParser.vcxproj
+    )
+    if /i [%target%] == [%name%_lib] (
+        set valid=1
+        set proj=HeaderParser.vcxproj
+    )
+    if /i [%target%] == [TestLib] (
+        set test=1
+        set valid=1
+        set proj=tests\Tests.vcxproj
+    )
+    if /i [%target%] == [TestPELib] (
+        set test=1
+        set valid=1
+        set proj=tests\Tests.vcxproj
+    )
+    if [%valid%] == [0] (
+        goto help
+    )
 
-if [%verbose%] == [1] (
-    echo target=%target%
-    echo ConfigurationType=%ct%
-    echo bitness=%bitness%
-    echo platform=%platform%
-    echo mode=%mode%
-    echo build_dir=%build_dir%
-    echo buildTools=%buildTools%
-    echo rtlib=%rtlib%
-    echo pts=%pts%
-    echo proj=%proj%
-)
+    :: set ConfigurationType
+    set ct=Application
+    if /i [%target%] == [%name%_lib] (
+        set ct=DynamicLibrary
+    )
 
-:: set vcvars=""
-:: WHERE %msbuild% >nul 2>nul
-:: IF %ERRORLEVEL% NEQ 0 set vcvars="%buildTools:~1,-1%\VC\Auxiliary\Build\vcvars%bitness%.bat"
-set vcvars="%buildTools:~1,-1%\VC\Auxiliary\Build\vcvars%bitness%.bat"
+    :: set runtime lib
+    set rtlib=No
+    set valid=0
+    if /i [%mode%] == [debug] (
+        if [%rt%] == [1] (
+            set rtlib=Debug
+        )
+        set pdb=1
+        set valid=1
+    ) else (
+        if /i [%mode%] == [release] (
+            if [%rt%] == [1] (
+                set rtlib=Release
+            )
+            set valid=1
+        )
+    )
+    if [%valid%] == [0] (
+        goto help
+    )
+
+    if [%verbose%] == [1] (
+        echo target=%target%
+        echo ConfigurationType=%ct%
+        echo bitness=%bitness%
+        echo platform=%platform%
+        echo mode=%mode%
+        echo build_dir=%build_dir%
+        echo buildTools=%buildTools%
+        echo rtlib=%rtlib%
+        echo pts=%pts%
+        echo proj=%proj%
+    )
+
+    :: set vcvars=""
+    :: WHERE %msbuild% >nul 2>nul
+    :: IF %ERRORLEVEL% NEQ 0 set vcvars="%buildTools:~1,-1%\VC\Auxiliary\Build\vcvars%bitness%.bat"
+    set vcvars="%buildTools:~1,-1%\VC\Auxiliary\Build\vcvars%bitness%.bat"
 
 
-if [%test%] == [0] (
-    goto build
-) else (
-    goto buildTest
-)
+    if [%test%] == [0] (
+        goto build
+    ) else (
+        goto buildTest
+    )
 
 :build
     cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:PlatformToolset=%pts% /p:Configuration=%mode% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct%  & exit"

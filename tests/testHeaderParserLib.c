@@ -44,7 +44,9 @@ int main(int argc, char** argv)
 
 	if (argc < 2)
 	{
-		printf("Usage: %s [-o offset] [-f] filename1 filename2 ... \n", argv[0]);
+		printf("Usage: %s [-o <offset>] [-f] filename1 filename2 ... \n", argv[0]);
+		printf("[-o : An offset into the file to start parsing\n");
+		printf("[-f : Force PE parsing\n");
 		return -1;
 	}
 

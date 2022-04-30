@@ -28,12 +28,7 @@
 
 #define MIN_FILE_SIZE (16)
 
-#define DEBUG_PRINT_INFO 0
-#define debug_info(...) if (DEBUG_PRINT_INFO) fprintf(stdout, __VA_ARGS__)
-
-#define header_info(...) if (VERBOSE_MODE) fprintf(stdout, __VA_ARGS__)
-#define header_error(...) if (VERBOSE_MODE) fprintf(stdout, __VA_ARGS__)
-#define prog_error(...) if (VERBOSE_MODE) fprintf(stderr, __VA_ARGS__)
+#include "print.h"
 
 
 // _t_ type

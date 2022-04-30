@@ -1018,7 +1018,7 @@ void PE_printDebugTableEntry(PE_DEBUG_TABLE_ENTRY* e, uint32_t i, uint32_t nr_of
     printf("   - PointerToRawData%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.PointerToRawData, 0, start_file_offset), e->PointerToRawData);
 }
 
-int ByteArrayToGUID(uint8_t* ba, uint32_t ba_size, char* guid, uint32_t guid_size)
+int ByteArrayToGUID(uint8_t* ba, int32_t ba_size, char* guid, int32_t guid_size)
 {
     if ( ba_size != GUID_BIN_SIZE )
         return -1;

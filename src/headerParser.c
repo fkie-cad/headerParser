@@ -15,13 +15,16 @@
 #define LIB_MODE (0)
 #endif
 
+#include "print.h"
 #include "utils/env.h"
 #include "Globals.h"
+
 #include "utils/Converter.h"
 #include "utils/common_fileio.h"
 #include "utils/Files.h"
 #include "utils/blockio.h"
 #include "utils/Helper.h"
+
 #include "parser.h"
 
 //#define DILLER
@@ -168,8 +171,7 @@ void printUsage()
 
 bool isCallForHelp(const char* arg1)
 {
-    return isArgOfType(arg1, "-h") || 
-           isArgOfType(arg1, "/h") || 
+    return isArgOfType(arg1, "/h") || 
            isArgOfType(arg1, "/?");
 }
 
@@ -540,10 +542,10 @@ void printHeaderData1(PHeaderData hd)
         printf(" (%zu) %s: ( 0x%016"PRIx64" - 0x%016"PRIx64" )\n",
                i + 1, hd->code_regions[i].name, hd->code_regions[i].start, hd->code_regions[i].end);
     }
-    printf("headertype: %s (%d)\n", header_type_names[hd->headertype], hd->h_bitness);
+    printf("headertype: %s (%d)\n", getHeaderDataHeaderType(hd->headertype), hd->h_bitness);
     printf("bitness: %d-bit\n", hd->i_bitness);
-    printf("endian: %s\n", endian_type_names[hd->endian]);
-    printf("CPU_arch: %s\n", architecture_names[hd->CPU_arch]);
+    printf("endian: %s\n", getHeaderDataEndianType(hd->endian));
+    printf("CPU_arch: %s\n", getHeaderDataArchitecture(hd->CPU_arch));
     printf("Machine: %s\n", hd->Machine);
     printf("\n");
 }
