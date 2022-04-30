@@ -15,20 +15,23 @@
 #define LIB_MODE (0)
 #endif
 
+#include "print.h"
 #include "utils/env.h"
 #include "Globals.h"
+
 #include "utils/Converter.h"
 #include "utils/common_fileio.h"
 #include "utils/Files.h"
 #include "utils/blockio.h"
 #include "utils/Helper.h"
+
 #include "parser.h"
 
 //#define DILLER
 
 #define BIN_NAME "headerParser"
-#define BIN_VS "1.13.0"
-#define BIN_DATE "24.10.2021"
+#define BIN_VS "1.15.0"
+#define BIN_DATE "04.02.2022"
 
 #define LIN_PARAM_IDENTIFIER ('-')
 #define WIN_PARAM_IDENTIFIER ('/')
@@ -41,9 +44,10 @@
 
 static void printUsage();
 static void printHelp();
+static bool isCallForHelp(const char* arg1);
 static int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams elfp, uint8_t* force, char* file_name);
 static void sanitizeArgs(PGlobalParams gp);
-static uint8_t isArgOfType(char* arg, char* type);
+static uint8_t isArgOfType(const char* arg, char* type);
 static uint8_t hasValue(char* type, int i, int end_i);
 static uint8_t getInfoLevel(char* arg);
 static void printHeaderData(uint8_t, PHeaderData hd, unsigned char* block);
@@ -85,6 +89,13 @@ main(int argc, char** argv)
         printUsage();
         return 0;
     }
+    
+
+    if ( isCallForHelp(argv[1]) )
+    {
+        printHelp();
+        return 1;
+    }
 
     if ( parseArgs(argc, argv, &gp, &pep, &elfp, &force, file_name) != 0 )
         return 0;
@@ -108,12 +119,10 @@ main(int argc, char** argv)
 
     sanitizeArgs(&gp);
 
-#ifdef DEBUG_PRINT_INFO
-    debug_info("file_name: %s\n", file_name);
-    debug_info("abs_file_offset: 0x%zx\n", gp.abs_file_offset);
-    debug_info("abs_file_offset: 0x%zx\n", gp.abs_file_offset);
-    debug_info("start_file_offset: 0x%zx\n", gp.start_file_offset);
-#endif
+    DPrint("file_name: %s\n", file_name);
+    DPrint("abs_file_offset: 0x%zx\n", gp.abs_file_offset);
+    DPrint("abs_file_offset: 0x%zx\n", gp.abs_file_offset);
+    DPrint("start_file_offset: 0x%zx\n", gp.start_file_offset);
 
     n = readFile(gp.fp, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
     if ( !n )
@@ -126,7 +135,7 @@ main(int argc, char** argv)
     hd = (HeaderData*) malloc(sizeof(HeaderData));
     if ( hd == NULL )
     {
-        printf("Malloc failed.\n");
+        printf("Malloc HeaderData failed.\n");
         s = -3;
         goto exit;
     }
@@ -136,7 +145,7 @@ main(int argc, char** argv)
     parseHeader(force, hd, &gp, &pep, &elfp);
     printHeaderData(gp.info_level, hd, gp.block_large);
 
-    exit:
+exit:
     freeHeaderData(hd);
     hd = NULL;
     if ( gp.fp != NULL )
@@ -158,6 +167,12 @@ void printUsage()
     printf("Last changed: %s\n", BIN_DATE);
 }
 
+bool isCallForHelp(const char* arg1)
+{
+    return isArgOfType(arg1, "/h") || 
+           isArgOfType(arg1, "/?");
+}
+
 void printHelp()
 {
     printUsage();
@@ -177,6 +192,9 @@ void printHelp()
             "   * -imp: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT) dll names and info.\n"
             "   * -impx: Print the Image Import Table (IMAGE_DIRECTORY_ENTRY_IMPORT) dll names, info and imported functions.\n"
             "   * -res: Print the Image Resource Table (IMAGE_DIRECTORY_ENTRY_RESOURCE).\n"
+            "   * -dbg: Print the Debug Table (IMAGE_DIRECTORY_ENTRY_DEBUG).\n"
+            "   * -dbgx: Print the Debug Table (IMAGE_DIRECTORY_ENTRY_DEBUG) (a bit more) extended.\n"
+            //"   * -exc: Print the Exception Table (IMAGE_DIRECTORY_ENTRY_EXCEPTION).\n"
             "   * -crt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE).\n"
             "   * -cod: Directory to save found certificates in (Needs -crt).\n"
             "   * -rel: Print the Image Base Relocation Table (IMAGE_DIRECTORY_ENTRY_BASE_RELOC).\n"
@@ -216,12 +234,6 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
     int i;
     int s = 0;
     char* arg = NULL;
-
-    if ( isAskForHelp(argv[1]) )
-    {
-        printHelp();
-        return 1;
-    }
 
     gp->info_level = INFO_LEVEL_BASIC;
 
@@ -303,6 +315,18 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
         {
             pep->info_level |= INFO_LEVEL_PE_RES;
         }
+        else if (isArgOfType(arg, "-dbg"))
+        {
+            pep->info_level |= INFO_LEVEL_PE_DBG;
+        }
+        else if (isArgOfType(arg, "-dbgx"))
+        {
+            pep->info_level |= INFO_LEVEL_PE_DBG | INFO_LEVEL_PE_DBG_EX;
+        }
+        //else if (isArgOfType(arg, "-exc"))
+        //{
+        //    pep->info_level |= INFO_LEVEL_PE_EXC;
+        //}
         else if (isArgOfType(arg, "-tls"))
         {
             pep->info_level |= INFO_LEVEL_PE_TLS;
@@ -423,13 +447,6 @@ void sanitizeArgs(PGlobalParams gp)
     {
         header_info("INFO: filesize (0x%zx) is too small for a start offset of 0x%zx!\nSetting to 0!\n",
             gp->file_size, gp->abs_file_offset);
-//#if defined(_WIN32)
-//		header_info("INFO: filesize (%zu) is too small for a start offset of %llu!\nSetting to 0!\n",
-//					gp->file_size, gp->abs_file_offset);
-//#else
-//		header_info("INFO: filesize (%zu) is too small for a start offset of %lu!\nSetting to 0!\n",
-//					gp->file_size, gp->abs_file_offset);
-//#endif
         gp->abs_file_offset = 0;
         gp->start_file_offset = gp->abs_file_offset;
     }
@@ -437,13 +454,13 @@ void sanitizeArgs(PGlobalParams gp)
 
 uint8_t getForceOption(const char* arg)
 {
-    if ( strncmp(arg, FORCE_PE_STR, 2) == 0 )
+    if ( strncmp(arg, FORCE_PE_STR, 3) == 0 )
         return FORCE_PE;
 
     return FORCE_NONE;
 }
 
-uint8_t isArgOfType(char* arg, char* type)
+uint8_t isArgOfType(const char* arg, char* type)
 {
     size_t i;
     size_t type_ln;
@@ -458,8 +475,6 @@ uint8_t isArgOfType(char* arg, char* type)
             return 0;
     }
     return arg[i] == 0;
-
-    //return strlen(arg) == type_ln && strncmp(arg, type, type_ln) == 0;
 }
 
 uint8_t hasValue(char* type, int i, int end_i)
@@ -497,18 +512,20 @@ void printHeaderData(uint8_t level, PHeaderData hd, unsigned char* block)
     int i = 0;
 
     if ( level == INFO_LEVEL_BASIC )
+    {
         printHeaderData1(hd);
+    }
     else if ( level >= INFO_LEVEL_EXTENDED )
     {
         if ( hd->headertype == HEADER_TYPE_NONE )
         {
             printf("unsupported header:\n");
-            for ( i = 0; i < 16; i++ )
+            for ( i = 0; i < MIN_FILE_SIZE; i++ )
             {
                 printf("%02x|", block[i]);
             }
             printf("\n");
-            for ( i = 0; i < 16; i++ )
+            for ( i = 0; i < MIN_FILE_SIZE; i++ )
             {
                 printf("%c", block[i]);
             }
@@ -525,18 +542,13 @@ void printHeaderData1(PHeaderData hd)
     printf("coderegions:\n");
     for ( i = 0; i < hd->code_regions_size; i++ )
     {
-//#if defined(_WIN32)
-        //printf(" (%zu) %s: ( 0x%016llx - 0x%016llx )\n",
-//#else
-        //printf(" (%zu) %s: ( 0x%016lx - 0x%016lx )\n",
-//#endif
         printf(" (%zu) %s: ( 0x%016"PRIx64" - 0x%016"PRIx64" )\n",
                i + 1, hd->code_regions[i].name, hd->code_regions[i].start, hd->code_regions[i].end);
     }
-    printf("headertype: %s (%d)\n", header_type_names[hd->headertype], hd->h_bitness);
+    printf("headertype: %s (%d)\n", getHeaderDataHeaderType(hd->headertype), hd->h_bitness);
     printf("bitness: %d-bit\n", hd->i_bitness);
-    printf("endian: %s\n", endian_type_names[hd->endian]);
-    printf("CPU_arch: %s\n", architecture_names[hd->CPU_arch]);
+    printf("endian: %s\n", getHeaderDataEndianType(hd->endian));
+    printf("CPU_arch: %s\n", getHeaderDataArchitecture(hd->CPU_arch));
     printf("Machine: %s\n", hd->Machine);
     printf("\n");
 }

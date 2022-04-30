@@ -17,6 +17,7 @@
 #endif
 
 #define BLOCKSIZE (0x200u)
+#define BLOCKSIZE_SMALL (0x200u)
 #define BLOCKSIZE_LARGE (0x400u)
 
 #define getVarName(var)  #var
@@ -25,14 +26,9 @@
 #define MIN_ASCII_INT (48)
 #define MAX_ASCII_INT (57)
 
-#define MIN_FILE_SIZE (16)
+#define MIN_FILE_SIZE (0x10)
 
-#define DEBUG_PRINT_INFO 0
-#define debug_info(...) if (DEBUG_PRINT_INFO) fprintf(stdout, __VA_ARGS__)
-
-#define header_info(...) if (VERBOSE_MODE) fprintf(stdout, __VA_ARGS__)
-#define header_error(...) if (VERBOSE_MODE) fprintf(stdout, __VA_ARGS__)
-#define prog_error(...) if (VERBOSE_MODE) fprintf(stderr, __VA_ARGS__)
+#include "print.h"
 
 
 // _t_ type
@@ -75,8 +71,10 @@ uint8_t info_show_offsets; // may be global.
 typedef struct GlobalParams
 {
     // dynamic
+//	struct data {
     unsigned char block_standard[BLOCKSIZE];
     unsigned char block_large[BLOCKSIZE_LARGE];
+//    } data;
 
     // static after init
 //	struct file
@@ -92,24 +90,31 @@ typedef struct GlobalParams
     uint8_t info_show_offsets; // may be global. TODO: delete this or the global one
 } GlobalParams, *PGlobalParams;
 
-#define INFO_LEVEL_PE_DOS_H       (0x1)
-#define INFO_LEVEL_PE_COFF_H      (0x2)
-#define INFO_LEVEL_PE_OPT_H       (0x4)
-#define INFO_LEVEL_PE_SEC_H       (0x8)
-#define INFO_LEVEL_PE_IMP        (0x10)
-#define INFO_LEVEL_PE_IMP_EX     (0x20)
-#define INFO_LEVEL_PE_EXP        (0x40)
-#define INFO_LEVEL_PE_EXP_EX     (0x80)
-#define INFO_LEVEL_PE_RES       (0x100)
-#define INFO_LEVEL_PE_TLS       (0x200)
-#define INFO_LEVEL_PE_REL       (0x400)
-#define INFO_LEVEL_PE_CRT       (0x800)
-#define INFO_LEVEL_PE_DIMP     (0x1000)
-#define INFO_LEVEL_PE_DIMP_EX  (0x2000)
-#define INFO_LEVEL_PE_BIMP     (0x4000)
-#define INFO_LEVEL_PE_LCFG     (0x8000)
+#define INFO_LEVEL_MAX          (0xFFFFFFFF)
+
+#define INFO_LEVEL_PE_DOS_H            (0x1)
+#define INFO_LEVEL_PE_COFF_H           (0x2)
+#define INFO_LEVEL_PE_OPT_H            (0x4)
+#define INFO_LEVEL_PE_SEC_H            (0x8)
+#define INFO_LEVEL_PE_IMP             (0x10)
+#define INFO_LEVEL_PE_IMP_EX          (0x20)
+#define INFO_LEVEL_PE_EXP             (0x40)
+#define INFO_LEVEL_PE_EXP_EX          (0x80)
+#define INFO_LEVEL_PE_RES            (0x100)
+#define INFO_LEVEL_PE_EXC            (0x200)
+#define INFO_LEVEL_PE_CRT            (0x400)
+#define INFO_LEVEL_PE_REL            (0x800)
+#define INFO_LEVEL_PE_DBG           (0x1000)
+#define INFO_LEVEL_PE_DBG_EX        (0x2000)
+#define INFO_LEVEL_PE_TLS           (0x4000)
+#define INFO_LEVEL_PE_LCFG          (0x8000)
+#define INFO_LEVEL_PE_BIMP         (0x10000)
+#define INFO_LEVEL_PE_DIMP         (0x20000)
+#define INFO_LEVEL_PE_DIMP_EX      (0x40000)
 
 #define INFO_LEVEL_PE_EXTENDED (INFO_LEVEL_PE_DOS_H | INFO_LEVEL_PE_COFF_H | INFO_LEVEL_PE_OPT_H | INFO_LEVEL_PE_SEC_H)
+#define INFO_LEVEL_PE_SVAS     (INFO_LEVEL_PE_EXP | INFO_LEVEL_PE_IMP | INFO_LEVEL_PE_EXC | INFO_LEVEL_PE_RES | INFO_LEVEL_PE_REL | INFO_LEVEL_PE_DBG | INFO_LEVEL_PE_TLS | INFO_LEVEL_PE_LCFG | INFO_LEVEL_PE_BIMP | INFO_LEVEL_PE_DIMP)
+
 
 
 #define INFO_LEVEL_ELF_FILE_H         (0x01)

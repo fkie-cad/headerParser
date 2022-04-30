@@ -13,6 +13,7 @@
 #include "ArchitectureInfo.h"
 #include "stringPool.h"
 #include "Globals.h"
+
 #include "art/ArtHeaderParser.h"
 #include "dex/DexHeaderParser.h"
 #include "elf/ElfHeaderParser.h"
@@ -138,4 +139,31 @@ int isJavaClass(unsigned char* block)
 int isZipArchive(unsigned char* block)
 {
     return checkBytes(MAGIC_ZIP_FILE_ENTRY_BYTES, MAGIC_ZIP_BYTES_LN, block);
+}
+
+HP_API
+const char* getHeaderDataArchitecture(uint16_t id)
+{
+    if ( id >= ARCHITECTURE_NAMES_SIZE )
+        id = 0;
+
+    return architecture_names[id];
+}
+
+HP_API
+const char* getHeaderDataHeaderType(uint8_t id)
+{
+    if ( id >= HEADER_TYPES_SIZE )
+        id = 0;
+
+    return header_type_names[id];
+}
+
+HP_API
+const char* getHeaderDataEndianType(uint8_t id)
+{
+    if ( id >= ENDIAN_NAMES_SIZE )
+        id = 0;
+
+    return endian_type_names[id];
 }

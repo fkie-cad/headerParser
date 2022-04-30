@@ -18,8 +18,8 @@ Compiles and runs under
 
 
 ## Version ##
-1.13.0  
-Last changed: 24.10.2021
+1.15.0  
+Last changed: 04.02.2022
 
 ## REQUIREMENTS ##
 - Linux
@@ -28,10 +28,6 @@ Last changed: 24.10.2021
 - Windows
    - msbuild
    - [wdk]
-
-**Remarks**  
-The .vcxproj file is using `WindowsApplicationForDrivers10.0` as the `PlatformToolset`, which leads to smaller builds. 
-If the WDK is not installed, the `PlatformToolset` may be changed to `v142` and it should compile without errors.
 
 ## BUILD ##
 ### Linux (gcc) & cmake ###
@@ -49,10 +45,18 @@ Use `clang` instead of `gcc` in Termux on Android.
 
 ### Windows (MsBuild) ###
 ```bash
-$ winBuild.bat [/t headerParser] [/m Release|Debug] [/b 32|64] [/rt] [/pdb] [/bt a\path] [/h]
+$ winBuild.bat [/t headerParser] [/m <Release|Debug>] [/b <32|64>] [/rt] [/pdb] [/bt <a\path>] [/pts <PlatformToolset>] [/h]
 ```
 This will run in a normal cmd.  
 The correct path to your build tools may be passed as a parameter or changed in the script [winBuild.bat](winBuild.bat) itself.  
+```
+$devcmd> msbuild HeaderParser.vcxproj /p:Configuration=<Release|Debug> /p:Platform=<x64|x86> [/p:PlatformToolset=<v142|WindowsApplicationForDrivers10.0>]
+```
+Use `PlatformToolset=v142` if WDK is not installed.
+
+**Remarks**  
+The .vcxproj file is using `WindowsApplicationForDrivers10.0` as the `PlatformToolset`, which leads to smaller builds. 
+If the WDK is not installed, the `PlatformToolset` may be changed to `v142` and it should compile without errors.
 
 
 ### Windows Context Menu ###
@@ -87,6 +91,8 @@ Options:
    * -crt: Print the Image Certificate Table (IMAGE_DIRECTORY_ENTRY_CERTIFICATE).
    * -cod: Directory to save found certificates in. (Needs -crt.)
    * -rel: Print the Image Base Relocation Table (IMAGE_DIRECTORY_ENTRY_BASE_RELOC).
+   * -dbg: Print the Debug Table (IMAGE_DIRECTORY_ENTRY_DEBUG).
+   * -dbgx: Print the Debug Table (IMAGE_DIRECTORY_ENTRY_DEBUG) extended.
    * -tls: Print the Image TLS Table (IMAGE_DIRECTORY_ENTRY_TLS).
    * -lcfg: Print the Image Load Config Table (IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG)
    * -bimp: Print the Image Bound Import Table (IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT).

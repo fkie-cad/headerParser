@@ -44,7 +44,9 @@ int main(int argc, char** argv)
 
 	if (argc < 2)
 	{
-		printf("Usage: %s [-o offset] [-f] filename1 filename2 ... \n", argv[0]);
+		printf("Usage: %s [-o <offset>] [-f] filename1 filename2 ... \n", argv[0]);
+		printf("-o : An offset into the file to start parsing\n");
+		printf("-f : Force PE parsing\n");
 		return -1;
 	}
 
@@ -151,10 +153,10 @@ void printHeaderData(HeaderData* data)
 		printf(" (%zu) %s: ( 0x%016zx - 0x%016zx )\n",
 			   i+1, data->code_regions[i].name, data->code_regions[i].start, data->code_regions[i].end);
 	}
-	printf("headertype: %s\n", getHeaderDataHeaderType(data->headertype));
+	printf("headertype: %s (%d)\n", getHeaderDataHeaderType(hd->headertype), hd->h_bitness);
 	printf("bitness: %d-bit\n", data->h_bitness);
-	printf("endian: %s\n", endian_type_names[data->endian]);
-	printf("CPU_arch: %s\n", getHeaderDataArchitecture(data->CPU_arch));
+	printf("endian: %s (0x%x)\n", getHeaderDataEndianType(data->endian), data->endian);
+	printf("CPU_arch: %s (0x%x)\n", getHeaderDataArchitecture(data->CPU_arch), data->CPU_arch);
 	printf("Machine: %s\n", data->Machine);
 	printf("\n");
 }

@@ -214,14 +214,7 @@ int parsePEHeader(
         return -1;
     }
 
-    if ( pep->info_level & INFO_LEVEL_PE_EXP ||
-         pep->info_level & INFO_LEVEL_PE_IMP ||
-         pep->info_level & INFO_LEVEL_PE_RES || 
-         pep->info_level & INFO_LEVEL_PE_REL || 
-         pep->info_level & INFO_LEVEL_PE_TLS ||
-         pep->info_level & INFO_LEVEL_PE_LCFG ||
-         pep->info_level & INFO_LEVEL_PE_BIMP ||
-         pep->info_level & INFO_LEVEL_PE_DIMP )
+    if ( pep->info_level & INFO_LEVEL_PE_SVAS )
     {
         parse_svas = 1;
     }
@@ -230,15 +223,19 @@ int parsePEHeader(
 
     s = PE_readImageDosHeader(image_dos_header, gp->start_file_offset, gp->file_size, gp->block_large);
     if ( s != 0 )
-        return 1;
-
-    if ( LIB_MODE == 0 && pep->info_level & INFO_LEVEL_PE_DOS_H )
+        return -2;
+    
+#if LIB_MODE == 0
+    if ( pep->info_level & INFO_LEVEL_PE_DOS_H )
         PE_printImageDosHeader(image_dos_header, gp->start_file_offset);
+#endif
 
     if ( !checkBytes(MAGIC_DOS_STUB_BEGINNING, MAGIC_DOS_STUB_BEGINNING_LN, &gp->block_large[PE_DOS_STUB_OFFSET]) )
     {
-        if ( LIB_MODE == 0 && pep->info_level & INFO_LEVEL_PE_DOS_H )
+#if LIB_MODE == 0
+        if ( pep->info_level & INFO_LEVEL_PE_DOS_H )
             header_info("INFO: No DOS stub found.\n");
+#endif
     }
 
     if ( !PE_checkDosHeader(image_dos_header, gp->file_size) )
@@ -251,7 +248,7 @@ int parsePEHeader(
             {header_error(" - e_lfanew (%u) > file_size (%zu)", image_dos_header->e_lfanew, gp->file_size); }
 
         header_error("\n");
-        return 2;
+        return -3;
     }
 
     pe_header_type = PE_checkPESignature(image_dos_header->e_lfanew, gp->start_file_offset, &gp->abs_file_offset, gp->file_size,
@@ -268,7 +265,7 @@ int parsePEHeader(
         else
             hd->headertype = HEADER_TYPE_MS_DOS;
 
-        return 3;
+        return -4;
     }
 
     hd->headertype = HEADER_TYPE_PE;
@@ -276,21 +273,25 @@ int parsePEHeader(
 
     s = PE_readCoffHeader((size_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE, coff_header, gp->start_file_offset,
                        &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large);
-    if ( s != 0 ) return 4;
-
-    if ( LIB_MODE == 0 && pep->info_level & INFO_LEVEL_PE_COFF_H )
+    if ( s != 0 ) return -5;
+    
+#if LIB_MODE == 0
+    if ( pep->info_level & INFO_LEVEL_PE_COFF_H )
         PE_printCoffFileHeader(coff_header, (size_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE, gp->start_file_offset);
+#endif
     PE_fillHeaderDataWithCoffHeader(coff_header, hd);
     if ( !PE_checkCoffHeader(coff_header, hd) )
-        return 5;
+        return -6;
 
     optional_header_offset = (size_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE + PE_COFF_FILE_HEADER_SIZE;
 //    debug_info(" - optional_header_offset: #%zx (%zu)\n", optional_header_offset, optional_header_offset);
     s = PE_readOptionalHeader(optional_header_offset, opt_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large);
-    if ( s != 0 ) return 6;
-
-    if ( LIB_MODE == 0 && pep->info_level & INFO_LEVEL_PE_OPT_H )
+    if ( s != 0 ) return -7;
+    
+#if LIB_MODE == 0
+    if ( pep->info_level & INFO_LEVEL_PE_OPT_H )
         PE_printOptionalHeader(opt_header, optional_header_offset, gp->start_file_offset, hd->h_bitness);
+#endif
 
     PE_fillHeaderDataWithOptHeader(opt_header, hd);
 
@@ -298,6 +299,8 @@ int parsePEHeader(
 //    debug_info(" - section_header_offset: #%zx (%zu)\n", section_header_offset, section_header_offset);
     PE_readSectionHeader(section_header_offset, coff_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, pep->info_level&INFO_LEVEL_PE_SEC_H,
                          gp->fp, gp->block_standard, gp->block_large, &pehd->st, parse_svas, &pehd->svas, hd);
+
+
 
     if ( pep->info_level & INFO_LEVEL_PE_IMP )
         PE_parseImageImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
@@ -315,6 +318,12 @@ int parsePEHeader(
 
     if ( pep->info_level & INFO_LEVEL_PE_RES )
         PE_parseImageResourceTable(opt_header, coff_header->NumberOfSections, gp->start_file_offset, gp->file_size, gp->fp, gp->block_standard, pehd->svas);
+
+    if ( pep->info_level & INFO_LEVEL_PE_DBG )
+        PE_parseImageDebugTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard, pep->info_level & INFO_LEVEL_PE_DBG_EX);
+
+    //if ( pep->info_level & INFO_LEVEL_PE_EXC )
+        //PE_parseImageExceptionTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
 
     if (pep->info_level & INFO_LEVEL_PE_REL )
         PE_parseImageBaseRelocationTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
@@ -369,7 +378,7 @@ int PE_readImageDosHeader(PEImageDosHeader* idh,
 //    debug_info(" - file_offset: %zx\n", file_offset);
 
     if ( !checkFileSpace(0, file_offset, sizeof(PEImageDosHeader), file_size) )
-        return 1;
+        return -1;
 
     ptr = &block_l[0];
 
@@ -434,7 +443,6 @@ uint8_t PE_checkPESignature(const uint32_t e_lfanew,
     if ( e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE > BLOCKSIZE_LARGE )
     {
         *abs_file_offset = file_offset + e_lfanew;
-//		size = readCustomBlock(file_name, *abs_file_offset, BLOCKSIZE, block_s);
         size = readFile(fp, *abs_file_offset, BLOCKSIZE, block_s);
         if ( !size )
         {
@@ -606,12 +614,6 @@ uint8_t PE_readOptionalHeader(size_t offset,
         oh->SizeOfStackCommit = GetIntXValueAtOffset(uint32_t, ptr, offsets.SizeOfStackCommit);
         oh->SizeOfHeapReserve = GetIntXValueAtOffset(uint32_t, ptr, offsets.SizeOfHeapReserve);
         oh->SizeOfHeapCommit = GetIntXValueAtOffset(uint32_t, ptr, offsets.SizeOfHeapCommit);
-        //oh->ImageBase = *((uint32_t*) &ptr[offsets.ImageBase]);
-        //oh->BaseOfData = *((uint32_t*) &ptr[offsets.BaseOfData]);
-        //oh->SizeOfStackReserve = *((uint32_t*) &ptr[offsets.SizeOfStackReserve]);
-        //oh->SizeOfStackCommit = *((uint32_t*) &ptr[offsets.SizeOfStackCommit]);
-        //oh->SizeOfHeapReserve = *((uint32_t*) &ptr[offsets.SizeOfHeapReserve]);
-        //oh->SizeOfHeapCommit = *((uint32_t*) &ptr[offsets.SizeOfHeapCommit]);
     }
     else
     {
@@ -620,11 +622,6 @@ uint8_t PE_readOptionalHeader(size_t offset,
         oh->SizeOfStackCommit = GetIntXValueAtOffset(uint64_t, ptr, offsets.SizeOfStackCommit);
         oh->SizeOfHeapReserve = GetIntXValueAtOffset(uint64_t, ptr, offsets.SizeOfHeapReserve);
         oh->SizeOfHeapCommit = GetIntXValueAtOffset(uint64_t, ptr, offsets.SizeOfHeapCommit);
-        //oh->ImageBase = *((uint64_t*) &ptr[offsets.ImageBase]);
-        //oh->SizeOfStackReserve = *((uint64_t*) &ptr[offsets.SizeOfStackReserve]);
-        //oh->SizeOfStackCommit = *((uint64_t*) &ptr[offsets.SizeOfStackCommit]);
-        //oh->SizeOfHeapReserve = *((uint64_t*) &ptr[offsets.SizeOfHeapReserve]);
-        //oh->SizeOfHeapCommit = *((uint64_t*) &ptr[offsets.SizeOfHeapCommit]);
     }
     oh->MajorLinkerVersion = GetIntXValueAtOffset(uint8_t, ptr, offsets.MajorLinkerVersion);
     oh->MinorLinkerVersion = GetIntXValueAtOffset(uint8_t, ptr, offsets.MinorLinkerVersion);
@@ -713,9 +710,13 @@ void PE_fillHeaderDataWithOptHeader(PE64OptHeader* oh,
     else if ( oh->Magic == PeOptionalHeaderSignature.IMAGE_NT_OPTIONAL_HDR64_MAGIC )
         hd->h_bitness = 64;
     else if ( oh->Magic == PeOptionalHeaderSignature.IMAGE_ROM_OPTIONAL_HDR_MAGIC )
+    {
         header_info("INFO: ROM file.\n");
+    }
     else
+    {
         header_info("INFO: Unknown PeOptionalHeaderSignature (Magic) of %u.\n", oh->Magic);
+    }
 
     if ( oh->NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_CLR_RUNTIME_HEADER &&
         oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_CLR_RUNTIME_HEADER].VirtualAddress != 0 )
@@ -770,14 +771,15 @@ void PE_readSectionHeader(size_t header_start,
         return;
 
     *abs_file_offset = header_start + start_file_offset;
-//	size = readCustomBlock(file_name, *abs_file_offset, BLOCKSIZE_LARGE, block_l);
     size = readFile(fp, *abs_file_offset, BLOCKSIZE_LARGE, block_l);
     if ( size == 0 )
         return;
     offset = 0;
-
-    if ( LIB_MODE == 0 && p_sec_h )
+    
+#if LIB_MODE == 0
+    if ( p_sec_h )
         printf("Section Header:\n");
+#endif
 
     for ( i = 0; i < nr_of_sections; i++ )
     {
@@ -792,9 +794,11 @@ void PE_readSectionHeader(size_t header_start,
         ptr = &block_l[offset];
 
         PE_fillSectionHeader(ptr, &s_header);
-
-        if ( LIB_MODE == 0 && p_sec_h )
+        
+#if LIB_MODE == 0
+        if ( p_sec_h )
             PE_printImageSectionHeader(&s_header, i, nr_of_sections, ch, *abs_file_offset+offset, start_file_offset, file_size, fp, block_s, st);
+#endif
 
         if ( PE_isNullSectionHeader(&s_header) )
         {
@@ -821,8 +825,10 @@ void PE_readSectionHeader(size_t header_start,
 
         offset += PE_SECTION_HEADER_SIZE;
     }
-    if ( LIB_MODE == 0 && p_sec_h )
+#if LIB_MODE == 0
+    if ( p_sec_h )
         printf("\n");
+#endif
 }
 
 void PE_fillSectionHeader(const unsigned char* ptr,
@@ -943,7 +949,7 @@ CodeRegionData PE_fillCodeRegion(const PEImageSectionHeader* sh,
     code_region_data.end = end_of_raw_data;
     code_region_data.name = name;
 
-    return code_region_data;
+    return code_region_data; // return value
 }
 
 /**
@@ -962,21 +968,23 @@ uint32_t PE_calculateSectionSize(const PEImageSectionHeader* sh)
                 && !hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_UNINITIALIZED_DATA)
                 )
             || hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_INITIALIZED_DATA)
-            || ( hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_CODE
-                                                & PESectionCharacteristics.IMAGE_SCN_MEM_READ
-                                                & PESectionCharacteristics.IMAGE_SCN_MEM_WRITE)
-                && !hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_UNINITIALIZED_DATA)
-                )
-//			|| ( hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_CODE)
-//				&& hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_MEM_READ)
-//				&& hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_MEM_WRITE) )
+            //|| ( hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_CODE
+            //                                    & PESectionCharacteristics.IMAGE_SCN_MEM_READ
+            //                                    & PESectionCharacteristics.IMAGE_SCN_MEM_WRITE)
+            //     &&
+            //     !hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_UNINITIALIZED_DATA)
+            //   )
             )
         )
+    {
         size = sh->SizeOfRawData;
+    }
     else if ( ( sh->SizeOfRawData < sh->Misc.VirtualSize && sh->SizeOfRawData > 0 )
-        || sh->Misc.VirtualSize == 0 )
+               || sh->Misc.VirtualSize == 0 
+            )
+    {
         size = sh->SizeOfRawData;
-
+    }
 //	if ( hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_CODE)
 //		 && !hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_UNINITIALIZED_DATA) )
 //		size = sh->SizeOfRawData;
