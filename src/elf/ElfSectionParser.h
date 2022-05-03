@@ -35,6 +35,8 @@ int Elf_parseSymTab(
     size_t sym_i = 1;
     Elf64_Sym sym;
     size_t h_offset = 0;
+    char* name = NULL;
+    uint32_t name_max_size = 0;
 
     if ( strtab == NULL || strtab_size == 0 )
     {
@@ -58,25 +60,40 @@ int Elf_parseSymTab(
 //        debug_info(" - %u / %u\n", (i + 1), fh->e_shnum);
 
         ptr = &buffer[offset];
+        debug_info("offset: 0x%zx\n", offset);
 #ifdef DEBUG_PRINT
-        printf("offset: 0x%zx\n", offset);
         size_t i;
         for ( i = 0; i < h_size; i++ )
             printf("%02x ", ptr[i]);
         printf("\n");
 #endif
         Elf_fillSymHeader(&sym, ptr, bitness, ei_data);
-        char* name = ( sym.st_name > 0 && sym.st_name < strtab_size-1 ) ? (char*) &strtab[sym.st_name] : "";
+        debug_info("sym.st_name: 0x%x\n", sym.st_name);
+        debug_info("strtab_size: 0x%x\n",strtab_size);
 
-        Elf_printSymTabEntry(&sym, name, sym_i, nr_syms, bitness, fo+offset, ex);
+        if ( sym.st_name > 0 && sym.st_name < strtab_size-1 )
+        {
+            name = (char*) &strtab[sym.st_name];
+            name_max_size = strtab_size - sym.st_name - 1;
+        }
+        else
+        {
+            name = "";
+            name_max_size = 0;
+        }
+        debug_info("name (0x%x): %.*s\n", name_size, name_max_size, name);
+       
+
+        Elf_printSymTabEntry(&sym, name, name_max_size, sym_i, nr_syms, bitness, fo+offset, ex);
 
         offset += h_size;
         if ( offset + h_size > buffer_size )
         {
             fo += offset;
             size = readFile(fp, fo, buffer_size, buffer);
-            if ( size == 0 )
+            if ( size < h_size )
             {
+                header_error("ERROR: Symbol data beyond file size!\n");
                 s = -1;
                 break;
             };

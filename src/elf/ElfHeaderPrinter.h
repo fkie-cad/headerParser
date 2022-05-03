@@ -28,6 +28,7 @@ static char* Elf_getSHTypeString(uint32_t type);
 void Elf_printSymTabEntry(
     Elf64_Sym* sym,
     char* name,
+    uint32_t name_max_size,
     size_t i,
     size_t nr_syms,
     uint8_t bitness,
@@ -238,6 +239,7 @@ char* Elf_getSHTypeString(uint32_t type)
 void Elf_printSymTabEntry(
     Elf64_Sym* sym,
     char* name,
+    uint32_t name_max_size,
     size_t i,
     size_t nr_syms,
     uint8_t bitness,
@@ -247,7 +249,7 @@ void Elf_printSymTabEntry(
 {
     Elf_Sym_Offsets offsets = (bitness==32)?Elf32SymOffsets:Elf64SymOffsets;
 
-    printf("%zu/%zu%s: %s\n", i, nr_syms, fillOffset(offsets.st_name, offset, 0), name);
+    printf("%zu/%zu%s: %.*s\n", i, nr_syms, fillOffset(offsets.st_name, offset, 0), name_max_size, name);
     if ( ex )
     {
 //        printf(" - st_info%s: bind: %s, type: %s (0x%x)\n", fillOffset(offsets.st_name, offset, 0), Elf_getSymbolBind(sym->st_info), Elf_getSymbolType(sym->st_info), sym->st_info);
