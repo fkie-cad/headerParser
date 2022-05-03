@@ -17,6 +17,7 @@
 
 #include "print.h"
 #include "utils/env.h"
+#include "errorCodes.h"
 #include "Globals.h"
 
 #include "utils/Converter.h"
@@ -30,8 +31,8 @@
 //#define DILLER
 
 #define BIN_NAME "headerParser"
-#define BIN_VS "1.15.1"
-#define BIN_DATE "30.04.2022"
+#define BIN_VS "1.15.2"
+#define BIN_DATE "03.05.2022"
 
 #define LIN_PARAM_IDENTIFIER ('-')
 #define WIN_PARAM_IDENTIFIER ('/')
@@ -119,10 +120,10 @@ main(int argc, char** argv)
 
     sanitizeArgs(&gp);
 
-    DPrint("file_name: %s\n", file_name);
-    DPrint("abs_file_offset: 0x%zx\n", gp.abs_file_offset);
-    DPrint("abs_file_offset: 0x%zx\n", gp.abs_file_offset);
-    DPrint("start_file_offset: 0x%zx\n", gp.start_file_offset);
+    debug_info("file_name: %s\n", file_name);
+    debug_info("abs_file_offset: 0x%zx\n", gp.abs_file_offset);
+    debug_info("abs_file_offset: 0x%zx\n", gp.abs_file_offset);
+    debug_info("start_file_offset: 0x%zx\n", gp.start_file_offset);
 
     n = readFile(gp.fp, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
     if ( !n )
@@ -218,13 +219,6 @@ void printHelp()
     printf("$ ./%s path/to/a.file -i 2\n", BIN_NAME);
     printf("$ ./%s path/to/a.file -s 0x100\n", BIN_NAME);
     printf("$ ./%s path/to/a.file -f pe\n", BIN_NAME);
-}
-
-int isAskForHelp(const char* arg)
-{
-    return ( arg[0] == LIN_PARAM_IDENTIFIER || arg[0] == WIN_PARAM_IDENTIFIER ) &&
-            ( arg[1] == '?' || arg[1] == 'h' ) &&
-            arg[2] == 0;
 }
 
 int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams elfp, uint8_t* force, char* file_name)

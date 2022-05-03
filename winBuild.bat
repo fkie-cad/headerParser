@@ -1,18 +1,22 @@
 @echo off
 
+set prog_name=%~n0
+set user_dir="%~dp0"
+
 set name=headerParser
 set target=%name%
 set ct=Application
+
 set /a bitness=64
 set platform=x64
 set mode=Release
+
 set /a rt=0
+set /a dp=0
 set pdb=0
+
 set buildTools="C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\"
 set pts=WindowsApplicationForDrivers10.0
-
-set prog_name=%~n0
-set user_dir="%~dp0"
 set verbose=0
 
 
@@ -59,7 +63,11 @@ GOTO :ParseParams
         goto reParseParams
     )
     IF /i "%~1"=="/pdb" (
-        SET pdb=1
+        SET /a pdb=1
+        goto reParseParams
+    )
+    IF /i "%~1"=="/dp" (
+        SET /a dp=1
         goto reParseParams
     )
     
@@ -174,7 +182,7 @@ GOTO :ParseParams
     )
 
 :build
-    cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:PlatformToolset=%pts% /p:Configuration=%mode% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct%  & exit"
+    cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:PlatformToolset=%pts% /p:Configuration=%mode% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct%  /p:DebugPrint=%dp%  & exit"
 
     :: if /i [%mode%]==[release] (
     ::     certutil -hashfile %build_dir%\%target%.exe sha256 | find /i /v "sha256" | find /i /v "certutil" > %build_dir%\%target%.sha256

@@ -3,9 +3,9 @@
 
 
 #ifdef DEBUG_PRINT
-#define DPrint(...) { printf(__VA_ARGS__); }
+#define debug_info(...) { printf(__VA_ARGS__); }
 #else
-#define DPrint(...)
+#define debug_info(...)
 #endif
 
 

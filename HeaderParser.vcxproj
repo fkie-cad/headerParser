@@ -127,6 +127,12 @@
       <AdditionalOptions>/NOCOFFGRPINFO %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
+  
+  <ItemDefinitionGroup Condition="'$(DebugPrint)'!='0' And '$(DebugPrint)'!=''">
+    <ClCompile>
+      <PreprocessorDefinitions>DEBUG_PRINT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
 
   <ItemGroup Condition="'$(ConfigurationType)'=='Application'">
     <ClCompile Include="src\headerParser.c" />

@@ -130,7 +130,7 @@ uint8_t checkLargeBlockSpace(size_t* rel_offset,
         if ( r_size == 0 )
         {
 //			prog_error("ERROR: 1 reading block failed.\n");
-            return 0;
+            return false;
         }
         if ( needed > r_size )
         {
@@ -139,7 +139,7 @@ uint8_t checkLargeBlockSpace(size_t* rel_offset,
         }
         *rel_offset = 0;
     }
-    return 1;
+    return true;
 }
 
 /**

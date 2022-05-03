@@ -88,6 +88,8 @@ typedef struct GlobalParams
 
     uint8_t info_level; // may be global. TODO: delete this or the global one
     uint8_t info_show_offsets; // may be global. TODO: delete this or the global one
+
+    //uint32_t suspicious_count;
 } GlobalParams, *PGlobalParams;
 
 #define INFO_LEVEL_MAX          (0xFFFFFFFF)

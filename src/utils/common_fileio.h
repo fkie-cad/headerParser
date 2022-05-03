@@ -22,7 +22,7 @@ static size_t getSizeFP(FILE* fi);
 
 // Uses MALLOC.
 // Caller is responsible for freeing this!
-static size_t readCharArrayFile(const char* finame, unsigned char ** pData, size_t begin, size_t stopAt);
+static size_t readCharArrayFile(const char* finame, uint8_t ** pData, size_t begin, size_t stopAt);
 
 /**
  * Read from fi at begin size bytes into data[size]
@@ -33,7 +33,7 @@ static size_t readCharArrayFile(const char* finame, unsigned char ** pData, size
  * @param data
  * @return
  */
-static size_t readFile(FILE* fi, size_t begin, size_t size, unsigned char* data);
+static size_t readFile(FILE* fi, size_t begin, size_t size, uint8_t* data);
 
 /**
  * Read from fi at begin size bytes into data**
@@ -42,10 +42,10 @@ static size_t readFile(FILE* fi, size_t begin, size_t size, unsigned char* data)
  * @param fi FILE* opened FILE*
  * @param begin size_t offset into file
  * @param size size_t size to read
- * @param data unsigned char**
+ * @param data uint8_t**
  * @return size_t number of read bytes
  */
-static size_t readFileA(FILE* fi, size_t begin, size_t size, unsigned char** data);
+static size_t readFileA(FILE* fi, size_t begin, size_t size, uint8_t** data);
 
 /**
  * Read from finame at offset size bytes into data[size]
@@ -56,7 +56,7 @@ static size_t readFileA(FILE* fi, size_t begin, size_t size, unsigned char** dat
  * @param data
  * @return
  */
-static size_t readCustomBlock(const char* finame, size_t offset, size_t size, unsigned char* data);
+static size_t readCustomBlock(const char* finame, size_t offset, size_t size, uint8_t* data);
 
 ///**
 // * Check if dir exists.
@@ -138,10 +138,10 @@ size_t getSizeFP(FILE* fi)
 
 // Uses MALLOC.
 // Caller is responsible for freeing this!
-size_t readCharArrayFile(const char* finame, unsigned char ** pData, size_t begin, size_t stopAt)
+size_t readCharArrayFile(const char* finame, uint8_t ** pData, size_t begin, size_t stopAt)
 {
     FILE * fi;
-    unsigned char * data = NULL;
+    uint8_t * data = NULL;
     size_t Filesize=0, n=0;
     int errsv;
     
@@ -194,7 +194,7 @@ size_t readCharArrayFile(const char* finame, unsigned char ** pData, size_t begi
     }
 
     // Allocate space
-    data = (unsigned char *) malloc(Filesize);
+    data = (uint8_t *) malloc(Filesize);
     if (!data) 
     {
 //		prog_error("Malloc failed.\n");
@@ -235,7 +235,7 @@ size_t readCharArrayFile(const char* finame, unsigned char ** pData, size_t begi
  * @param data
  * @return
  */
-size_t readFile(FILE* fi, size_t begin, size_t size, unsigned char* data)
+size_t readFile(FILE* fi, size_t begin, size_t size, uint8_t* data)
 {
     size_t n = 0;
 
@@ -253,10 +253,10 @@ size_t readFile(FILE* fi, size_t begin, size_t size, unsigned char* data)
  * @param fi FILE* opened FILE*
  * @param begin size_t offset into file
  * @param size size_t size to read
- * @param data unsigned char**
+ * @param data uint8_t**
  * @return size_t number of read bytes
  */
-size_t readFileA(FILE* fi, size_t begin, size_t size, unsigned char** data)
+size_t readFileA(FILE* fi, size_t begin, size_t size, uint8_t** data)
 {
     size_t n = 0;
 
@@ -286,7 +286,7 @@ size_t readFileA(FILE* fi, size_t begin, size_t size, unsigned char** data)
  * @param data
  * @return
  */
-size_t readCustomBlock(const char* finame, size_t offset, size_t size, unsigned char* data)
+size_t readCustomBlock(const char* finame, size_t offset, size_t size, uint8_t* data)
 {
     FILE * fi;
     size_t n = 0;
