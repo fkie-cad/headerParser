@@ -339,23 +339,44 @@ void MachO_readCommands(uint32_t ncmds,
             printf("(%u/%u):\n", i+1, ncmds);
 
         if ( !checkFileSpace(sc_offset, *abs_file_offset, SIZE_OF_MACHO_O_LOAD_COMMAND, file_size) )
+        {
+            header_error("ERROR: cmd data beyond file size!\n");
             return;
+        }
 
         if ( !checkLargeBlockSpace(&sc_offset, abs_file_offset, SIZE_OF_MACHO_O_LOAD_COMMAND, block_l, fp) )
             return;
 
         MachO_fillLoadCommand(&lc, sc_offset, hd, block_l);
 
-//        debug_info(" - lc.cmd: %u\n", lc.cmd);
-//        debug_info(" - lc.cmdsize: %u\n", lc.cmdsize);
-//        debug_info(" - sc_offset + lc.cmdsize: %zu\n", sc_offset + lc.cmdsize);
-//        debug_info(" - file_size: %zu\n", file_size);
+        if ( lc.cmdsize == 0 )
+        {
+            header_error("ERROR: Load command size is 0!\n");
+            break;
+        }
 
+        debug_info(" - lc.cmd: 0x%x (%u)\n", lc.cmd, lc.cmd);
+        debug_info(" - lc.cmdsize: 0x%x (%u)\n", lc.cmdsize, lc.cmdsize);
+        debug_info(" - sc_offset + lc.cmdsize: 0x%zx (%zu)\n", sc_offset + lc.cmdsize, sc_offset + lc.cmdsize);
+        debug_info(" - file_size: 0x%zx (%zu)\n", file_size, file_size);
+
+        // check if command fits into file
         if ( !checkFileSpace(sc_offset, *abs_file_offset, lc.cmdsize, file_size) )
+        {
+            header_error("ERROR: cmd data beyond file size!\n");
             return;
+        }
 
+        // asure, that command fits into loaded block
         if ( !checkLargeBlockSpace(&sc_offset, abs_file_offset, lc.cmdsize, block_l, fp) )
+        {
+            header_error("ERROR: allocating large block failed!\n");
+            if ( lc.cmdsize > BLOCKSIZE_LARGE )
+            {
+                header_error("       cmd size (0x%x) > max block size!\n", lc.cmdsize);
+            }
             return;
+        }
 
         if ( lc.cmd == LC_SEGMENT || lc.cmd == LC_SEGMENT_64 )
         {
@@ -402,7 +423,7 @@ void MachO_readCommands(uint32_t ncmds,
                   lc.cmd == LC_SUB_LIBRARY ||
                   lc.cmd == LC_SUB_CLIENT )
         {
-//            debug_info("LC_SUB_FRAMEWORK | LC_SUB_UMBRELLA | LC_SUB_LIBRARY | LC_SUB_CLIENT \n");
+            debug_info("LC_SUB_FRAMEWORK | LC_SUB_UMBRELLA | LC_SUB_LIBRARY | LC_SUB_CLIENT \n");
             SubCommand c;
             c.cmd = lc.cmd;
             c.cmdsize = lc.cmdsize;
@@ -599,22 +620,22 @@ size_t MachO_fillSegmentCommand(size_t sc_offset,
 
     if ( hd->h_bitness == 64 )
     {
-        sc->vmaddr = *((uint64_t*) &ptr[offsets.vmaddr]);
-        sc->vmsize = *((uint64_t*) &ptr[offsets.vmsize]);
-        sc->fileoff = *((uint64_t*) &ptr[offsets.fileoff]);
-        sc->filesize = *((uint64_t*) &ptr[offsets.filesize]);
+        sc->vmaddr = GetIntXValueAtOffset(uint64_t, ptr, offsets.vmaddr);
+        sc->vmsize = GetIntXValueAtOffset(uint64_t, ptr, offsets.vmsize);
+        sc->fileoff = GetIntXValueAtOffset(uint64_t, ptr, offsets.fileoff);
+        sc->filesize = GetIntXValueAtOffset(uint64_t, ptr, offsets.filesize);
     }
     else
     {
-        sc->vmaddr = *((uint32_t*) &ptr[offsets.vmaddr]);
-        sc->vmsize = *((uint32_t*) &ptr[offsets.vmsize]);
-        sc->fileoff = *((uint32_t*) &ptr[offsets.fileoff]);
-        sc->filesize = *((uint32_t*) &ptr[offsets.filesize]);
+        sc->vmaddr = GetIntXValueAtOffset(uint32_t, ptr, offsets.vmaddr);
+        sc->vmsize = GetIntXValueAtOffset(uint32_t, ptr, offsets.vmsize);
+        sc->fileoff = GetIntXValueAtOffset(uint32_t, ptr, offsets.fileoff);
+        sc->filesize = GetIntXValueAtOffset(uint32_t, ptr, offsets.filesize);
     }
-    sc->maxprot = *((vm_prot_t*) &ptr[offsets.maxprot]);
-    sc->initprot = *((vm_prot_t*) &ptr[offsets.initprot]);
-    sc->nsects = *((uint32_t*) &ptr[offsets.nsects]);
-    sc->flags = *((uint32_t*) &ptr[offsets.flags]);
+    sc->maxprot = GetIntXValueAtOffset(vm_prot_t, ptr, offsets.maxprot);
+    sc->initprot = GetIntXValueAtOffset(vm_prot_t, ptr, offsets.initprot);
+    sc->nsects = GetIntXValueAtOffset(uint32_t, ptr, offsets.nsects);
+    sc->flags = GetIntXValueAtOffset(uint32_t, ptr, offsets.flags);
 
     if ( hd->endian == ENDIAN_BIG )
     {
@@ -628,10 +649,12 @@ size_t MachO_fillSegmentCommand(size_t sc_offset,
         sc->flags = swapUint32(sc->flags);
     }
 
-    sec_offset = (hd->h_bitness == 64 ) ?  (uint32_t)(sc_offset + SIZE_OF_MACHO_O_SEGMENT_HEADER_64) :  (uint32_t)(sc_offset + SIZE_OF_MACHO_O_SEGMENT_HEADER_32);
-//    debug_info("MachoOfillSegmentCommand\n");
-//    debug_info(" -  sec_offset: %u\n", sec_offset);
-//    debug_info(" -  sc->nsects: %u\n", sc->nsects);
+    sec_offset = (hd->h_bitness == 64 ) 
+                    ? (uint32_t)(sc_offset + SIZE_OF_MACHO_O_SEGMENT_HEADER_64) 
+                    : (uint32_t)(sc_offset + SIZE_OF_MACHO_O_SEGMENT_HEADER_32);
+    //debug_info("MachoOfillSegmentCommand\n");
+    //debug_info(" -  sec_offset: %u\n", sec_offset);
+    //debug_info(" -  sc->nsects: %u\n", sc->nsects);
 
     if ( ilevel >= INFO_LEVEL_EXTENDED )
         MachO_printSegmentCommand(sc, *abs_file_offset+sc_offset, hd->h_bitness);
@@ -717,22 +740,22 @@ void MachO_readSection(MachOSection64* sec,
     }
     if ( bitness == 64 )
     {
-        sec->addr = *((uint64_t*) &ptr[offsets.addr]);
-        sec->size = *((uint64_t*) &ptr[offsets.size]);
+        sec->addr = GetIntXValueAtOffset(uint64_t, ptr, offsets.addr);
+        sec->size = GetIntXValueAtOffset(uint64_t, ptr, offsets.size);
     }
     else
     {
-        sec->addr = *((uint32_t*) &ptr[offsets.addr]);
-        sec->size = *((uint32_t*) &ptr[offsets.size]);
+        sec->addr = GetIntXValueAtOffset(uint32_t, ptr, offsets.addr);
+        sec->size = GetIntXValueAtOffset(uint32_t, ptr, offsets.size);
     }
-    sec->offset = *((uint32_t*) &ptr[offsets.offset]);
-    sec->align = *((uint32_t*) &ptr[offsets.align]);
-    sec->reloff= *((uint32_t*) &ptr[offsets.reloff]);
-    sec->nreloc = *((uint32_t*) &ptr[offsets.nreloc]);
-    sec->flags = *((uint32_t*) &ptr[offsets.flags]);
-    sec->reserved1 = *((uint32_t*) &ptr[offsets.reserved1]);
-    sec->reserved2 = *((uint32_t*) &ptr[offsets.reserved2]);
-    if ( bitness == 64 ) sec->reserved3 = *((uint32_t*) &ptr[offsets.reserved3]);
+    sec->offset = GetIntXValueAtOffset(uint32_t, ptr, offsets.offset);
+    sec->align = GetIntXValueAtOffset(uint32_t, ptr, offsets.align);
+    sec->reloff= GetIntXValueAtOffset(uint32_t, ptr, offsets.reloff);
+    sec->nreloc = GetIntXValueAtOffset(uint32_t, ptr, offsets.nreloc);
+    sec->flags = GetIntXValueAtOffset(uint32_t, ptr, offsets.flags);
+    sec->reserved1 = GetIntXValueAtOffset(uint32_t, ptr, offsets.reserved1);
+    sec->reserved2 = GetIntXValueAtOffset(uint32_t, ptr, offsets.reserved2);
+    if ( bitness == 64 ) sec->reserved3 = GetIntXValueAtOffset(uint32_t, ptr, offsets.reserved3);
 
     if ( endian == ENDIAN_BIG )
     {
@@ -813,7 +836,7 @@ void MachO_fillDylibCommand(DylibCommand* c,
 {
     unsigned char *ptr;
     ptr = &block_l[offset];
-    uint32_t name_ln;
+    uint32_t name_ln = 0;
 
     c->dylib.name = *( (union lc_str*) &ptr[DylibCommandOffsets.dylib + DylibOffsets.name]);
     c->dylib.timestamp = *( (uint32_t*) &ptr[DylibCommandOffsets.dylib + DylibOffsets.timestamp]);
@@ -828,7 +851,10 @@ void MachO_fillDylibCommand(DylibCommand* c,
         c->dylib.compatibility_version = swapUint32(c->dylib.compatibility_version);
     }
 
-    name_ln = c->cmdsize - c->dylib.name.offset;
+    if ( c->cmdsize > c->dylib.name.offset)
+        name_ln = c->cmdsize - c->dylib.name.offset;
+    else
+        header_error("WARNING: cmd size less than expected name size!\n");
 
     if ( ilevel >= INFO_LEVEL_EXTENDED )
         MachO_printDylibCommand(c, name_ln, ptr, abs_file_offset+offset, info_show_offsets);
@@ -843,7 +869,7 @@ void MachO_fillPreboundDylibCommand(PreboundDylibCommand* c,
 {
     unsigned char *ptr;
     ptr = &block_l[offset];
-    uint32_t name_ln;
+    uint32_t name_ln = 0;
 //	int i;
 
     c->name = *( (union lc_str*) &ptr[PreboundDylibCommandOffsets.name]);
@@ -857,7 +883,14 @@ void MachO_fillPreboundDylibCommand(PreboundDylibCommand* c,
         c->linked_modules.offset = swapUint32(c->linked_modules.offset);
     }
 
-    name_ln = c->cmdsize - c->name.offset;
+    if ( c->cmdsize > c->name.offset)
+        name_ln = c->cmdsize - c->name.offset;
+    else
+        header_error("WARNING: cmd size less than expected name size!\n");
+
+    debug_info("block rest: 0x%x\n", (uint32_t)(BLOCKSIZE_LARGE-offset));
+    debug_info("name.offset: 0x%x\n", c->name.offset);
+    debug_info("name_ln: 0x%x\n", name_ln);
 
     if ( ilevel >= INFO_LEVEL_EXTENDED )
         MachO_printPreboundDylibCommand(c, name_ln, ptr, abs_file_offset+offset);
@@ -872,7 +905,7 @@ void MachO_fillSubCommand(SubCommand* c,
 {
     unsigned char *ptr;
     ptr = &block_l[offset];
-    uint32_t name_ln;
+    uint32_t name_ln = 0;
 
     c->name = *( (union lc_str*) &ptr[SubCommandOffsets.name]);
 
@@ -881,7 +914,14 @@ void MachO_fillSubCommand(SubCommand* c,
         c->name.offset = swapUint32(c->name.offset);
     }
 
-    name_ln = c->cmdsize - c->name.offset;
+    if ( c->cmdsize > c->name.offset)
+        name_ln = c->cmdsize - c->name.offset;
+    else
+        header_error("WARNING: cmd size less than expected name size!\n");
+
+    debug_info("block rest: 0x%x\n", (uint32_t)(BLOCKSIZE_LARGE-offset));
+    debug_info("name.offset: 0x%x\n", c->name.offset);
+    debug_info("name_ln: 0x%x\n", name_ln);
 
     if ( ilevel >= INFO_LEVEL_EXTENDED )
         MachO_printSubCommand(c, name_ln, ptr, abs_file_offset+offset);
@@ -924,24 +964,24 @@ void MachO_fillDySymtabCommand(DySymtabCommand* c,
     unsigned char *ptr;
     ptr = &block_l[offset];
 
-    c->ilocalsym = *( (uint32_t*) &ptr[DySymtabCommandOffsets.ilocalsym]);
-    c->nlocalsym = *( (uint32_t*) &ptr[DySymtabCommandOffsets.nlocalsym]);
-    c->iextdefsym = *( (uint32_t*) &ptr[DySymtabCommandOffsets.iextdefsym]);
-    c->nextdefsym = *( (uint32_t*) &ptr[DySymtabCommandOffsets.nextdefsym]);
-    c->iundefsym = *( (uint32_t*) &ptr[DySymtabCommandOffsets.iundefsym]);
-    c->nundefsym = *( (uint32_t*) &ptr[DySymtabCommandOffsets.nundefsym]);
-    c->tocoff = *( (uint32_t*) &ptr[DySymtabCommandOffsets.tocoff]);
-    c->ntoc = *( (uint32_t*) &ptr[DySymtabCommandOffsets.ntoc]);
-    c->modtaboff = *( (uint32_t*) &ptr[DySymtabCommandOffsets.modtaboff]);
-    c->nmodtab = *( (uint32_t*) &ptr[DySymtabCommandOffsets.nmodtab]);
-    c->extrefsymoff = *( (uint32_t*) &ptr[DySymtabCommandOffsets.nextrefsyms]);
-    c->nextrefsyms = *( (uint32_t*) &ptr[DySymtabCommandOffsets.nextrefsyms]);
-    c->indirectsymoff = *( (uint32_t*) &ptr[DySymtabCommandOffsets.indirectsymoff]);
-    c->nindirectsyms = *( (uint32_t*) &ptr[DySymtabCommandOffsets.nindirectsyms]);
-    c->extreloff = *( (uint32_t*) &ptr[DySymtabCommandOffsets.extreloff]);
-    c->nextrel = *( (uint32_t*) &ptr[DySymtabCommandOffsets.nextrel]);
-    c->locreloff = *( (uint32_t*) &ptr[DySymtabCommandOffsets.locreloff]);
-    c->nlocrel = *( (uint32_t*) &ptr[DySymtabCommandOffsets.nlocrel]);
+    c->ilocalsym = GetIntXValueAtOffset(uint32_t, ptr, DySymtabCommandOffsets.ilocalsym);
+    c->nlocalsym = GetIntXValueAtOffset(uint32_t, ptr, DySymtabCommandOffsets.nlocalsym);
+    c->iextdefsym = GetIntXValueAtOffset(uint32_t, ptr, DySymtabCommandOffsets.iextdefsym);
+    c->nextdefsym = GetIntXValueAtOffset(uint32_t, ptr, DySymtabCommandOffsets.nextdefsym);
+    c->iundefsym = GetIntXValueAtOffset(uint32_t, ptr, DySymtabCommandOffsets.iundefsym);
+    c->nundefsym = GetIntXValueAtOffset(uint32_t, ptr, DySymtabCommandOffsets.nundefsym);
+    c->tocoff = GetIntXValueAtOffset(uint32_t, ptr, DySymtabCommandOffsets.tocoff);
+    c->ntoc = GetIntXValueAtOffset(uint32_t, ptr, DySymtabCommandOffsets.ntoc);
+    c->modtaboff = GetIntXValueAtOffset(uint32_t, ptr, DySymtabCommandOffsets.modtaboff);
+    c->nmodtab = GetIntXValueAtOffset(uint32_t, ptr, DySymtabCommandOffsets.nmodtab);
+    c->extrefsymoff = GetIntXValueAtOffset(uint32_t, ptr, DySymtabCommandOffsets.nextrefsyms);
+    c->nextrefsyms = GetIntXValueAtOffset(uint32_t, ptr, DySymtabCommandOffsets.nextrefsyms);
+    c->indirectsymoff = GetIntXValueAtOffset(uint32_t, ptr, DySymtabCommandOffsets.indirectsymoff);
+    c->nindirectsyms = GetIntXValueAtOffset(uint32_t, ptr, DySymtabCommandOffsets.nindirectsyms);
+    c->extreloff = GetIntXValueAtOffset(uint32_t, ptr, DySymtabCommandOffsets.extreloff);
+    c->nextrel = GetIntXValueAtOffset(uint32_t, ptr, DySymtabCommandOffsets.nextrel);
+    c->locreloff = GetIntXValueAtOffset(uint32_t, ptr, DySymtabCommandOffsets.locreloff);
+    c->nlocrel = GetIntXValueAtOffset(uint32_t, ptr, DySymtabCommandOffsets.nlocrel);
 
     if ( hd->endian == ENDIAN_BIG )
     {

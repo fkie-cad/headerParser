@@ -215,7 +215,7 @@ char* MachO_getFileTypeName(uint32_t type)
 void MachO_printLoadCommand(LoadCommand* lc, size_t offset)
 {
     printf(" - cmd%s: 0x%x\n", fillOffset(LoadCommandOffsets.cmd, offset, 0), lc->cmd);
-    printf(" - cmdsize%s: %u\n", fillOffset(LoadCommandOffsets.cmdsize, offset, 0), lc->cmdsize);
+    printf(" - cmdsize%s: 0x%x (%u)\n", fillOffset(LoadCommandOffsets.cmdsize, offset, 0), lc->cmdsize, lc->cmdsize);
 }
 
 void MachO_printSegmentCommand(const SegmentCommand64* c, size_t offset, uint8_t bitness)
@@ -230,7 +230,7 @@ void MachO_printSegmentCommand(const SegmentCommand64* c, size_t offset, uint8_t
         printf("%c", c->segname[i]);
     printf("\n");
     MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
-    printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
+    printf(" - cmdsize%s: 0x%x (%u)\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize, c->cmdsize);
 //	printf(" - segname%s: %s\n", c->segname);
     printf(" - vmaddr%s: 0x%"PRIx64"\n", fillOffset(offsets.vmaddr, offset, 0), c->vmaddr);
     printf(" - vmsize%s: 0x%"PRIx64"\n", fillOffset(offsets.vmsize, offset, 0), c->vmsize);
@@ -268,8 +268,8 @@ void MachO_printSection(const MachOSection64* sec, uint32_t idx, uint32_t ln, si
     printf("   - size%s: 0x%"PRIx64"\n", fillOffset(offsets.size, offset, 0), sec->size);
     printf("   - offset%s: 0x%x\n", fillOffset(offsets.offset, offset, 0), sec->offset);
     printf("   - align%s: 0x%x\n", fillOffset(offsets.align, offset, 0), sec->align);
-    printf("   - reloff%s: %u\n", fillOffset(offsets.reloff, offset, 0), sec->reloff);
-    printf("   - nreloc%s: %u\n", fillOffset(offsets.nreloc, offset, 0), sec->nreloc);
+    printf("   - reloff%s: (0x%x) %u\n", fillOffset(offsets.reloff, offset, 0), sec->reloff, sec->reloff);
+    printf("   - nreloc%s: (0x%x) %u\n", fillOffset(offsets.nreloc, offset, 0), sec->nreloc, sec->nreloc);
     printf("   - flags%s: 0x%x\n", fillOffset(offsets.flags, offset, 0), sec->flags);
     printf("    ");
     printFlag32(sec->flags, SECTION_TYPE, "256 section types");
@@ -321,7 +321,7 @@ void MachO_printUuidCommand(UuidCommand* c, size_t offset)
     uint32_t i;
     printf("UUID (LC_UUID)\n");
     MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
-    printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
+    printf(" - cmdsize%s: 0x%x (%u)\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize, c->cmdsize);
     printf(" - uuid%s: ", fillOffset(offsets.uuid, offset, 0));
     for ( i = 0; i < MACH_O_UUID_LN; i++ )
     {
@@ -346,7 +346,7 @@ void MachO_printDylibCommand(DylibCommand* c, uint32_t name_ln, unsigned char* p
     char* type = ( c->cmd == LC_ID_DYLIB ) ? "LC_ID_DYLIB" : "LC_LOAD_DYLIB";
     printf("Dynamic Library (%s)\n", type);
     MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
-    printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
+    printf(" - cmdsize%s: (0x%x) %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize, c->cmdsize);
     if ( ioffsets == 1 )
         printf(" - dylib.name.offset%s: 0x%x (%u)\n", fillOffset((size_t)offsets.dylib+DylibOffsets.name, offset, 0), c->dylib.name.offset, c->dylib.name.offset);
     printf(" - dylib.name%s: ", fillOffset(c->dylib.name.offset, offset, 0));
@@ -367,10 +367,10 @@ void MachO_printPreboundDylibCommand(PreboundDylibCommand* c, uint32_t name_ln, 
 
     printf("Prebound Dynamic Library (LC_PREBOUND_DYLIB)\n");
     MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
-    printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
+    printf(" - cmdsize%s: 0x%x (%u)\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize, c->cmdsize);
 //	printf(" - name.offset%s: %u\n", fillOffset(offsets., offset, 0), c->name.offset);
-    printf(" - nmodules%s: %u\n", fillOffset(offsets.nmodules, offset, 0), c->nmodules);
-    printf(" - linked_modules%s: %u\n", fillOffset(offsets.linked_modules, offset, 0), name_ln);
+    printf(" - nmodules%s: (0x%x) (%u)\n", fillOffset(offsets.nmodules, offset, 0), c->nmodules, c->nmodules);
+    printf(" - linked_modules%s: (0x%x) (%u)\n", fillOffset(offsets.linked_modules, offset, 0), name_ln, name_ln);
     printf(" - name%s%s: ", fillOffset(offsets.name, offset, 0), fillOffset(c->name.offset, 0, 0));
     for ( i = 0; i < name_ln; i++ )
         printf("%c", ptr[c->name.offset+i]);
@@ -393,7 +393,7 @@ void MachO_printSubCommand(SubCommand* c, uint32_t name_ln, unsigned char* ptr, 
 
     printf("Prebound Dynamic Library (%s)\n", type);
     MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
-    printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
+    printf(" - cmdsize%s: 0x%x (%u)\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize, c->cmdsize);
 //	printf(" - name.offset%s: %u\n", fillOffset(offsets., offset, 0), c->name.offset);
     printf(" - name%s%s: ", fillOffset(offsets.name, offset, 0), fillOffset(c->name.offset, 0, 0));
     for ( i = 0; i < name_ln; i++ )
@@ -407,11 +407,11 @@ void MachO_printSymtabCommand(SymtabCommand* c, size_t offset)
 
     printf("Symbol tables (LC_SYMTAB)\n");
     MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
-    printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
+    printf(" - cmdsize%s: 0x%x (%u)\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize, c->cmdsize);
     printf(" - symoff%s: 0x%x\n", fillOffset(offsets.symoff, offset, 0), c->symoff);
-    printf(" - nsyms%s: %u\n", fillOffset(offsets.nsyms, offset, 0), c->nsyms);
+    printf(" - nsyms%s: 0x%x (%u)\n", fillOffset(offsets.nsyms, offset, 0), c->nsyms, c->nsyms);
     printf(" - stroff%s: 0x%x\n", fillOffset(offsets.stroff, offset, 0), c->stroff);
-    printf(" - strsize%s: %u\n", fillOffset(offsets.strsize, offset, 0), c->strsize);
+    printf(" - strsize%s: 0x%x (%u)\n", fillOffset(offsets.strsize, offset, 0), c->strsize, c->strsize);
 }
 
 void MachO_printDySymtabCommand(DySymtabCommand* c, size_t offset)
@@ -420,25 +420,25 @@ void MachO_printDySymtabCommand(DySymtabCommand* c, size_t offset)
 
     printf("Symbol tables (LC_DYSYMTAB)\n");
     MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
-    printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
-    printf(" - ilocalsym%s: %u\n", fillOffset(offsets.ilocalsym, offset, 0), c->ilocalsym);
-    printf(" - nlocalsym%s: %u\n", fillOffset(offsets.nlocalsym, offset, 0), c->nlocalsym);
-    printf(" - iextdefsym%s: %u\n", fillOffset(offsets.iextdefsym, offset, 0), c->iextdefsym);
-    printf(" - nextdefsym%s: %u\n", fillOffset(offsets.nextdefsym, offset, 0), c->nextdefsym);
-    printf(" - iundefsym%s: %u\n", fillOffset(offsets.iundefsym, offset, 0), c->iundefsym);
-    printf(" - nundefsym%s: %u\n", fillOffset(offsets.nundefsym, offset, 0), c->nundefsym);
-    printf(" - tocoff%s: %x\n", fillOffset(offsets.tocoff, offset, 0), c->tocoff);
-    printf(" - ntoc%s: %u\n", fillOffset(offsets.ntoc, offset, 0), c->ntoc);
-    printf(" - modtaboff%s: %x\n", fillOffset(offsets.modtaboff, offset, 0), c->modtaboff);
-    printf(" - nmodtab%s: %u\n", fillOffset(offsets.nmodtab, offset, 0), c->nmodtab);
-    printf(" - extrefsymoff%s: %x\n", fillOffset(offsets.extrefsymoff, offset, 0), c->extrefsymoff);
-    printf(" - nextrefsyms%s: %u\n", fillOffset(offsets.nextrefsyms, offset, 0), c->nextrefsyms);
-    printf(" - indirectsymoff%s: %x\n", fillOffset(offsets.indirectsymoff, offset, 0), c->indirectsymoff);
-    printf(" - nindirectsyms%s: %u\n", fillOffset(offsets.nindirectsyms, offset, 0), c->nindirectsyms);
-    printf(" - extreloff%s: %x\n", fillOffset(offsets.extreloff, offset, 0), c->extreloff);
-    printf(" - nextrel%s: %u\n", fillOffset(offsets.nextrel, offset, 0), c->nextrel);
-    printf(" - locreloff%s: %x\n", fillOffset(offsets.locreloff, offset, 0), c->locreloff);
-    printf(" - nlocrel%s: %u\n", fillOffset(offsets.nlocrel, offset, 0), c->nlocrel);
+    printf(" - cmdsize%s: 0x%x (%u)\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize, c->cmdsize);
+    printf(" - ilocalsym%s: 0x%x (%u)\n", fillOffset(offsets.ilocalsym, offset, 0), c->ilocalsym, c->ilocalsym);
+    printf(" - nlocalsym%s: 0x%x (%u)\n", fillOffset(offsets.nlocalsym, offset, 0), c->nlocalsym, c->nlocalsym);
+    printf(" - iextdefsym%s: 0x%x (%u)\n", fillOffset(offsets.iextdefsym, offset, 0), c->iextdefsym, c->iextdefsym);
+    printf(" - nextdefsym%s: 0x%x (%u)\n", fillOffset(offsets.nextdefsym, offset, 0), c->nextdefsym, c->nextdefsym);
+    printf(" - iundefsym%s: 0x%x (%u)\n", fillOffset(offsets.iundefsym, offset, 0), c->iundefsym, c->iundefsym);
+    printf(" - nundefsym%s: 0x%x (%u)\n", fillOffset(offsets.nundefsym, offset, 0), c->nundefsym, c->nundefsym);
+    printf(" - tocoff%s: %x (%u)\n", fillOffset(offsets.tocoff, offset, 0), c->tocoff, c->tocoff);
+    printf(" - ntoc%s: 0x%x (%u)\n", fillOffset(offsets.ntoc, offset, 0), c->ntoc, c->ntoc);
+    printf(" - modtaboff%s: %x (%u)\n", fillOffset(offsets.modtaboff, offset, 0), c->modtaboff, c->modtaboff);
+    printf(" - nmodtab%s: 0x%x (%u)\n", fillOffset(offsets.nmodtab, offset, 0), c->nmodtab, c->nmodtab);
+    printf(" - extrefsymoff%s: %x (%u)\n", fillOffset(offsets.extrefsymoff, offset, 0), c->extrefsymoff, c->extrefsymoff);
+    printf(" - nextrefsyms%s: 0x%x (%u)\n", fillOffset(offsets.nextrefsyms, offset, 0), c->nextrefsyms, c->nextrefsyms);
+    printf(" - indirectsymoff%s: %x (%u)\n", fillOffset(offsets.indirectsymoff, offset, 0), c->indirectsymoff, c->indirectsymoff);
+    printf(" - nindirectsyms%s: 0x%x (%u)\n", fillOffset(offsets.nindirectsyms, offset, 0), c->nindirectsyms, c->nindirectsyms);
+    printf(" - extreloff%s: %x (%u)\n", fillOffset(offsets.extreloff, offset, 0), c->extreloff, c->extreloff);
+    printf(" - nextrel%s: 0x%x (%u)\n", fillOffset(offsets.nextrel, offset, 0), c->nextrel, c->nextrel);
+    printf(" - locreloff%s: %x (%u)\n", fillOffset(offsets.locreloff, offset, 0), c->locreloff, c->locreloff);
+    printf(" - nlocrel%s: 0x%x (%u)\n", fillOffset(offsets.nlocrel, offset, 0), c->nlocrel, c->nlocrel);
 }
 
 void MachO_printRoutinesCommand(RoutinesCommand64* c, size_t offset, uint8_t bitness)
@@ -451,7 +451,7 @@ void MachO_printRoutinesCommand(RoutinesCommand64* c, size_t offset, uint8_t bit
 
     printf("Routines Command (%s)\n", type);
     printf(" - cmd%s: 0x%x (%u)\n", fillOffset(offsets.cmd, offset, 0), c->cmd, c->cmd);
-    printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
+    printf(" - cmdsize%s: 0x%x (%u)\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize, c->cmdsize);
     printf(" - init_module%s: %"PRIu64"\n", fillOffset(offsets.init_module, offset, 0), c->init_module);
     printf(" - init_address%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.init_address, offset, 0), c->init_address, c->init_address);
     printf(" - reserved1%s: 0x%"PRIx64"\n", fillOffset(offsets.reserved1, offset, 0), c->reserved1);
@@ -478,8 +478,8 @@ void MachO_printVersionMinCommand(VersionMinCommand* c, size_t offset)
 
     printf("Version Min Command (%s)\n", type);
     MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
-    printf(" - cmd%s: %u\n", fillOffset(offsets.cmd, offset, 0), c->cmd);
-    printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
+    printf(" - cmd%s: 0x%x (%u)\n", fillOffset(offsets.cmd, offset, 0), c->cmd, c->cmd);
+    printf(" - cmdsize%s: 0x%x (%u)\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize, c->cmdsize);
     printf(" - version%s: %u.%u.%u (0x%x)\n", fillOffset(offsets.version, offset, 0), version.v0, version.v1, version.v2, c->version);
     printf(" - reserved%s: 0x%x\n", fillOffset(offsets.reserved, offset, 0), c->reserved);
 }
@@ -494,9 +494,9 @@ void MachO_printThreadCommand(ThreadCommand* c, size_t offset)
 
     printf("Thread Command (%s)\n", type);
     MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
-    printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
+    printf(" - cmdsize%s: 0x%x (%u)\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize, c->cmdsize);
     printf(" - flavor%s: 0x%x\n", fillOffset(offsets.flavor, offset, 0), c->flavor);
-    printf(" - count%s: %u\n", fillOffset(offsets.count, offset, 0), c->count);
+    printf(" - count%s: 0x%x (%u)\n", fillOffset(offsets.count, offset, 0), c->count, c->count);
     printf(" - state%s: %s\n", fillOffset(offsets.state, offset, 0), "...");
 }
 
@@ -515,9 +515,9 @@ void MachO_printLinkedItDataCommand(LinkedItDataCommand* c, size_t offset)
 
     printf("Linked IT Data Command (%s)\n", type);
     MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
-    printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
+    printf(" - cmdsize%s: 0x%x (%u)\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize, c->cmdsize);
     printf(" - offset%s: 0x%x\n", fillOffset(offsets.offset, offset, 0), c->offset);
-    printf(" - size%s: %u\n", fillOffset(offsets.size, offset, 0), c->size);
+    printf(" - size%s: 0x%x (%u)\n", fillOffset(offsets.size, offset, 0), c->size, c->size);
 }
 
 void MachO_printDyldInfoCommand(DyldInfoCommand* c, size_t offset)
@@ -530,17 +530,17 @@ void MachO_printDyldInfoCommand(DyldInfoCommand* c, size_t offset)
 
     printf("Data In Code Command (%s)\n", type);
     MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
-    printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
+    printf(" - cmdsize%s: 0x%x (%u)\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize, c->cmdsize);
     printf(" - rebase_off%s: 0x%x\n", fillOffset(offsets.rebase_off, offset, 0), c->rebase_off);
-    printf(" - rebase_size%s: %u\n", fillOffset(offsets.rebase_size, offset, 0), c->rebase_size);
+    printf(" - rebase_size%s: 0x%x (%u)\n", fillOffset(offsets.rebase_size, offset, 0), c->rebase_size, c->rebase_size);
     printf(" - bind_off%s: 0x%x\n", fillOffset(offsets.bind_off, offset, 0), c->bind_off);
-    printf(" - bind_size%s: %u\n", fillOffset(offsets.bind_size, offset, 0), c->bind_size);
+    printf(" - bind_size%s: 0x%x (%u)\n", fillOffset(offsets.bind_size, offset, 0), c->bind_size, c->bind_size);
     printf(" - weak_bind_off%s: 0x%x\n", fillOffset(offsets.weak_bind_off, offset, 0), c->weak_bind_off);
-    printf(" - weak_bind_size%s: %u\n", fillOffset(offsets.weak_bind_size, offset, 0), c->weak_bind_size);
+    printf(" - weak_bind_size%s: 0x%x (%u)\n", fillOffset(offsets.weak_bind_size, offset, 0), c->weak_bind_size, c->weak_bind_size);
     printf(" - lazy_bind_off%s: 0x%x\n", fillOffset(offsets.lazy_bind_off, offset, 0), c->lazy_bind_off);
-    printf(" - lazy_bind_size%s: %u\n", fillOffset(offsets.lazy_bind_size, offset, 0), c->lazy_bind_size);
+    printf(" - lazy_bind_size%s: 0x%x (%u)\n", fillOffset(offsets.lazy_bind_size, offset, 0), c->lazy_bind_size, c->lazy_bind_size);
     printf(" - export_off%s: 0x%x\n", fillOffset(offsets.export_off, offset, 0), c->export_off);
-    printf(" - export_size%s: %u\n", fillOffset(offsets.export_size, offset, 0), c->export_size);
+    printf(" - export_size%s: 0x%x (%u)\n", fillOffset(offsets.export_size, offset, 0), c->export_size, c->export_size);
 }
 
 void MachO_printSourceVersionCommand(SourceVersionCommand* c, size_t offset)
@@ -560,7 +560,7 @@ void MachO_printSourceVersionCommand(SourceVersionCommand* c, size_t offset)
 
     printf("Source Version Command (LC_SOURCE_VERSION)\n");
     MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
-    printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
+    printf(" - cmdsize%s: 0x%x (%u)\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize, c->cmdsize);
     // a24.b10.c10.d10.e10.
     MachO_printLUhd("version", offsets.version, offset, c->version);
 //	printf(" - version%s: %u.%u.%u.%u.%u (%"PRIx64")\n", fillOffset(offsets.version, offset, 0), v_a, v_b, v_c, v_d, v_e, c->version);
@@ -572,7 +572,7 @@ void MachO_printMainDylibCommand(MainDylibCommand* c, size_t offset)
 
     printf("Main Dylib Command (LC_MAIN)\n");
     MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
-    printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
+    printf(" - cmdsize%s: 0x%x (%u)\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize, c->cmdsize);
     MachO_printLUhd("entry_off", offsets.entry_off, offset, c->entry_off);
     MachO_printLUhd("stack_size", offsets.stack_size, offset, c->stack_size);
 }
@@ -583,7 +583,7 @@ void MachO_printBuildVersionCommand(BuildVersionCommand* c, size_t offset)
 
     printf("Build Version Command (LC_BUILD_VERSION)\n");
     MachO_printUhd("cmd", offsets.cmd, offset, c->cmd);
-    printf(" - cmdsize%s: %u\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize);
+    printf(" - cmdsize%s: 0x%x (%u)\n", fillOffset(offsets.cmdsize, offset, 0), c->cmdsize, c->cmdsize);
     MachO_printUhd("platform", offsets.platform, offset, c->platform);
     MachO_printUhd("minos", offsets.minos, offset, c->minos);
     MachO_printUhd("sdk", offsets.sdk, offset, c->sdk);

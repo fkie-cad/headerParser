@@ -122,6 +122,10 @@ uint8_t checkLargeBlockSpace(size_t* rel_offset,
                              FILE* fp)
 {
     size_t r_size = 0;
+    if ( needed > BLOCKSIZE_LARGE )
+    {
+        return false;
+    }
     if ( *rel_offset + needed > BLOCKSIZE_LARGE )
     {
         *abs_offset += *rel_offset;
