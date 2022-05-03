@@ -1055,7 +1055,7 @@ void PE_parseCertificates(PE64OptHeader* oh,
 
     if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_CERTIFICATE )
     {
-        header_error("ERROR: Data Directory too small!\n");
+        header_error("ERROR: Data Directory too small for CERTIFICATE entry!\n");
         return;
     }
 

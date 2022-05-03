@@ -3,7 +3,7 @@
 
 
 #ifdef DEBUG_PRINT
-#define debug_info(...) { printf(__VA_ARGS__); }
+#define debug_info(...) { printf("[d] "); printf(__VA_ARGS__); }
 #else
 #define debug_info(...)
 #endif

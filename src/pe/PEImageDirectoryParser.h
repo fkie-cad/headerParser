@@ -261,7 +261,7 @@ void PE_parseImageImportTable(PE64OptHeader* oh,
 
     if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_IMPORT )
     {
-        header_error("ERROR: Data Directory too small!\n");
+        header_error("ERROR: Data Directory too small for IMPORT entry!\n");
         return;
     }
 
@@ -443,7 +443,7 @@ void PE_parseImageDelayImportTable(
     
     if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT )
     {
-        header_error("ERROR: Data Directory too small!\n");
+        header_error("ERROR: Data Directory too small for DELAY_IMPORT entry!\n");
         return;
     }
 
@@ -618,7 +618,7 @@ void PE_parseImageBoundImportTable(
     
     if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT )
     {
-        header_error("ERROR: Data Directory too small!\n");
+        header_error("ERROR: Data Directory too small for BOUND_IMPORT entry!\n");
         return;
     }
 
@@ -790,7 +790,7 @@ void PE_parseImageExportTable(
     
     if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_EXPORT )
     {
-        header_error("ERROR: Data Directory too small!\n");
+        header_error("ERROR: Data Directory too small for EXPORT entry!\n");
         return;
     }
 
@@ -982,7 +982,7 @@ void PE_parseImageTLSTable(PE64OptHeader* oh,
 
     if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_TLS )
     {
-        header_error("ERROR: Data Directory too small!\n");
+        header_error("ERROR: Data Directory too small for TLS entry!\n");
         return;
     }
     
@@ -1113,7 +1113,7 @@ void PE_parseImageLoadConfigTable(PE64OptHeader* oh,
 
     if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG )
     {
-        header_error("ERROR: Data Directory too small!\n");
+        header_error("ERROR: Data Directory too small for LOAD_CONFIG entry!\n");
         return;
     }
 
@@ -1302,7 +1302,7 @@ void PE_parseImageResourceTable(PE64OptHeader* oh,
     
     if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_RESOURCE )
     {
-        header_error("ERROR: Data Directory too small!\n");
+        header_error("ERROR: Data Directory too small for RESOURCE entry!\n");
         return;
     }
 
@@ -1578,7 +1578,7 @@ int PE_parseImageDebugTable(
     
     if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_DEBUG )
     {
-        header_error("ERROR: Data Directory too small!\n");
+        header_error("ERROR: Data Directory too small for DEBUG entry!\n");
         return -5;
     }
 
@@ -1742,7 +1742,7 @@ int PE_parseImageExceptionTable(
 
     if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_EXCEPTION )
     {
-        header_error("ERROR: Data Directory too small!\n");
+        header_error("ERROR: Data Directory too small for EXCEPTION entry!\n");
         return false;
     }
 
@@ -1869,7 +1869,7 @@ int PE_parseImageBaseRelocationTable(PE64OptHeader* oh,
     
     if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_BASE_RELOC )
     {
-        header_error("ERROR: Data Directory too small!\n");
+        header_error("ERROR: Data Directory too small for BASE_RELOC entry!\n");
         return ERROR_DATA_DIR_TOO_SMALL;
     }
 

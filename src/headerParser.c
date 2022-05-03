@@ -514,11 +514,12 @@ void printHeaderData(uint8_t level, PHeaderData hd, unsigned char* block)
         if ( hd->headertype == HEADER_TYPE_NONE )
         {
             printf("unsupported header:\n");
+            printf("bytes: ");
             for ( i = 0; i < MIN_FILE_SIZE; i++ )
             {
                 printf("%02x|", block[i]);
             }
-            printf("\n");
+            printf("\nchars: ");
             for ( i = 0; i < MIN_FILE_SIZE; i++ )
             {
                 printf("%c", block[i]);

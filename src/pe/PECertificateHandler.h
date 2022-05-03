@@ -84,7 +84,7 @@ uint8_t PE_hasCertificate(PE64OptHeader* oh)
 
     if ( IMAGE_DIRECTORY_ENTRY_CERTIFICATE >= oh->NumberOfRvaAndSizes )
     {
-        header_error("ERROR: Data Directory too small!\n");
+        header_error("ERROR: Data Directory too small for CERTIFICATE entry!\n");
         return false;
     }
 
@@ -167,7 +167,7 @@ uint8_t PE_iterateCertificates(PE64OptHeader* oh,
 
     if ( IMAGE_DIRECTORY_ENTRY_CERTIFICATE >= oh->NumberOfRvaAndSizes )
     {
-        header_error("ERROR: Data Directory too small!\n");
+        header_error("ERROR: Data Directory too small for CERTIFICATE entry!\n");
         return 0;
     }
 
@@ -287,7 +287,7 @@ int PE_writeCertificateToFile(PeAttributeCertificateTable* table,
         return ERROR_DATA_BEYOND_FILE_SIZE;
 
     dest = fopen(file, "wb+");
-    s == errno;
+    s = errno;
     if ( !dest )
     {
         if ( s == 0 ) s = -4;

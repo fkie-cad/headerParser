@@ -72,8 +72,11 @@ typedef struct GlobalParams
 {
     // dynamic
 //	struct data {
-    unsigned char block_standard[BLOCKSIZE];
-    unsigned char block_large[BLOCKSIZE_LARGE];
+    uint8_t block_standard[BLOCKSIZE];
+    uint8_t block_large[BLOCKSIZE_LARGE];
+    //uint8_t* block_standard;
+    //uint8_t* block_large;
+    uint8_t* block_dyn;
 //    } data;
 
     // static after init

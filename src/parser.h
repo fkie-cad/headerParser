@@ -167,3 +167,28 @@ const char* getHeaderDataEndianType(uint8_t id)
 
     return endian_type_names[id];
 }
+
+//int initGlobalParams(GlobalParams* gp)
+//{
+//    memset(gp, 0, sizeof(GlobalParams));
+//    gp->block_large = (uint8_t*)malloc(BLOCKSIZE_LARGE);
+//    if ( !gp->block_large )
+//        return -1;
+//    gp->block_standard = (uint8_t*)malloc(BLOCKSIZE_SMALL);
+//    if ( !gp->block_standard )
+//        return -1;
+//}
+//
+//int freeGlobalParams(GlobalParams* gp)
+//{
+//    if ( gp->block_large )
+//        free(gp->block_large);
+//
+//    if ( !gp->block_standard )
+//        free(gp->block_standard);
+//
+//    if ( !gp->block_dyn )
+//        free(gp->block_dyn);
+//
+//    memset(gp, 0, sizeof(GlobalParams));
+//}
