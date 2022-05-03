@@ -107,9 +107,9 @@ uint8_t MSI_searchPEs(MSIStructuredStorageHeader* ssh,
     size_t first_pe_offset = 0;
     uint16_t sec_size = 1u<<ssh->_uSectorShift; // sec_size = 2^_uSectorShift
     uint16_t pe_count = 0;
-    DPrint(" - sec_size: %x\n", sec_size);
+    debug_info(" - sec_size: %x\n", sec_size);
 
-    DPrint("searchPEs\n");
+    debug_info("searchPEs\n");
     for ( offset = sec_size; offset < gp->file_size; offset+=sec_size)
     {
         if ( PE_hasHeaderAtOffset(offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_standard, gp->block_large) )
@@ -119,10 +119,10 @@ uint8_t MSI_searchPEs(MSIStructuredStorageHeader* ssh,
                 first_pe_offset = offset;
             }
             pe_count++;
-            DPrint(" - found PE at 0x%zx\n", offset);
+            debug_info(" - found PE at 0x%zx\n", offset);
         }
     }
-    DPrint(" - first_pe_offset: 0x%zx\n", first_pe_offset);
+    debug_info(" - first_pe_offset: 0x%zx\n", first_pe_offset);
 
     if ( first_pe_offset != 0 )
     {
@@ -141,7 +141,7 @@ uint8_t MSI_searchPEs(MSIStructuredStorageHeader* ssh,
         parsePEHeaderData(FORCE_NONE, hd, gp, pep);
     }
 
-    DPrint(" - found %u PE files\n", pe_count);
+    debug_info(" - found %u PE files\n", pe_count);
 
     return pe_count > 0;
 }

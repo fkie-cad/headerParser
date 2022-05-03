@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define PE_MAX_RES_DIR_LEVEL (0x20)
+
 typedef struct LoadConfigTableOffsets {
     size_t seh;
     size_t fun;
@@ -257,6 +259,12 @@ void PE_parseImageImportTable(PE64OptHeader* oh,
 
     char* dll_name = NULL;
 
+    if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_IMPORT )
+    {
+        header_error("ERROR: Data Directory too small!\n");
+        return;
+    }
+
     PEImageImportDescriptor id; // 32 + 64
     uint32_t vsize = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].Size;
     size_t r_size = 0;
@@ -286,11 +294,18 @@ void PE_parseImageImportTable(PE64OptHeader* oh,
     {
         dll_name = NULL;
         name_offset = PE_Rva2Foa(id.Name, svas, nr_of_sections);
-        if ( !checkFileSpace(0, name_offset, 1, file_size) )
-            break;
         name_offset += start_file_offset;
-        if ( readFile(fp, name_offset, BLOCKSIZE, block_s) )
-            dll_name = (char*) block_s;
+        if ( !checkFileSpace(0, name_offset, 1, file_size) )
+        {
+            header_error("ERROR: name_offset beyond file bounds!\n");
+            break;
+        }
+        size = readFile(fp, name_offset, BLOCKSIZE, block_s);
+        if ( size > 0 )
+        {
+            dll_name = (char*)block_s;
+            dll_name[size-1] = 0;
+        }
 //		else
 //			break;
 
@@ -357,16 +372,21 @@ int PE_fillThunkData(PEImageThunkData64* thunk_data,
     memset(thunk_data, 0, sizeof(PEImageThunkData64));
     
     if ( !checkFileSpace(offset, start_file_offset, data_size, file_size) )
+    {
+        header_error("ERROR: Thunk data beyond file bounds!\n");
         return -1;
+    }
 
     r_size = readFile(fp, offset, data_size, block);
     if ( r_size < data_size )
         return -2;
 
     if ( bitness == 32 )
-        thunk_data->Ordinal = *((uint32_t*) &block[PEImageThunkData32Offsets.u1]);
+        thunk_data->Ordinal = GetIntXValueAtOffset(uint32_t, block, PEImageThunkData32Offsets.u1);
+        //thunk_data->Ordinal = *((uint32_t*) &block[PEImageThunkData32Offsets.u1]);
     else
-        thunk_data->Ordinal = *((uint64_t*) &block[PEImageThunkData64Offsets.u1]);
+        thunk_data->Ordinal = GetIntXValueAtOffset(uint64_t, block, PEImageThunkData64Offsets.u1);
+        //thunk_data->Ordinal = *((uint64_t*) &block[PEImageThunkData64Offsets.u1]);
 
     return 0;
 }
@@ -384,8 +404,10 @@ int PE_fillImportByName(PEImageImportByName* ibn,
     if ( !r_size )
         return -1;
     
-    ibn->Hint = *((uint16_t*) &block_s[PEImageImportByNameOffsets.Hint]);
+    ibn->Hint = GetIntXValueAtOffset(uint16_t, block_s, PEImageImportByNameOffsets.Hint);
+    //ibn->Hint = *((uint16_t*) &block_s[PEImageImportByNameOffsets.Hint]);
     ibn->Name = (char*) &block_s[PEImageImportByNameOffsets.Name];
+    block_s[r_size-1] = 0;
 
     return 0;
 }
@@ -418,6 +440,12 @@ void PE_parseImageDelayImportTable(
     size_t table_fo;
 
     char* dll_name = NULL;
+    
+    if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT )
+    {
+        header_error("ERROR: Data Directory too small!\n");
+        return;
+    }
 
     PeImageDelayLoadDescriptor did; // 32 + 64
     uint32_t vsize = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT].Size;
@@ -439,10 +467,8 @@ void PE_parseImageDelayImportTable(
         return;
     offset = 0;
     
-#ifdef DEBUG_PRINT_INFO
     debug_info("offset: 0x%zx\n", offset);
     debug_info("abs_file_offset: 0x%zx\n", *abs_file_offset);
-#endif
     PE_fillDelayImportDescriptor(&did, &offset, abs_file_offset, file_size, fp, block_l);
 
     PE_printImageDelayImportTableHeader(&did);
@@ -457,10 +483,12 @@ void PE_parseImageDelayImportTable(
             break;
         name_offset += start_file_offset;
 
-        if ( readFile(fp, name_offset, BLOCKSIZE, block_s) )
+        size = readFile(fp, name_offset, BLOCKSIZE, block_s);
+        if ( size > 0 )
+        {
             dll_name = (char*)block_s;
-        //		else
-        //			break;
+            dll_name[size-1] = 0;
+        }
 
         PE_printImageDelayImportDescriptor(&did, *abs_file_offset + offset, dll_name);
 
@@ -538,6 +566,7 @@ int PE_iterateThunkData(uint16_t nr_of_sections,
             header_error("ERROR (0x%x): PE_fillThunkData\n", s);
             return -1;
         }
+        debug_info("thunk_data.Ordinal: 0x%"PRIx64"\n", thunk_data.Ordinal);
         // end of data
         if ( thunk_data.Ordinal == 0 )
             break;
@@ -546,13 +575,16 @@ int PE_iterateThunkData(uint16_t nr_of_sections,
         {
             fo = PE_Rva2Foa((uint32_t)thunk_data.AddressOfData, svas, nr_of_sections); // INT => AddressOfData, IAT => Function
             if ( fo == 0 )
+            {
+                header_error("ERROR: Thunk data file offset not valid!\n");
                 return -2;
+            }
             fo += start_file_offset;
 
             s = PE_fillImportByName(&import_by_name, fo, fp, block_s);
             if ( s != 0 )
             {
-                header_error("ERROR (0x%x): PE_fillImportByName\n", s);
+                header_error("ERROR (0x%x): PE_fillImportByName failed!\n", s);
                 return -3;
             }
         }
@@ -583,6 +615,12 @@ void PE_parseImageBoundImportTable(
     size_t table_fo;
     size_t offset;
     size_t name_offset;
+    
+    if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT )
+    {
+        header_error("ERROR: Data Directory too small!\n");
+        return;
+    }
 
     PEDataDirectory* table = &oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT]; // 32 + 64
     uint32_t vaddr = table->VirtualAddress;
@@ -615,10 +653,9 @@ void PE_parseImageBoundImportTable(
         return;
     offset = 0;
     
-#ifdef DEBUG_PRINT_INFO
     debug_info("offset: 0x%zx\n", offset);
     debug_info("abs_file_offset: 0x%zx\n", *abs_file_offset);
-#endif
+
     PE_fillBoundImportDescriptor(&bid, &offset, abs_file_offset, file_size, fp, block_l);
 
     PE_printImageBoundImportTableHeader(&bid);
@@ -631,10 +668,12 @@ void PE_parseImageBoundImportTable(
         if ( !checkFileSpace(0, name_offset, 1, file_size) )
             break;
 
-        if ( readFile(fp, name_offset, BLOCKSIZE, block_s) )
+        size = readFile(fp, name_offset, BLOCKSIZE, block_s);
+        if ( size > 0 )
+        {
             dll_name = (char*)block_s;
-        //else
-        //  break;
+            dll_name[size-1] = 0;
+        }
 
         PE_printImageBoundImportDescriptor(&bid, *abs_file_offset + offset, dll_name);
 
@@ -650,9 +689,12 @@ void PE_parseImageBoundImportTable(
             if ( !checkFileSpace(0, name_offset, 1, file_size) )
                 break;
 
-            if ( readFile(fp, name_offset, BLOCKSIZE, block_s) )
+            size = readFile(fp, name_offset, BLOCKSIZE, block_s);
+            if ( size > 0 )
+            {
                 dll_name = (char*)block_s;
-
+                dll_name[size-1] = 0;
+            }
             PE_printImageBoundForwarderRef(&bfr, *abs_file_offset + offset, dll_name, ri+1, bid.NumberOfModuleForwarderRefs);
 
             offset += PE_BOUND_FORWARDER_REF_SIZE;
@@ -745,11 +787,19 @@ void PE_parseImageExportTable(
     size_t function_fo, name_fo;
     uint16_t name_ordinal;
     char name[BLOCKSIZE];
+    
+    if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_EXPORT )
+    {
+        header_error("ERROR: Data Directory too small!\n");
+        return;
+    }
+
     uint32_t table_start_rva = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
     uint32_t table_end_rva = table_start_rva + oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size;
     int is_forwarded;
     size_t size, name_size, bytes_size;
     size_t i;
+    int s;
 
     table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_EXPORT, nr_of_sections, "Export", svas);
     if ( table_fo == 0 )
@@ -782,8 +832,14 @@ void PE_parseImageExportTable(
 
         fseek(fp, functions_offset, SEEK_SET);
         size = fread(&function_rva, 1, 4, fp);
+        s = errno;
         if ( size != 4 )
-            continue;
+        {
+            header_error("ERROR: Read less than expected!\n");
+            debug_info("functions_offset: 0x%zx / 0x%zx!\n", functions_offset, file_size);
+            debug_info("errno: 0x%x!\n", s);
+            break;
+        }
         
         if ( table_start_rva <= function_rva && function_rva < table_end_rva )
         {
@@ -792,13 +848,25 @@ void PE_parseImageExportTable(
 
         fseek(fp, names_offset, SEEK_SET);
         size = fread(&name_rva, 1, 4, fp);
+        s = errno;
         if ( size != 4 )
-            continue;
+        {
+            header_error("ERROR: Read less than expected!\n");
+            debug_info("names_offset: 0x%zx / 0x%zx!\n", names_offset, file_size);
+            debug_info("errno: 0x%x!\n", s);
+            break;
+        }
 
         fseek(fp, names_ordinal_offset, SEEK_SET);
         size = fread(&name_ordinal, 1, 2, fp);
+        s = errno;
         if ( size != 2 )
-            continue;
+        {
+            header_error("ERROR: Read less than expected!\n");
+            debug_info("names_ordinal_offset: 0x%zx / 0x%zx!\n", names_ordinal_offset, file_size);
+            debug_info("errno: 0x%x!\n", s);
+            break;
+        }
 
         
         name_size = 0;
@@ -911,16 +979,20 @@ void PE_parseImageTLSTable(PE64OptHeader* oh,
     size_t s_offset;
     size_t e_offset;
     size_t cb_offset;
+
+    if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_TLS )
+    {
+        header_error("ERROR: Data Directory too small!\n");
+        return;
+    }
     
     uint32_t tls_table_size = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].Size;
 
     table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_TLS, nr_of_sections, "TLS", svas);
     if (table_fo == 0)
         return;
-#ifdef DEBUG_PRINT_INFO
     debug_info("PE_parseImageTLSTable\n");
     debug_info("table_fo: 0x%zx\n", table_fo);
-#endif
 
     offset = table_fo;
 
@@ -934,10 +1006,8 @@ void PE_parseImageTLSTable(PE64OptHeader* oh,
         return;
     offset = 0;
     
-#ifdef DEBUG_PRINT_INFO
     debug_info("offset: 0x%zx\n", offset);
     debug_info("abs_file_offset: 0x%zx\n", *abs_file_offset);
-#endif
 
     PE_printImageTLSTableHeader();
 
@@ -1041,18 +1111,30 @@ void PE_parseImageLoadConfigTable(PE64OptHeader* oh,
 
     LoadConfigTableOffsets to;
 
+    if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG )
+    {
+        header_error("ERROR: Data Directory too small!\n");
+        return;
+    }
+
     table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG, nr_of_sections, "Load Config", svas);
     if (table_fo == 0)
         return;
 
     size_t e_size = (bitness == 32) ? PE_IMAGE_LOAD_CONFIG_DIRECTORY32_SIZE : PE_IMAGE_LOAD_CONFIG_DIRECTORY64_SIZE;
-    if (oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].Size != e_size)
+    
+    if ( oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].Size < e_size )
     {
-        printf("LOAD_CONFIG size missmatch: expected 0x%zx but got 0x%"PRIx32"\n", e_size, oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].Size);
+        header_error("ERROR: LOAD_CONFIG size (0x%"PRIx32") smaller than expected (0x%zx)!\n", oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].Size, e_size);
+        return;
+    }
+    if ( oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].Size != e_size )
+    {
+        header_info("INFO: LOAD_CONFIG size missmatch: expected 0x%zx but got 0x%"PRIx32"\n", e_size, oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].Size);
     }
 
     // fill PE_IMAGE_EXPORT_DIRECTORY info
-    if (PE_fillImageLoadConfigDirectory(&lcd, bitness, table_fo, start_file_offset, file_size, fp, block_s) != 0)
+    if ( PE_fillImageLoadConfigDirectory(&lcd, bitness, table_fo, start_file_offset, file_size, fp, block_s) != 0 )
         return;
     
     to.seh = (size_t)(lcd.SEHandlerTable - oh->ImageBase);
@@ -1093,102 +1175,105 @@ int PE_fillImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
                                                             PeImageLoadConfigDirectoryOffsets64;
     size_t d_size = (bitness == 32) ? PE_IMAGE_LOAD_CONFIG_DIRECTORY32_SIZE : PE_IMAGE_LOAD_CONFIG_DIRECTORY64_SIZE;
 
-    if (!checkFileSpace(offset, start_file_offset, d_size, file_size))
-        return 1;
+    if ( !checkFileSpace(offset, start_file_offset, d_size, file_size) )
+    {
+        header_error("ERROR: Load config data beyond file bounds!\n");
+        return -1;
+    }
 
     offset = offset + start_file_offset;
     size = readFile(fp, offset, BLOCKSIZE, block_s);
-    if (size == 0)
-        return 2;
+    if ( size == 0 )
+        return -2;
     offset = 0;
 
     ptr = &block_s[offset];
     memset(lcd, 0, PE_IMAGE_LOAD_CONFIG_DIRECTORY64_SIZE);
-    lcd->Size = GetIntXValueAtOffset(uint32_t, ptr, offsets.Size); //*((uint32_t*)&ptr[offsets.Size]);
-    lcd->TimeDateStamp = *((uint32_t*)&ptr[offsets.TimeDateStamp]);
-    lcd->MajorVersion = *((uint16_t*)&ptr[offsets.MajorVersion]);
-    lcd->MinorVersion = *((uint16_t*)&ptr[offsets.MinorVersion]);
-    lcd->GlobalFlagsClear = *((uint32_t*)&ptr[offsets.GlobalFlagsClear]);
-    lcd->GlobalFlagsSet = *((uint32_t*)&ptr[offsets.GlobalFlagsSet]);
-    lcd->CriticalSectionDefaultTimeout = *((uint32_t*)&ptr[offsets.CriticalSectionDefaultTimeout]);
-    lcd->ProcessHeapFlags = *((uint32_t*)&ptr[offsets.ProcessHeapFlags]);
-    lcd->CSDVersion = *((uint16_t*)&ptr[offsets.CSDVersion]);
-    lcd->DependentLoadFlags = *((uint16_t*)&ptr[offsets.DependentLoadFlags]);
-    lcd->GuardFlags = *((uint32_t*)&ptr[offsets.GuardFlags]);
-    lcd->CodeIntegrity.Flags = *((uint16_t*)&ptr[offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.Flags]);
-    lcd->CodeIntegrity.Catalog = *((uint16_t*)&ptr[offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.Catalog]);
-    lcd->CodeIntegrity.CatalogOffset = *((uint32_t*)&ptr[offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.CatalogOffset]);
-    lcd->CodeIntegrity.Reserved = *((uint32_t*)&ptr[offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.Reserved]);
-    lcd->DynamicValueRelocTableOffset = *((uint32_t*)&ptr[offsets.DynamicValueRelocTableOffset]);
-    lcd->DynamicValueRelocTableSection = *((uint16_t*)&ptr[offsets.DynamicValueRelocTableSection]);
-    lcd->Reserved2 = *((uint16_t*)&ptr[offsets.Reserved2]);
-    lcd->HotPatchTableOffset = *((uint32_t*)&ptr[offsets.HotPatchTableOffset]);
-    lcd->Reserved3 = *((uint32_t*)&ptr[offsets.Reserved3]);
+    lcd->Size = GetIntXValueAtOffset(uint32_t, ptr, offsets.Size);
+    lcd->TimeDateStamp = GetIntXValueAtOffset(uint32_t, ptr, offsets.TimeDateStamp);
+    lcd->MajorVersion = GetIntXValueAtOffset(uint16_t, ptr, offsets.MajorVersion);
+    lcd->MinorVersion = GetIntXValueAtOffset(uint16_t, ptr, offsets.MinorVersion);
+    lcd->GlobalFlagsClear = GetIntXValueAtOffset(uint32_t, ptr, offsets.GlobalFlagsClear);
+    lcd->GlobalFlagsSet = GetIntXValueAtOffset(uint32_t, ptr, offsets.GlobalFlagsSet);
+    lcd->CriticalSectionDefaultTimeout = GetIntXValueAtOffset(uint32_t, ptr, offsets.CriticalSectionDefaultTimeout);
+    lcd->ProcessHeapFlags = GetIntXValueAtOffset(uint32_t, ptr, offsets.ProcessHeapFlags);
+    lcd->CSDVersion = GetIntXValueAtOffset(uint16_t, ptr, offsets.CSDVersion);
+    lcd->DependentLoadFlags = GetIntXValueAtOffset(uint16_t, ptr, offsets.DependentLoadFlags);
+    lcd->GuardFlags = GetIntXValueAtOffset(uint32_t, ptr, offsets.GuardFlags);
+    lcd->CodeIntegrity.Flags = GetIntXValueAtOffset(uint16_t, ptr, offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.Flags);
+    lcd->CodeIntegrity.Catalog = GetIntXValueAtOffset(uint16_t, ptr, offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.Catalog);
+    lcd->CodeIntegrity.CatalogOffset = GetIntXValueAtOffset(uint32_t, ptr, offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.CatalogOffset);
+    lcd->CodeIntegrity.Reserved = GetIntXValueAtOffset(uint32_t, ptr, offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.Reserved);
+    lcd->DynamicValueRelocTableOffset = GetIntXValueAtOffset(uint32_t, ptr, offsets.DynamicValueRelocTableOffset);
+    lcd->DynamicValueRelocTableSection = GetIntXValueAtOffset(uint16_t, ptr, offsets.DynamicValueRelocTableSection);
+    lcd->Reserved2 = GetIntXValueAtOffset(uint16_t, ptr, offsets.Reserved2);
+    lcd->HotPatchTableOffset = GetIntXValueAtOffset(uint32_t, ptr, offsets.HotPatchTableOffset);
+    lcd->Reserved3 = GetIntXValueAtOffset(uint32_t, ptr, offsets.Reserved3);
 
     if (bitness == 32)
     {
-        lcd->CriticalSectionDefaultTimeout = *((uint32_t*)&ptr[offsets.CriticalSectionDefaultTimeout]);
-        lcd->DeCommitFreeBlockThreshold = *((uint32_t*)&ptr[offsets.DeCommitFreeBlockThreshold]);
-        lcd->DeCommitTotalFreeThreshold = *((uint32_t*)&ptr[offsets.DeCommitTotalFreeThreshold]);
-        lcd->LockPrefixTable = *((uint32_t*)&ptr[offsets.LockPrefixTable]);
-        lcd->MaximumAllocationSize = *((uint32_t*)&ptr[offsets.MaximumAllocationSize]);
-        lcd->VirtualMemoryThreshold = *((uint32_t*)&ptr[offsets.VirtualMemoryThreshold]);
-        lcd->ProcessAffinityMask = *((uint32_t*)&ptr[offsets.ProcessAffinityMask]);
-        lcd->EditList = *((uint32_t*)&ptr[offsets.EditList]);
-        lcd->SecurityCookie = *((uint32_t*)&ptr[offsets.SecurityCookie]);
-        lcd->SEHandlerTable = *((uint32_t*)&ptr[offsets.SEHandlerTable]);
-        lcd->SEHandlerCount = *((uint32_t*)&ptr[offsets.SEHandlerCount]);
-        lcd->GuardCFCheckFunctionPointer = *((uint32_t*)&ptr[offsets.GuardCFCheckFunctionPointer]);
-        lcd->GuardCFDispatchFunctionPointer = *((uint32_t*)&ptr[offsets.GuardCFDispatchFunctionPointer]);
-        lcd->GuardCFFunctionTable = *((uint32_t*)&ptr[offsets.GuardCFFunctionTable]);
-        lcd->GuardCFFunctionCount = *((uint32_t*)&ptr[offsets.GuardCFFunctionCount]);
-        lcd->GuardAddressTakenIatEntryTable = *((uint32_t*)&ptr[offsets.GuardAddressTakenIatEntryTable]);
-        lcd->GuardAddressTakenIatEntryCount = *((uint32_t*)&ptr[offsets.GuardAddressTakenIatEntryCount]);
-        lcd->GuardLongJumpTargetTable = *((uint32_t*)&ptr[offsets.GuardLongJumpTargetTable]);
-        lcd->GuardLongJumpTargetCount = *((uint32_t*)&ptr[offsets.GuardLongJumpTargetCount]);
-        lcd->DynamicValueRelocTable = *((uint32_t*)&ptr[offsets.DynamicValueRelocTable]);
-        lcd->CHPEMetadataPointer = *((uint32_t*)&ptr[offsets.CHPEMetadataPointer]);
-        lcd->GuardRFFailureRoutine = *((uint32_t*)&ptr[offsets.GuardRFFailureRoutine]);
-        lcd->GuardRFFailureRoutineFunctionPointer = *((uint32_t*)&ptr[offsets.GuardRFFailureRoutineFunctionPointer]);
-        lcd->GuardRFVerifyStackPointerFunctionPointer = *((uint32_t*)&ptr[offsets.GuardRFVerifyStackPointerFunctionPointer]);
-        lcd->EnclaveConfigurationPointer = *((uint32_t*)&ptr[offsets.EnclaveConfigurationPointer]);
-        lcd->VolatileMetadataPointer = *((uint32_t*)&ptr[offsets.VolatileMetadataPointer]);
-        lcd->GuardEHContinuationTable = *((uint32_t*)&ptr[offsets.GuardEHContinuationTable]);
-        lcd->GuardEHContinuationCount = *((uint32_t*)&ptr[offsets.GuardEHContinuationCount]);
+        lcd->CriticalSectionDefaultTimeout = GetIntXValueAtOffset(uint32_t, ptr, offsets.CriticalSectionDefaultTimeout);
+        lcd->DeCommitFreeBlockThreshold = GetIntXValueAtOffset(uint32_t, ptr, offsets.DeCommitFreeBlockThreshold);
+        lcd->DeCommitTotalFreeThreshold = GetIntXValueAtOffset(uint32_t, ptr, offsets.DeCommitTotalFreeThreshold);
+        lcd->LockPrefixTable = GetIntXValueAtOffset(uint32_t, ptr, offsets.LockPrefixTable);
+        lcd->MaximumAllocationSize = GetIntXValueAtOffset(uint32_t, ptr, offsets.MaximumAllocationSize);
+        lcd->VirtualMemoryThreshold = GetIntXValueAtOffset(uint32_t, ptr, offsets.VirtualMemoryThreshold);
+        lcd->ProcessAffinityMask = GetIntXValueAtOffset(uint32_t, ptr, offsets.ProcessAffinityMask);
+        lcd->EditList = GetIntXValueAtOffset(uint32_t, ptr, offsets.EditList);
+        lcd->SecurityCookie = GetIntXValueAtOffset(uint32_t, ptr, offsets.SecurityCookie);
+        lcd->SEHandlerTable = GetIntXValueAtOffset(uint32_t, ptr, offsets.SEHandlerTable);
+        lcd->SEHandlerCount = GetIntXValueAtOffset(uint32_t, ptr, offsets.SEHandlerCount);
+        lcd->GuardCFCheckFunctionPointer = GetIntXValueAtOffset(uint32_t, ptr, offsets.GuardCFCheckFunctionPointer);
+        lcd->GuardCFDispatchFunctionPointer = GetIntXValueAtOffset(uint32_t, ptr, offsets.GuardCFDispatchFunctionPointer);
+        lcd->GuardCFFunctionTable = GetIntXValueAtOffset(uint32_t, ptr, offsets.GuardCFFunctionTable);
+        lcd->GuardCFFunctionCount = GetIntXValueAtOffset(uint32_t, ptr, offsets.GuardCFFunctionCount);
+        lcd->GuardAddressTakenIatEntryTable = GetIntXValueAtOffset(uint32_t, ptr, offsets.GuardAddressTakenIatEntryTable);
+        lcd->GuardAddressTakenIatEntryCount = GetIntXValueAtOffset(uint32_t, ptr, offsets.GuardAddressTakenIatEntryCount);
+        lcd->GuardLongJumpTargetTable = GetIntXValueAtOffset(uint32_t, ptr, offsets.GuardLongJumpTargetTable);
+        lcd->GuardLongJumpTargetCount = GetIntXValueAtOffset(uint32_t, ptr, offsets.GuardLongJumpTargetCount);
+        lcd->DynamicValueRelocTable = GetIntXValueAtOffset(uint32_t, ptr, offsets.DynamicValueRelocTable);
+        lcd->CHPEMetadataPointer = GetIntXValueAtOffset(uint32_t, ptr, offsets.CHPEMetadataPointer);
+        lcd->GuardRFFailureRoutine = GetIntXValueAtOffset(uint32_t, ptr, offsets.GuardRFFailureRoutine);
+        lcd->GuardRFFailureRoutineFunctionPointer = GetIntXValueAtOffset(uint32_t, ptr, offsets.GuardRFFailureRoutineFunctionPointer);
+        lcd->GuardRFVerifyStackPointerFunctionPointer = GetIntXValueAtOffset(uint32_t, ptr, offsets.GuardRFVerifyStackPointerFunctionPointer);
+        lcd->EnclaveConfigurationPointer = GetIntXValueAtOffset(uint32_t, ptr, offsets.EnclaveConfigurationPointer);
+        lcd->VolatileMetadataPointer = GetIntXValueAtOffset(uint32_t, ptr, offsets.VolatileMetadataPointer);
+        lcd->GuardEHContinuationTable = GetIntXValueAtOffset(uint32_t, ptr, offsets.GuardEHContinuationTable);
+        lcd->GuardEHContinuationCount = GetIntXValueAtOffset(uint32_t, ptr, offsets.GuardEHContinuationCount);
     }
     else
     {
-        lcd->DeCommitFreeBlockThreshold = *((uint64_t*)&ptr[offsets.DeCommitFreeBlockThreshold]);
-        lcd->DeCommitTotalFreeThreshold = *((uint64_t*)&ptr[offsets.DeCommitTotalFreeThreshold]);
-        lcd->LockPrefixTable = *((uint64_t*)&ptr[offsets.LockPrefixTable]);
-        lcd->MaximumAllocationSize = *((uint64_t*)&ptr[offsets.MaximumAllocationSize]);
-        lcd->VirtualMemoryThreshold = *((uint64_t*)&ptr[offsets.VirtualMemoryThreshold]);
-        lcd->ProcessAffinityMask = *((uint64_t*)&ptr[offsets.ProcessAffinityMask]);
-        lcd->EditList = *((uint64_t*)&ptr[offsets.EditList]);
-        lcd->SecurityCookie = *((uint64_t*)&ptr[offsets.SecurityCookie]);
-        lcd->SEHandlerTable = *((uint64_t*)&ptr[offsets.SEHandlerTable]);
-        lcd->SEHandlerCount = *((uint64_t*)&ptr[offsets.SEHandlerCount]);
-        lcd->GuardCFCheckFunctionPointer = *((uint64_t*)&ptr[offsets.GuardCFCheckFunctionPointer]);
-        lcd->GuardCFDispatchFunctionPointer = *((uint64_t*)&ptr[offsets.GuardCFDispatchFunctionPointer]);
-        lcd->GuardCFFunctionTable = *((uint64_t*)&ptr[offsets.GuardCFFunctionTable]);
-        lcd->GuardCFFunctionCount = *((uint64_t*)&ptr[offsets.GuardCFFunctionCount]);
-        lcd->CodeIntegrity.Flags = *((uint16_t*)&ptr[offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.Flags]);
-        lcd->CodeIntegrity.Catalog = *((uint16_t*)&ptr[offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.Catalog]);
-        lcd->CodeIntegrity.CatalogOffset = *((uint32_t*)&ptr[offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.CatalogOffset]);
-        lcd->CodeIntegrity.Reserved = *((uint32_t*)&ptr[offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.Reserved]);
-        lcd->GuardAddressTakenIatEntryTable = *((uint64_t*)&ptr[offsets.GuardAddressTakenIatEntryTable]);
-        lcd->GuardAddressTakenIatEntryCount = *((uint64_t*)&ptr[offsets.GuardAddressTakenIatEntryCount]);
-        lcd->GuardLongJumpTargetTable = *((uint64_t*)&ptr[offsets.GuardLongJumpTargetTable]);
-        lcd->GuardLongJumpTargetCount = *((uint64_t*)&ptr[offsets.GuardLongJumpTargetCount]);
-        lcd->DynamicValueRelocTable = *((uint64_t*)&ptr[offsets.DynamicValueRelocTable]);
-        lcd->CHPEMetadataPointer = *((uint64_t*)&ptr[offsets.CHPEMetadataPointer]);
-        lcd->GuardRFFailureRoutine = *((uint64_t*)&ptr[offsets.GuardRFFailureRoutine]);
-        lcd->GuardRFFailureRoutineFunctionPointer = *((uint64_t*)&ptr[offsets.GuardRFFailureRoutineFunctionPointer]);
-        lcd->GuardRFVerifyStackPointerFunctionPointer = *((uint64_t*)&ptr[offsets.GuardRFVerifyStackPointerFunctionPointer]);
-        lcd->EnclaveConfigurationPointer = *((uint64_t*)&ptr[offsets.EnclaveConfigurationPointer]);
-        lcd->VolatileMetadataPointer = *((uint64_t*)&ptr[offsets.VolatileMetadataPointer]);
-        lcd->GuardEHContinuationTable = *((uint64_t*)&ptr[offsets.GuardEHContinuationTable]);
-        lcd->GuardEHContinuationCount = *((uint64_t*)&ptr[offsets.GuardEHContinuationCount]);
+        lcd->DeCommitFreeBlockThreshold = GetIntXValueAtOffset(uint64_t, ptr, offsets.DeCommitFreeBlockThreshold);
+        lcd->DeCommitTotalFreeThreshold = GetIntXValueAtOffset(uint64_t, ptr, offsets.DeCommitTotalFreeThreshold);
+        lcd->LockPrefixTable = GetIntXValueAtOffset(uint64_t, ptr, offsets.LockPrefixTable);
+        lcd->MaximumAllocationSize = GetIntXValueAtOffset(uint64_t, ptr, offsets.MaximumAllocationSize);
+        lcd->VirtualMemoryThreshold = GetIntXValueAtOffset(uint64_t, ptr, offsets.VirtualMemoryThreshold);
+        lcd->ProcessAffinityMask = GetIntXValueAtOffset(uint64_t, ptr, offsets.ProcessAffinityMask);
+        lcd->EditList = GetIntXValueAtOffset(uint64_t, ptr, offsets.EditList);
+        lcd->SecurityCookie = GetIntXValueAtOffset(uint64_t, ptr, offsets.SecurityCookie);
+        lcd->SEHandlerTable = GetIntXValueAtOffset(uint64_t, ptr, offsets.SEHandlerTable);
+        lcd->SEHandlerCount = GetIntXValueAtOffset(uint64_t, ptr, offsets.SEHandlerCount);
+        lcd->GuardCFCheckFunctionPointer = GetIntXValueAtOffset(uint64_t, ptr, offsets.GuardCFCheckFunctionPointer);
+        lcd->GuardCFDispatchFunctionPointer = GetIntXValueAtOffset(uint64_t, ptr, offsets.GuardCFDispatchFunctionPointer);
+        lcd->GuardCFFunctionTable = GetIntXValueAtOffset(uint64_t, ptr, offsets.GuardCFFunctionTable);
+        lcd->GuardCFFunctionCount = GetIntXValueAtOffset(uint64_t, ptr, offsets.GuardCFFunctionCount);
+        lcd->CodeIntegrity.Flags = GetIntXValueAtOffset(uint16_t, ptr, offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.Flags);
+        lcd->CodeIntegrity.Catalog = GetIntXValueAtOffset(uint16_t, ptr, offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.Catalog);
+        lcd->CodeIntegrity.CatalogOffset = GetIntXValueAtOffset(uint32_t, ptr, offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.CatalogOffset);
+        lcd->CodeIntegrity.Reserved = GetIntXValueAtOffset(uint32_t, ptr, offsets.CodeIntegrity + PeImageLoadConfigCodeIntegrityOffsets.Reserved);
+        lcd->GuardAddressTakenIatEntryTable = GetIntXValueAtOffset(uint64_t, ptr, offsets.GuardAddressTakenIatEntryTable);
+        lcd->GuardAddressTakenIatEntryCount = GetIntXValueAtOffset(uint64_t, ptr, offsets.GuardAddressTakenIatEntryCount);
+        lcd->GuardLongJumpTargetTable = GetIntXValueAtOffset(uint64_t, ptr, offsets.GuardLongJumpTargetTable);
+        lcd->GuardLongJumpTargetCount = GetIntXValueAtOffset(uint64_t, ptr, offsets.GuardLongJumpTargetCount);
+        lcd->DynamicValueRelocTable = GetIntXValueAtOffset(uint64_t, ptr, offsets.DynamicValueRelocTable);
+        lcd->CHPEMetadataPointer = GetIntXValueAtOffset(uint64_t, ptr, offsets.CHPEMetadataPointer);
+        lcd->GuardRFFailureRoutine = GetIntXValueAtOffset(uint64_t, ptr, offsets.GuardRFFailureRoutine);
+        lcd->GuardRFFailureRoutineFunctionPointer = GetIntXValueAtOffset(uint64_t, ptr, offsets.GuardRFFailureRoutineFunctionPointer);
+        lcd->GuardRFVerifyStackPointerFunctionPointer = GetIntXValueAtOffset(uint64_t, ptr, offsets.GuardRFVerifyStackPointerFunctionPointer);
+        lcd->EnclaveConfigurationPointer = GetIntXValueAtOffset(uint64_t, ptr, offsets.EnclaveConfigurationPointer);
+        lcd->VolatileMetadataPointer = GetIntXValueAtOffset(uint64_t, ptr, offsets.VolatileMetadataPointer);
+        lcd->GuardEHContinuationTable = GetIntXValueAtOffset(uint64_t, ptr, offsets.GuardEHContinuationTable);
+        lcd->GuardEHContinuationCount = GetIntXValueAtOffset(uint64_t, ptr, offsets.GuardEHContinuationCount);
     }
 
     return 0;
@@ -1214,10 +1299,19 @@ void PE_parseImageResourceTable(PE64OptHeader* oh,
 {
     PE_IMAGE_RESOURCE_DIRECTORY rd;
     size_t table_fo;
+    
+    if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_RESOURCE )
+    {
+        header_error("ERROR: Data Directory too small!\n");
+        return;
+    }
 
     table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_RESOURCE, nr_of_sections, "Resource", svas);
     if ( table_fo == 0 )
+    {
+        header_error("ERROR: File offset of ressource directory not valid!\n");
         return;
+    }
 
     // fill root PE_IMAGE_RESOURCE_DIRECTORY info
     if ( PE_fillImageResourceDirectory(&rd, table_fo, start_file_offset, file_size, fp, block_s) != 0 )
@@ -1281,6 +1375,12 @@ int PE_recurseImageResourceDirectory(
 {
     uint16_t i;
     int s;
+
+    if ( level >= PE_MAX_RES_DIR_LEVEL )
+    {
+        header_error("ERROR: Maximum ressource directory level reached!\n");
+        return -1;
+    }
 
     PE_printImageResourceDirectoryEntryHeader(0, nr_of_named_entries, level);
     for ( i = 0; i < nr_of_named_entries; i++)
@@ -1392,7 +1492,7 @@ int PE_fillImageResourceDataEntry(PE_IMAGE_RESOURCE_DATA_ENTRY* de,
     uint8_t* ptr;
     size_t size;
     
-    if ( !checkFileSpace(offset, start_file_offset, PE_RESOURCE_DATA_ENTRY_SIZE, file_size))
+    if ( !checkFileSpace(offset, start_file_offset, PE_RESOURCE_DATA_ENTRY_SIZE, file_size) )
         return 1;
     
     offset += start_file_offset;
@@ -1403,10 +1503,10 @@ int PE_fillImageResourceDataEntry(PE_IMAGE_RESOURCE_DATA_ENTRY* de,
     ptr = block_s;
 
     memset(de, 0, PE_RESOURCE_ENTRY_SIZE);
-    de->OffsetToData = *((uint32_t*) &ptr[PeImageResourceDataEntryOffsets.OffsetToData]);
-    de->Size = *((uint32_t*) &ptr[PeImageResourceDataEntryOffsets.Size]);
-    de->CodePage = *((uint32_t*) &ptr[PeImageResourceDataEntryOffsets.CodePage]);
-    de->Reserved = *((uint32_t*) &ptr[PeImageResourceDataEntryOffsets.Reserved]);
+    de->OffsetToData = GetIntXValueAtOffset(uint32_t, ptr, PeImageResourceDataEntryOffsets.OffsetToData);
+    de->Size = GetIntXValueAtOffset(uint32_t, ptr, PeImageResourceDataEntryOffsets.Size);
+    de->CodePage = GetIntXValueAtOffset(uint32_t, ptr, PeImageResourceDataEntryOffsets.CodePage);
+    de->Reserved = GetIntXValueAtOffset(uint32_t, ptr, PeImageResourceDataEntryOffsets.Reserved);
 
     return 0;
 }
@@ -1431,7 +1531,7 @@ size_t PE_getDataDirectoryEntryFileOffset(PEDataDirectory* data_directory,
 
     // get table rva offset
     table_fo = PE_Rva2Foa(vaddr, svas, nr_of_sections);
-    if ( table_fo == (size_t) -1 )
+    if ( table_fo == (size_t)-1 )
         return 0;
 
     return table_fo;
@@ -1475,6 +1575,12 @@ int PE_parseImageDebugTable(
     uint8_t* ptr = NULL;
     uint32_t entry_id = 0;
     int s = 0;
+    
+    if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_DEBUG )
+    {
+        header_error("ERROR: Data Directory too small!\n");
+        return -5;
+    }
 
     PEDataDirectory* dte = &oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG];
 
@@ -1634,6 +1740,12 @@ int PE_parseImageExceptionTable(
     uint32_t entry_id = 0;
     int s = 0;
 
+    if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_EXCEPTION )
+    {
+        header_error("ERROR: Data Directory too small!\n");
+        return false;
+    }
+
     PEDataDirectory* dte = &oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_EXCEPTION];
 
     PE_IMAGE_EXCEPTION_TABLE_ENTRY entry;
@@ -1681,18 +1793,16 @@ int PE_parseImageExceptionTable(
             break;
 
         //PE_printExceptionTableEntry(&entry, entry_id, start_file_offset);
-//#ifdef DEBUG_PRINT_INFO
-        printf(" - entry_id: 0x%x\n", entry_id);
+        debug_info(" - entry_id: 0x%x\n", entry_id);
         fo = PE_Rva2Foa(entry.BeginAddress, svas, nr_of_sections);
-        printf("   - BeginAddress.va: 0x%x\n", entry.BeginAddress);
-        printf("   - BeginAddress.fo: 0x%zx\n", fo);
+        debug_info("   - BeginAddress.va: 0x%x\n", entry.BeginAddress);
+        debug_info("   - BeginAddress.fo: 0x%zx\n", fo);
         fo = PE_Rva2Foa(entry.EndAddress, svas, nr_of_sections);
-        printf("   - EndAddress.va: 0x%x\n", entry.EndAddress);
-        printf("   - EndAddress.fo: 0x%zx\n", fo);
+        debug_info("   - EndAddress.va: 0x%x\n", entry.EndAddress);
+        debug_info("   - EndAddress.fo: 0x%zx\n", fo);
         fo = PE_Rva2Foa(entry.UnwindInformation, svas, nr_of_sections);
-        printf("   - UnwindInformation.va: 0x%x\n", entry.UnwindInformation);
-        printf("   - UnwindInformation.fo: 0x%zx\n", fo);
-//#endif
+        debug_info("   - UnwindInformation.va: 0x%x\n", entry.UnwindInformation);
+        debug_info("   - UnwindInformation.fo: 0x%zx\n", fo);
 
         dte_offset += entry_size;
         offset += entry_size;
@@ -1749,13 +1859,19 @@ int PE_parseImageBaseRelocationTable(PE64OptHeader* oh,
                                      uint8_t* block_l,
                                      uint8_t* block_s)
 {
-    size_t table_fo;
+    size_t file_offset;
     size_t offset;
     size_t reloc_o;
     size_t size;
     uint8_t* ptr = NULL;
     uint32_t e_i;
     uint32_t b_i = 0;
+    
+    if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_BASE_RELOC )
+    {
+        header_error("ERROR: Data Directory too small!\n");
+        return ERROR_DATA_DIR_TOO_SMALL;
+    }
 
     PEDataDirectory* reloc = &oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_BASE_RELOC];
 
@@ -1763,12 +1879,12 @@ int PE_parseImageBaseRelocationTable(PE64OptHeader* oh,
     PE_BASE_RELOCATION_ENTRY entry;
     uint32_t nr_of_entries;
 
-    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_BASE_RELOC, nr_of_sections, "Base Relocation", svas);
+    file_offset = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_BASE_RELOC, nr_of_sections, "Base Relocation", svas);
 
-    if (table_fo == 0)
+    if (file_offset == 0)
         return -3;
 
-    offset = table_fo;
+    offset = file_offset;
 
     // read new  block to ease up offsetting
     if (!checkFileSpace(offset, start_file_offset, reloc->Size, file_size))
@@ -1781,19 +1897,17 @@ int PE_parseImageBaseRelocationTable(PE64OptHeader* oh,
     offset = 0;
     reloc_o = 0;
     
-#ifdef DEBUG_PRINT_INFO
     debug_info("offset: 0x%zx\n", offset);
     debug_info("abs_file_offset: 0x%zx\n", *abs_file_offset);
     debug_info("reloc->Size: 0x%x\n", reloc->Size);
     debug_info("sizeof(PE_BASE_RELOCATION_BLOCK): 0x%zx\n", sizeof(PE_BASE_RELOCATION_BLOCK));
     debug_info("sizeof(PE_BASE_RELOCATION_ENTRY): 0x%zx\n", sizeof(PE_BASE_RELOCATION_ENTRY));
-#endif
 
     PE_printImageBaseRelocationTable();
 
-    while (reloc_o < reloc->Size)
+    while ( reloc_o < reloc->Size )
     {
-        if (!checkFileSpace(offset, start_file_offset, reloc->Size - reloc_o, file_size))
+        if (!checkFileSpace(offset, *abs_file_offset, reloc->Size - reloc_o, file_size))
             return -1;
         if (!checkLargeBlockSpace(&offset, abs_file_offset, reloc->Size - reloc_o, block_l, fp))
             return -2;
@@ -1802,41 +1916,65 @@ int PE_parseImageBaseRelocationTable(PE64OptHeader* oh,
         block.VirtualAddress = *((uint32_t*)&ptr[PeBaseRelocationBlockOffsets.VirtualAddress]);
         block.SizeOfBlock = *((uint32_t*)&ptr[PeBaseRelocationBlockOffsets.SizeOfBlock]);
 
+        if ( block.VirtualAddress == 0  )
+        {
+            header_error("ERROR: relocation block VA is 0!");
+            break;
+        }
+        if ( block.SizeOfBlock == 0 )
+        {
+            header_error("ERROR: relocation block size is 0!");
+            break;
+        }
+
         nr_of_entries = PE_numberOfRelocationEntries(block.SizeOfBlock);
 
         PE_printImageBaseRelocationBlockHeader(&block, b_i, start_file_offset);
-#ifdef DEBUG_PRINT_INFO
+        
         debug_info(" - VirtualAddress: 0x%x\n", block.VirtualAddress);
         debug_info(" - SizeOfBlock: 0x%x\n", block.SizeOfBlock);
         debug_info(" - nr_of_entries: 0x%x\n", nr_of_entries);
         debug_info(" - - expected new block offset: 0x%zx\n", (offset + block.SizeOfBlock));
-#endif
 
         offset += sizeof(PE_BASE_RELOCATION_BLOCK);
         for (e_i = 0; e_i < nr_of_entries; e_i++)
         {
+            if (!checkFileSpace(offset, *abs_file_offset, sizeof(PE_BASE_RELOCATION_ENTRY), file_size))
+            {
+                header_error("ERROR: Data beyond end of file!\n");
+                return HP_ERROR_EOF;
+            }
+            if (!checkLargeBlockSpace(&offset, abs_file_offset, sizeof(PE_BASE_RELOCATION_ENTRY), block_l, fp))
+            {
+                header_error("ERROR: Block allocation failed\n");
+                return HP_ERROR_BAF;
+            }
             ptr = &block_l[offset];
 
             entry.Data = 0;
 
             entry.Data = *((uint16_t*)&ptr[PeBaseRelocationEntryOffsets.Type]);
             
-#ifdef DEBUG_PRINT_INFO
-            debug_info("  - data: 0x%x\n", entry.Data);
-            debug_info("  - Type: 0x%x\n", (entry.Data >> 12));
-            debug_info("  - Offset: 0x%x\n", (entry.Data & 0x0FFF));
-#endif
+            debug_info("  - data offset: 0x%zx\n", offset);
+            debug_info("    - data: 0x%x\n", entry.Data);
+            debug_info("    - Type: 0x%x\n", (entry.Data >> 12));
+            debug_info("    - Offset: 0x%x\n", (entry.Data & 0x0FFF));
 
             PE_printImageBaseRelocationBlockEntry(&entry);
 
             offset += sizeof(PE_BASE_RELOCATION_ENTRY);
+            reloc_o += sizeof(PE_BASE_RELOCATION_ENTRY);
+
+            if ( reloc_o >= reloc->Size )
+            {
+                header_error("ERROR: More reloc entries than directory size!\n");
+                break;
+            }
         }
         
-#ifdef DEBUG_PRINT_INFO
         debug_info(" - - new block offset: 0x%zx\n", offset);
-#endif
         //offset += block.SizeOfBlock;
-        reloc_o += block.SizeOfBlock;
+        //reloc_o += block.SizeOfBlock;
         b_i++;
     }
     printf("\n");
@@ -1846,6 +1984,8 @@ int PE_parseImageBaseRelocationTable(PE64OptHeader* oh,
 
 uint32_t PE_numberOfRelocationEntries(uint32_t SizeOfBlock)
 {
+    if ( SizeOfBlock < sizeof(PE_BASE_RELOCATION_BLOCK) )
+        return 0;
     return (SizeOfBlock - sizeof(PE_BASE_RELOCATION_BLOCK)) / sizeof(PE_BASE_RELOCATION_ENTRY);
 }
 

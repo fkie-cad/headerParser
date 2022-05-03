@@ -30,7 +30,7 @@ void PE_printImageSectionHeader(PEImageSectionHeader* sh,
                                 size_t start_file_offset,
                                 size_t file_size,
                                 FILE* fp,
-                                unsigned char* block_s,
+                                uint8_t* block_s,
                                 PStringTable st);
 const char* PE_getSubsystemName(enum PEWinudowsSubsystem type);
 
@@ -48,7 +48,7 @@ void PE_printImageExportDirectoryEntry(size_t i,
                                        const char* name, 
                                        size_t name_max, 
                                        uint16_t name_ordinal, 
-                                       unsigned char* bytes, 
+                                       uint8_t* bytes, 
                                        size_t bytes_max, 
                                        uint32_t rva, 
                                        size_t fo, 
@@ -60,12 +60,12 @@ void PE_printImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
                                       PLoadConfigTableOffsets to,
                                       size_t file_size,
                                       FILE* fp,
-                                      unsigned char* block_s);
+                                      uint8_t* block_s);
 void PE_printSizedRVAArray(uint64_t count, 
                            size_t offset, 
                            size_t file_size,
                            FILE* fp,
-                           unsigned char* block_s);
+                           uint8_t* block_s);
 
 void PE_printAttributeCertificateTable(PeAttributeCertificateTable* t, uint8_t n, size_t offset);
 const char* PE_getCertificateTypeString(uint16_t type);
@@ -79,7 +79,7 @@ void PE_printImageResourceDirectoryEntry(const PE_IMAGE_RESOURCE_DIRECTORY_ENTRY
                                          size_t start_file_offset,
                                          size_t file_size,
                                          FILE* fp,
-                                         unsigned char* block_s);
+                                         uint8_t* block_s);
 
 void PE_printImageTLSTableHeader();
 void PE_printTLSEntry(PE_IMAGE_TLS_DIRECTORY64* tls, 
@@ -91,7 +91,7 @@ void PE_printTLSEntry(PE_IMAGE_TLS_DIRECTORY64* tls,
                       size_t cb_offset,
                       size_t file_size,
                       FILE* fp,
-                      unsigned char* block_s);
+                      uint8_t* block_s);
 
 void PE_printImageBaseRelocationTable();
 void PE_printImageBaseRelocationBlockHeader(PE_BASE_RELOCATION_BLOCK* b, 
@@ -159,7 +159,9 @@ void PE_printCoffFileHeader(PECoffFileHeader* ch, size_t offset, size_t start_fi
     ArchitectureMapEntry* arch = getArchitecture(ch->Machine, pe_arch_id_mapper, pe_arch_id_mapper_size);
     char ch_bin[17];
     char date[32];
-    formatTimeStampD(ch->TimeDateStamp, date, sizeof(date));
+    date[0] = 0;
+    if (ch->TimeDateStamp != (uint32_t)-1)
+        formatTimeStampD(ch->TimeDateStamp, date, sizeof(date));
     uint16ToBin(ch->Characteristics, ch_bin);
 
     printf("Coff File Header:\n");
@@ -339,7 +341,7 @@ void PE_printImageSectionHeader(PEImageSectionHeader* sh,
                                 size_t start_file_offset,
                                 size_t file_size,
                                 FILE* fp,
-                                unsigned char* block_s,
+                                uint8_t* block_s,
                                 PStringTable st)
 {
     char characteristics_bin[33];
@@ -431,7 +433,9 @@ void PE_printImageThunkData(PEImageThunkData64* td, PEImageImportByName* ibn, si
 void PE_printImageExportDirectoryInfo(PE_IMAGE_EXPORT_DIRECTORY* ied)
 {
     char date[32];
-    formatTimeStampD(ied->TimeDateStamp, date, sizeof(date));
+    date[0] = 0;
+    if (ied->TimeDateStamp != (uint32_t)-1)
+        formatTimeStampD(ied->TimeDateStamp, date, sizeof(date));
 
     printf("IMAGE_EXPORT_DIRECTORY:\n");
     printf(" - Characteristics: 0x%x\n", ied->Characteristics);
@@ -458,7 +462,7 @@ void PE_printImageExportDirectoryEntry(size_t i,
                                        const char* name, 
                                        size_t name_max, 
                                        uint16_t name_ordinal, 
-                                       unsigned char* bytes, 
+                                       uint8_t* bytes, 
                                        size_t bytes_max, 
                                        uint32_t rva, 
                                        size_t fo, 
@@ -493,14 +497,16 @@ void PE_printImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
                                       PLoadConfigTableOffsets to,
                                       size_t file_size,
                                       FILE* fp,
-                                      unsigned char* block_s)
+                                      uint8_t* block_s)
 {
     struct PE_IMAGE_LOAD_CONFIG_DIRECTORY_OFFSETS offsets = (bitness == 32) ?
                                                             PeImageLoadConfigDirectoryOffsets32 :
                                                             PeImageLoadConfigDirectoryOffsets64;
 
     char date[32];
-    formatTimeStampD(lcd->TimeDateStamp, date, sizeof(date));
+    date[0] = 0;
+    if (lcd->TimeDateStamp != (uint32_t)-1)
+        formatTimeStampD(lcd->TimeDateStamp, date, sizeof(date));
 
     const char* f_pre = "   - ";
     const char f_post = '\n';
@@ -586,30 +592,36 @@ void PE_printSizedRVAArray(uint64_t count,
                            size_t offset, 
                            size_t file_size,
                            FILE* fp,
-                           unsigned char* block_s)
+                           uint8_t* block_s)
 {
-    size_t size;
+    size_t bytes_read;
     uint64_t i, j;
     uint8_t ptr_size = 4;
     uint32_t ptr;
 
     if ( count > 0 && offset < file_size )
     {
-        size = readFile(fp, (size_t)offset, BLOCKSIZE, block_s);
-        if (size == 0)
+        bytes_read = readFile(fp, (size_t)offset, BLOCKSIZE, block_s);
+        if ( bytes_read < ptr_size )
+        {
+            header_error("ERROR: read less than expected!\n")
             return;
+        }
         
         for ( i = 0, j=0; i < count; i++, j+=ptr_size)
         {
-            if (j > BLOCKSIZE - ptr_size)
+            if ( j > bytes_read - ptr_size )
             {
-                offset += BLOCKSIZE;
-                if (offset > file_size - ptr_size)
+                offset += bytes_read;
+                if ( offset > file_size - ptr_size )
                     break;
 
-                size = readFile(fp, (size_t)offset, BLOCKSIZE, block_s);
-                if (size == 0)
+                bytes_read = readFile(fp, (size_t)offset, BLOCKSIZE, block_s);
+                if ( bytes_read < ptr_size )
+                {
+                    header_error("ERROR: read less than expected!\n")
                     break;
+                }
                 j = 0;
             }
 
@@ -625,7 +637,7 @@ void PE_printAttributeCertificateTable(PeAttributeCertificateTable* t, uint8_t n
     uint8_t i;
     PeAttributeCertificateTable* entry;
 
-    printf("Attribute Certificate Table (%u)\n", n);
+    printf("Attribute Certificate Table (%u):\n", n);
     for ( i = 0; i < n; i++ )
     {
         entry = &t[i];
@@ -664,14 +676,14 @@ const char* PE_getCertificateTypeString(uint16_t type)
 
 void fillSpaces(char* buf, size_t n, uint16_t level)
 {
-//	memset(&dashes, 0, n);
+//	memset(&spaces, 0, n);
     if ( n == 0 || buf == NULL )
         return;
     size_t min = (n-1 < level*2u) ? n-1 : level*2u;
     memset(buf, ' ', min);
     buf[min] = 0;
 //	size_t i;
-//	dashes[0] = ' ';
+//	spaces[0] = ' ';
 //	for ( i = 0; i < n && i < level; i++ )
 //	{
 //		buf[i*2+1] = ' ';
@@ -679,45 +691,47 @@ void fillSpaces(char* buf, size_t n, uint16_t level)
 //	}
 }
 
-//void fillDashes(size_t n, uint16_t level, char* dashes)
+//void fillDashes(size_t n, uint16_t level, char* spaces)
 //{
-//	memset(&dashes, 0, n);
+//	memset(&spaces, 0, n);
 //	size_t i;
 //	size_t max_i = n > 1;
-//	dashes[0] = ' ';
+//	spaces[0] = ' ';
 //	for ( i = 0; i < max_i && i < level; i++ )
 //	{
-//		dashes[i*2+1] = '-';
-//		dashes[i*2+2] = ' ';
+//		spaces[i*2+1] = '-';
+//		spaces[i*2+2] = ' ';
 //	}
 //}
 
 void PE_printImageResourceDirectory(const PE_IMAGE_RESOURCE_DIRECTORY* rd, size_t offset, uint16_t level)
 {
-    char dashes[MAX_SPACES];
-    fillSpaces(dashes, MAX_SPACES, level);
+    char spaces[MAX_SPACES];
+    fillSpaces(spaces, MAX_SPACES, level);
 
     char date[32];
-    formatTimeStampD(rd->TimeDateStamp, date, sizeof(date));
+    date[0] = 0;
+    if (rd->TimeDateStamp != (uint32_t)-1)
+        formatTimeStampD(rd->TimeDateStamp, date, sizeof(date));
 
-    printf("%sResource Directory%s:\n", dashes, fillOffset(0, offset, 0));
-    printf("%s- Characteristics: 0x%x\n", dashes, rd->Characteristics);
-    printf("%s- TimeDateStamp: %s (0x%x)\n", dashes, date, rd->TimeDateStamp);
-    printf("%s- MajorVersion: %u\n", dashes, rd->MajorVersion);
-    printf("%s- MinorVersion: %u\n", dashes, rd->MinorVersion);
-    printf("%s- NumberOfNamedEntries: 0x%x\n", dashes, rd->NumberOfNamedEntries);
-    printf("%s- NumberOfIdEntries: 0x%x\n", dashes, rd->NumberOfIdEntries);
+    printf("%sResource Directory%s:\n", spaces, fillOffset(0, offset, 0));
+    printf("%s- Characteristics: 0x%x\n", spaces, rd->Characteristics);
+    printf("%s- TimeDateStamp: %s (0x%x)\n", spaces, date, rd->TimeDateStamp);
+    printf("%s- MajorVersion: %u\n", spaces, rd->MajorVersion);
+    printf("%s- MinorVersion: %u\n", spaces, rd->MinorVersion);
+    printf("%s- NumberOfNamedEntries: 0x%x\n", spaces, rd->NumberOfNamedEntries);
+    printf("%s- NumberOfIdEntries: 0x%x\n", spaces, rd->NumberOfIdEntries);
 }
 
 void PE_printImageResourceDirectoryEntryHeader(int type, uint16_t n, uint16_t level)
 {
-    char dashes[MAX_SPACES];
-    fillSpaces(dashes, MAX_SPACES, level);
+    char spaces[MAX_SPACES];
+    fillSpaces(spaces, MAX_SPACES, level);
     
     if ( type == 0 )
-        printf("%s- Named Entries (%u):\n", dashes, n);
+        printf("%s- Named Entries (%u):\n", spaces, n);
     else if ( type == 1 )
-        printf("%s- ID Entries (%u):\n", dashes, n);
+        printf("%s- ID Entries (%u):\n", spaces, n);
 }
 
 void PE_printImageResourceDirectoryEntry(
@@ -730,56 +744,65 @@ void PE_printImageResourceDirectoryEntry(
     size_t start_file_offset,
     size_t file_size,
     FILE* fp,
-    unsigned char* block_s
+    uint8_t* block_s
 )
 {
     size_t name_offset = 0;
-    size_t size = 0;
+    size_t bytes_read = 0;
     size_t i = 0;
-    unsigned char* ptr = NULL;
+    uint8_t* ptr = NULL;
     PE_IMAGE_RESOURCE_DIR_STRING_U_PTR name;
     struct Pe_Image_Resource_Dir_String_U_Offsets name_offsets = PeImageResourceDirStringUOffsets;
 
-    char dashes[MAX_SPACES];
-    fillSpaces(dashes, MAX_SPACES, level);
+    char spaces[MAX_SPACES];
+    fillSpaces(spaces, MAX_SPACES, level);
     
-    printf("%s  %u/%u%s:\n", dashes, (id+1), n, fillOffset(0, offset, 0));
+    printf("%s  %u/%u%s:\n", spaces, (id+1), n, fillOffset(0, offset, 0));
     
     if ( re->NAME_UNION.NAME_STRUCT.NameIsString )
     {
         name_offset = table_fo + re->NAME_UNION.NAME_STRUCT.NameOffset;
         if ( !checkFileSpace(name_offset, start_file_offset, 4, file_size))
+        {
+            header_error("ERROR: ressource name offset beyond file bounds!\n");
             return;
+        }
 
         name_offset = name_offset + start_file_offset;
-//		size = readCustomBlock(file_name, name_offset, BLOCKSIZE, block_s);
-        size = readFile(fp, (size_t)name_offset, BLOCKSIZE, block_s);
-        if ( size == 0 )
+        bytes_read = readFile(fp, (size_t)name_offset, BLOCKSIZE, block_s);
+        if ( bytes_read <= 4 )
             return;
 
         ptr = block_s;
         name.Length = *((uint16_t*) &ptr[name_offsets.Length]);
         name.NameString = ((uint16_t*) &ptr[name_offsets.NameString]);
+        if ( name.Length > (uint16_t)bytes_read - 4 ) // minus length - L'0'
+            name.Length = (uint16_t)bytes_read-4;
+        ptr[bytes_read-2] = 0;
+        ptr[bytes_read-1] = 0;
 
         if ( !checkFileSpace(name_offset, start_file_offset, 2+name_offsets.Length, file_size))
+        {
+            header_error("ERROR: ressource name beyond file bounds!\n");
             return;
+        }
 
 //		printf("   - Name.Length: 0x%x\n", name.Length);
         // ??? how to print utf16 on linux ???
         // hack considering it ascii
-        printf("%s  - Name (%u): ", dashes, name.Length);
+        printf("%s  - Name (%u): ", spaces, name.Length);
         for ( i = 0; i < name.Length; i++ )
             printf("%c", name.NameString[i]);
         printf("\n");
     }
-        // id entries have ids
+    // id entries have ids
     else
     {
-        printf("%s  - Id: 0x%x\n", dashes, re->NAME_UNION.Id);
+        printf("%s  - Id: 0x%x\n", spaces, re->NAME_UNION.Id);
     }
-    printf("%s  - OffsetToData: 0x%x\n", dashes, re->OFFSET_UNION.OffsetToData);
-    printf("%s    - OffsetToData.OffsetToDirectory: 0x%x\n", dashes, re->OFFSET_UNION.DATA_STRUCT.OffsetToDirectory);
-    printf("%s    - OffsetToData.NameIsDirectory: 0x%x\n", dashes, re->OFFSET_UNION.DATA_STRUCT.DataIsDirectory);
+    printf("%s  - OffsetToData: 0x%x\n", spaces, re->OFFSET_UNION.OffsetToData);
+    printf("%s    - OffsetToData.OffsetToDirectory: 0x%x\n", spaces, re->OFFSET_UNION.DATA_STRUCT.OffsetToDirectory);
+    printf("%s    - OffsetToData.NameIsDirectory: 0x%x\n", spaces, re->OFFSET_UNION.DATA_STRUCT.DataIsDirectory);
 }
 
 void PE_printImageResourceDataEntry(
@@ -789,18 +812,18 @@ void PE_printImageResourceDataEntry(
     uint16_t level
 )
 {
-    char dashes[MAX_SPACES];
-    fillSpaces(dashes, MAX_SPACES, level);
+    char spaces[MAX_SPACES];
+    fillSpaces(spaces, MAX_SPACES, level);
     
-    printf("%s  - ResourceDataEntry%s:\n", dashes, fillOffset(0, offset, 0));
-    //printf("%s    - OffsetToData rva: 0x%x, fo: 0x%x\n", dashes, de->OffsetToData, fotd);
-    //printf("%s    - OffsetToData: 0x%x (rva), 0x%x (fo)\n", dashes, de->OffsetToData, fotd);
-    printf("%s    - OffsetToData\n", dashes);
-    printf("%s        rva: 0x%x\n", dashes, de->OffsetToData);
-    printf("%s         fo: 0x%x\n", dashes, fotd);
-    printf("%s    - Size: 0x%x\n", dashes, de->Size);
-    printf("%s    - CodePage: 0x%x\n", dashes, de->CodePage);
-    printf("%s    - Reserved: 0x%x\n", dashes, de->Reserved);
+    printf("%s  - ResourceDataEntry%s:\n", spaces, fillOffset(0, offset, 0));
+    //printf("%s    - OffsetToData rva: 0x%x, fo: 0x%x\n", spaces, de->OffsetToData, fotd);
+    //printf("%s    - OffsetToData: 0x%x (rva), 0x%x (fo)\n", spaces, de->OffsetToData, fotd);
+    printf("%s    - OffsetToData\n", spaces);
+    printf("%s        rva: 0x%x\n", spaces, de->OffsetToData);
+    printf("%s         fo: 0x%x\n", spaces, fotd);
+    printf("%s    - Size: 0x%x\n", spaces, de->Size);
+    printf("%s    - CodePage: 0x%x\n", spaces, de->CodePage);
+    printf("%s    - Reserved: 0x%x\n", spaces, de->Reserved);
 }
 
 
@@ -821,7 +844,7 @@ void PE_printTLSEntry(PE_IMAGE_TLS_DIRECTORY64* tls,
                       size_t cb_offset,
                       size_t file_size,
                       FILE* fp,
-                      unsigned char* block_s)
+                      uint8_t* block_s)
 {
     struct PE_IMAGE_TLS_DIRECTORY_OFFSETS offsets = (bitness == 32)
         ? PeImageTlsDirectoryOfsets32
@@ -1090,7 +1113,9 @@ void PE_printImageDelayImportTableHeader(PeImageDelayLoadDescriptor* impd)
 void PE_printImageDelayImportDescriptor(PeImageDelayLoadDescriptor* did, size_t offset, const char* dll_name)
 {
     char ts[32];
-    formatTimeStampD(did->TimeDateStamp, ts, sizeof(ts));
+    ts[0] = 0;
+    if (did->TimeDateStamp != (uint32_t)-1)
+        formatTimeStampD(did->TimeDateStamp, ts, sizeof(ts));
 
     printf(" -%s %s (0x%x)\n", fillOffset(PeImageDelayLoadDescriptorOffsets.DllNameRVA, offset, 0), dll_name, did->DllNameRVA);
     printf("   - Attributes%s: 0x%x\n", fillOffset(PeImageDelayLoadDescriptorOffsets.Attributes, offset, 0), did->Attributes.AllAttributes);
@@ -1115,7 +1140,9 @@ void PE_printImageBoundImportTableHeader(PE_IMAGE_BOUND_IMPORT_DESCRIPTOR* bid)
 void PE_printImageBoundImportDescriptor(PE_IMAGE_BOUND_IMPORT_DESCRIPTOR* bid, size_t offset, const char* dll_name)
 {
     char ts[32];
-    formatTimeStampD(bid->TimeDateStamp, ts, sizeof(ts));
+    ts[0] = 0;
+    if (bid->TimeDateStamp != (uint32_t)-1)
+        formatTimeStampD(bid->TimeDateStamp, ts, sizeof(ts));
 
     printf(" -%s %s (0x%x)\n", fillOffset(PeImageBoundDescriptorOffsets.OffsetModuleName, offset, 0), dll_name, bid->OffsetModuleName);
     printf("   - TimeDateStamp%s: %s (0x%x)\n", fillOffset(PeImageBoundDescriptorOffsets.TimeDateStamp, offset, 0), ts, bid->TimeDateStamp);
@@ -1125,7 +1152,9 @@ void PE_printImageBoundImportDescriptor(PE_IMAGE_BOUND_IMPORT_DESCRIPTOR* bid, s
 void PE_printImageBoundForwarderRef(PE_IMAGE_BOUND_FORWARDER_REF* bfr, size_t offset, const char* dll_name, uint16_t i, uint16_t n)
 {
     char ts[32];
-    formatTimeStampD(bfr->TimeDateStamp, ts, sizeof(ts));
+    ts[0] = 0;
+    if (bfr->TimeDateStamp != (uint32_t)-1)
+        formatTimeStampD(bfr->TimeDateStamp, ts, sizeof(ts));
 
     printf("   - [%d/%d]%s %s (0x%x)\n", i, n, fillOffset(PeImageBoundForwarderRefOffsets.OffsetModuleName, offset, 0), dll_name, bfr->OffsetModuleName);
     printf("     - TimeDateStamp%s: %s (0x%x)\n", fillOffset(PeImageBoundForwarderRefOffsets.TimeDateStamp, offset, 0), ts, bfr->TimeDateStamp);

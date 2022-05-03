@@ -83,7 +83,10 @@ uint8_t PE_hasCertificate(PE64OptHeader* oh)
     uint32_t size;
 
     if ( IMAGE_DIRECTORY_ENTRY_CERTIFICATE >= oh->NumberOfRvaAndSizes )
+    {
+        header_error("ERROR: Data Directory too small!\n");
         return false;
+    }
 
     address = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_CERTIFICATE].VirtualAddress;
     size = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_CERTIFICATE].Size;
@@ -163,7 +166,10 @@ uint8_t PE_iterateCertificates(PE64OptHeader* oh,
         max_size = UINT8_MAX;
 
     if ( IMAGE_DIRECTORY_ENTRY_CERTIFICATE >= oh->NumberOfRvaAndSizes )
+    {
+        header_error("ERROR: Data Directory too small!\n");
         return 0;
+    }
 
     address = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_CERTIFICATE].VirtualAddress;
     size = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_CERTIFICATE].Size;
@@ -236,7 +242,7 @@ int PE_writeCertificatesToFile(PeAttributeCertificateTable* table,
         }
         else
         {
-            header_info(" (failed (%d))\n", s);
+            header_info(" (failed (0x%x))\n", s);
             return s;
         }
     }
@@ -270,6 +276,7 @@ int PE_writeCertificateToFile(PeAttributeCertificateTable* table,
     size_t n = BLOCKSIZE;
     size_t read_size = BLOCKSIZE;
     PeAttributeCertificateTable* entry = &table[id];
+    int s = 0;
 
     FILE* dest = NULL;
 
@@ -277,33 +284,29 @@ int PE_writeCertificateToFile(PeAttributeCertificateTable* table,
     end = offset + entry->dwLength - PeAttributeCertificateTableOffsets.bCertificate;
 
     if ( end > file_size )
-        return -3;
+        return ERROR_DATA_BEYOND_FILE_SIZE;
 
     dest = fopen(file, "wb+");
+    s == errno;
     if ( !dest )
-        return -4;
-
-//	src = fopen(file_name, "rb");
-//	if ( !src )
-//	{
-//		fclose(dest);
-//		return -5;
-//	}
+    {
+        if ( s == 0 ) s = -4;
+        return s;
+    }
 
     fseek(src, offset, SEEK_SET);
     while ( n == BLOCKSIZE )
     {
         read_size = BLOCKSIZE;
-        if ( offset + read_size > end ) read_size = end - offset;
+        if ( offset + read_size > end ) 
+            read_size = end - offset;
 
-//		fseek(src, offset, SEEK_SET);
         n = fread(block_s, 1, read_size, src);
         fwrite(block_s, 1, n, dest);
 
         offset += n;
     }
 
-//	fclose(src);
     fclose(dest);
 
     return 0;

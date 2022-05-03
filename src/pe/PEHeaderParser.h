@@ -301,43 +301,48 @@ int parsePEHeader(
                          gp->fp, gp->block_standard, gp->block_large, &pehd->st, parse_svas, &pehd->svas, hd);
 
 
+    //if ( opt_header->NumberOfRvaAndSizes > 0 )
+    {
+        if ( pep->info_level & INFO_LEVEL_PE_IMP )
+            PE_parseImageImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
+                                     &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard, pep->info_level & INFO_LEVEL_PE_IMP_EX);
 
-    if ( pep->info_level & INFO_LEVEL_PE_IMP )
-        PE_parseImageImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
-                                 &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard, pep->info_level & INFO_LEVEL_PE_IMP_EX);
+        if (pep->info_level & INFO_LEVEL_PE_DIMP )
+            PE_parseImageDelayImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
+                &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard, pep->info_level & INFO_LEVEL_PE_DIMP_EX);
 
-    if (pep->info_level & INFO_LEVEL_PE_DIMP )
-        PE_parseImageDelayImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
-            &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard, pep->info_level & INFO_LEVEL_PE_DIMP_EX);
+        if (pep->info_level & INFO_LEVEL_PE_BIMP )
+            PE_parseImageBoundImportTable(opt_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
 
-    if (pep->info_level & INFO_LEVEL_PE_BIMP )
-        PE_parseImageBoundImportTable(opt_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
+        if ( pep->info_level & INFO_LEVEL_PE_EXP )
+            PE_parseImageExportTable(opt_header, coff_header->NumberOfSections, gp->start_file_offset, gp->file_size, gp->fp, gp->block_standard, pehd->svas);
 
-    if ( pep->info_level & INFO_LEVEL_PE_EXP )
-        PE_parseImageExportTable(opt_header, coff_header->NumberOfSections, gp->start_file_offset, gp->file_size, gp->fp, gp->block_standard, pehd->svas);
+        if ( pep->info_level & INFO_LEVEL_PE_RES )
+            PE_parseImageResourceTable(opt_header, coff_header->NumberOfSections, gp->start_file_offset, gp->file_size, gp->fp, gp->block_standard, pehd->svas);
 
-    if ( pep->info_level & INFO_LEVEL_PE_RES )
-        PE_parseImageResourceTable(opt_header, coff_header->NumberOfSections, gp->start_file_offset, gp->file_size, gp->fp, gp->block_standard, pehd->svas);
+        if ( pep->info_level & INFO_LEVEL_PE_DBG )
+            PE_parseImageDebugTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard, pep->info_level & INFO_LEVEL_PE_DBG_EX);
 
-    if ( pep->info_level & INFO_LEVEL_PE_DBG )
-        PE_parseImageDebugTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard, pep->info_level & INFO_LEVEL_PE_DBG_EX);
+        //if ( pep->info_level & INFO_LEVEL_PE_EXC )
+            //PE_parseImageExceptionTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
 
-    //if ( pep->info_level & INFO_LEVEL_PE_EXC )
-        //PE_parseImageExceptionTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
+        if (pep->info_level & INFO_LEVEL_PE_REL )
+            PE_parseImageBaseRelocationTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
 
-    if (pep->info_level & INFO_LEVEL_PE_REL )
-        PE_parseImageBaseRelocationTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
+        if ( pep->info_level & INFO_LEVEL_PE_CRT )
+            PE_parseCertificates(opt_header, gp->start_file_offset, gp->file_size, pep->certificate_directory, gp->fp, gp->block_standard);
 
-    if ( pep->info_level & INFO_LEVEL_PE_CRT )
-        PE_parseCertificates(opt_header, gp->start_file_offset, gp->file_size, pep->certificate_directory, gp->fp, gp->block_standard);
-
-    if (pep->info_level & INFO_LEVEL_PE_TLS )
-        PE_parseImageTLSTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
+        if (pep->info_level & INFO_LEVEL_PE_TLS )
+            PE_parseImageTLSTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_large, gp->block_standard);
     
-    if (pep->info_level & INFO_LEVEL_PE_LCFG )
-        PE_parseImageLoadConfigTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
-                                      &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_standard);
-
+        if (pep->info_level & INFO_LEVEL_PE_LCFG )
+            PE_parseImageLoadConfigTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->start_file_offset,
+                                          &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_standard);
+    }
+    //else
+    //{
+    //    debug_info("opt header size is 0!\n");
+    //}
     return 0;
 }
 
@@ -598,13 +603,11 @@ uint8_t PE_readOptionalHeader(size_t offset,
     if ( oh->Magic == PeOptionalHeaderSignature.IMAGE_NT_OPTIONAL_HDR32_MAGIC )
         offsets = PEOptional32HeaderOffsets;
 
-    if ( !checkFileSpace(offset, *abs_file_offset, sizeof(offsets), file_size) )
+    if ( !checkFileSpace(offset, *abs_file_offset, sizeof(PE64OptHeader), file_size) )
+    {
+        header_error("ERROR: PE Optional Header beyond file size!\n");
         return 1;
-
-    // redundant because a new large block has been read just yet.
-//	if ( !checkLargeBlockSpace(&offset, abs_file_offset, sizeof(offsets), block_large, file_name) )
-//		return 1;
-//	ptr = &block_large[offset];
+    }
 
     if ( oh->Magic == PeOptionalHeaderSignature.IMAGE_NT_OPTIONAL_HDR32_MAGIC )
     {
@@ -655,48 +658,46 @@ uint8_t PE_readOptionalHeader(size_t offset,
         return 0;
 
     nr_of_rva_to_read = (oh->NumberOfRvaAndSizes > MAX_NR_OF_RVA_TO_READ) ? MAX_NR_OF_RVA_TO_READ : (uint8_t)oh->NumberOfRvaAndSizes;
-    if ( oh->NumberOfRvaAndSizes > NUMBER_OF_RVA_AND_SIZES )
+    if ( oh->NumberOfRvaAndSizes != NUMBER_OF_RVA_AND_SIZES )
     {
         header_info("INFO: unusual value of NumberOfRvaAndSizes: %u\n", oh->NumberOfRvaAndSizes);
     }
 
-    oh->DataDirectory = (PEDataDirectory*) malloc(sizeof(PEDataDirectory) * nr_of_rva_to_read);
-    if ( !oh->DataDirectory )
+    if ( nr_of_rva_to_read > 0 )
     {
-        header_info("INFO: allocation of DataDirectory with %u entries failed!\n", nr_of_rva_to_read);
-        header_info("INFO: Fallback to standard size of %u!\n", NUMBER_OF_RVA_AND_SIZES);
-
-        oh->NumberOfRvaAndSizes = NUMBER_OF_RVA_AND_SIZES;
-        oh->DataDirectory = (PEDataDirectory*) malloc(sizeof(PEDataDirectory) * oh->NumberOfRvaAndSizes);
-
+        oh->DataDirectory = (PEDataDirectory*) malloc(sizeof(PEDataDirectory) * nr_of_rva_to_read);
         if ( !oh->DataDirectory )
         {
-            header_error("ERROR: allocation of DataDirectory with %u entries failed!\n", oh->NumberOfRvaAndSizes);
-            oh->NumberOfRvaAndSizes = 0;
-            return 1;
+            header_info("INFO: allocation of DataDirectory with %u entries failed!\n", nr_of_rva_to_read);
+            header_info("INFO: Fallback to standard size of %u!\n", NUMBER_OF_RVA_AND_SIZES);
+
+            oh->NumberOfRvaAndSizes = NUMBER_OF_RVA_AND_SIZES;
+            oh->DataDirectory = (PEDataDirectory*) malloc(sizeof(PEDataDirectory) * oh->NumberOfRvaAndSizes);
+
+            if ( !oh->DataDirectory )
+            {
+                header_error("ERROR: allocation of DataDirectory with %u entries failed!\n", oh->NumberOfRvaAndSizes);
+                oh->NumberOfRvaAndSizes = 0;
+                return 1;
+            }
+            nr_of_rva_to_read = NUMBER_OF_RVA_AND_SIZES;
         }
-        nr_of_rva_to_read = NUMBER_OF_RVA_AND_SIZES;
-    }
 
-    for ( i = 0; i < nr_of_rva_to_read; i++ )
-    {
-        if ( !checkFileSpace(data_entry_offset, *abs_file_offset, size_of_data_entry, file_size) )
-            break;
+        for ( i = 0; i < nr_of_rva_to_read; i++ )
+        {
+            if ( !checkFileSpace(data_entry_offset, *abs_file_offset, size_of_data_entry, file_size) )
+                break;
 
-        if ( !checkLargeBlockSpace(&data_entry_offset, abs_file_offset, size_of_data_entry, block_l, fp) )
-            break;
+            if ( !checkLargeBlockSpace(&data_entry_offset, abs_file_offset, size_of_data_entry, block_l, fp) )
+                break;
 
-        ptr = &block_l[0];
+            ptr = &block_l[0];
 
-        oh->DataDirectory[i].VirtualAddress = *((uint32_t*) &ptr[data_entry_offset]);
-        oh->DataDirectory[i].Size = *((uint32_t*) &ptr[data_entry_offset + 4]);
+            oh->DataDirectory[i].VirtualAddress = *((uint32_t*) &ptr[data_entry_offset]);
+            oh->DataDirectory[i].Size = *((uint32_t*) &ptr[data_entry_offset + 4]);
 
-        data_entry_offset += size_of_data_entry;
-//		*abs_file_offset += size_of_data_entry;
-
-//        debug_info("DataDirectory[%u].VirtualAddress: 0x%x (%u)\n",
-//                i, oh->DataDirectory[i].VirtualAddress, oh->DataDirectory[i].VirtualAddress);
-//        debug_info("DataDirectory[%u].Size: 0x%x (%u)\n", i, oh->DataDirectory[i].Size, oh->DataDirectory[i].Size);
+            data_entry_offset += size_of_data_entry;
+        }
     }
 
     return 0;
@@ -1042,7 +1043,7 @@ uint8_t PE_hasHeaderAtOffset(size_t offset,
     return 1;
 }
 
-void PE_parseCertificates(PE64OptHeader* opt_header,
+void PE_parseCertificates(PE64OptHeader* oh,
                           size_t start_file_offset,
                           size_t file_size,
                           const char* certificate_directory,
@@ -1052,12 +1053,18 @@ void PE_parseCertificates(PE64OptHeader* opt_header,
     uint8_t table_size;
     PeAttributeCertificateTable table[MAX_CERT_TABLE_SIZE];
 
+    if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_CERTIFICATE )
+    {
+        header_error("ERROR: Data Directory too small!\n");
+        return;
+    }
+
     //table_size = PEgetNumberOfCertificates(opt_header);
 //	printf("has certificate: %d\n", PEhasCertificate(opt_header));
 //	printf("number of certificates: %d\n", table_size);
-    table_size = PE_fillCertificateTable(opt_header, start_file_offset, file_size, fp, block_s, table, MAX_CERT_TABLE_SIZE);
+    table_size = PE_fillCertificateTable(oh, start_file_offset, file_size, fp, block_s, table, MAX_CERT_TABLE_SIZE);
 
-    PE_printAttributeCertificateTable(table, table_size, start_file_offset+opt_header->DataDirectory[IMAGE_DIRECTORY_ENTRY_CERTIFICATE].VirtualAddress);
+    PE_printAttributeCertificateTable(table, table_size, start_file_offset+oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_CERTIFICATE].VirtualAddress);
 
     if ( certificate_directory != NULL )
         PE_writeCertificatesToFile(table, table_size, certificate_directory, file_size, fp, block_s);

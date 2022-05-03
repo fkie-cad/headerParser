@@ -65,8 +65,8 @@ void PE_getRealName(const char* short_name,
     size_t name_size = 0;
     int s = 0;
 
-    DPrint("PE_getRealName");
-    DPrint(" - raw name: %s\n",short_name);
+    debug_info("PE_getRealName");
+    debug_info(" - raw name: %s\n",short_name);
     if ( PE_isStringTableOffset(short_name) )
     {
         s = PE_getNameOfStringTable(short_name, real_name, coff_header, start_file_offset, file_size, fp, block_s, st);
@@ -126,9 +126,9 @@ int PE_getNameOfStringTable(const char* short_name,
             return 1;
     }
     name_offset = strtoul((&short_name[1]), NULL, 10);
-    DPrint(" - - name_offset: %u\n", name_offset);
-    DPrint(" - - size_of_string_table: %u\n", st->size);
-    DPrint(" - - long name: %s\n", &st->strings[name_offset]);
+    debug_info(" - - name_offset: %u\n", name_offset);
+    debug_info(" - - size_of_string_table: %u\n", st->size);
+    debug_info(" - - long name: %s\n", &st->strings[name_offset]);
 
     if ( name_offset >= st->size - 1 )
     {
@@ -160,9 +160,9 @@ int PE_loadStringTable(PECoffFileHeader* coff_header,
     size_t ptr_to_string_table = (size_t)coff_header->PointerToSymbolTable + (coff_header->NumberOfSymbols * SIZE_OF_SYM_ENT);
     size_t end_of_string_table = 0;
 
-    DPrint(" - - ptr to symbol table: 0x%X\n", coff_header->PointerToSymbolTable);
-    DPrint(" - - number of symbols: %u\n", coff_header->NumberOfSymbols);
-    DPrint(" - - pointer to string table: 0x%zx\n", ptr_to_string_table);
+    debug_info(" - - ptr to symbol table: 0x%X\n", coff_header->PointerToSymbolTable);
+    debug_info(" - - number of symbols: %u\n", coff_header->NumberOfSymbols);
+    debug_info(" - - pointer to string table: 0x%zx\n", ptr_to_string_table);
 
     if ( coff_header->PointerToSymbolTable == 0 || coff_header->NumberOfSymbols == 0 || ptr_to_string_table == 0 )
         return 3;
@@ -172,8 +172,8 @@ int PE_loadStringTable(PECoffFileHeader* coff_header,
         return 4;
 
     end_of_string_table = ptr_to_string_table + st->size;
-    DPrint(" - - size of string table: %u\n", st->size);
-    DPrint(" - - end_of_string_table: 0x%zx\n", end_of_string_table);
+    debug_info(" - - size of string table: %u\n", st->size);
+    debug_info(" - - end_of_string_table: 0x%zx\n", end_of_string_table);
     if ( st->size == 0 )
         return 1;
 
