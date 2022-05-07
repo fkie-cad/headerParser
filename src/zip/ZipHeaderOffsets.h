@@ -44,21 +44,21 @@ typedef struct Zip_File_Recored_Offsets {
 } Zip_File_Recored_Offsets;
 
 const Zip_File_Recored_Offsets ZipFileRecoredOffsets = {
-    .signature = 0,
-    .version = 4,
-    .flags = 6,
-    .compression = 8,
-    .fileTime = 10,
-    .fileDate = 12,
-    .crc = 14,
-    .compressedSize = 18,
-    .uncompressedSize = 22,
-    .fileNameLength = 26,
-    .extraFieldLength = 28,
-    .fileName = 30,
-    .extraField = 30, // ??
-    .data = 30, // located after name
-    .dataDescr = 30, // located after name
+    .signature = 0x0,
+    .version = 0x4,
+    .flags = 0x6,
+    .compression = 0x8,
+    .fileTime = 0xA,
+    .fileDate = 0xC,
+    .crc = 0xE,
+    .compressedSize = 0x12,
+    .uncompressedSize = 0x16,
+    .fileNameLength = 0x1A,
+    .extraFieldLength = 0x1C,
+    .fileName = 0x1E,
+    .extraField = 0x1E, // ??
+    .data = 0x1E, // located after name
+    .dataDescr = 0x1E, // located after name
 };
 
 typedef struct Zip_Dir_Entry_Offsets {

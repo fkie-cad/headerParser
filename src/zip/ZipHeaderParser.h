@@ -58,9 +58,9 @@ static size_t ZIP_handleEndLocator(size_t offset,
                                      unsigned char* block_s,
                                      unsigned char* block_l);
 static void ZIP_fillEndLocator(ZipEndLocator* r, const unsigned char* ptr);
-static uint8_t ZIP_checkNameOfRecord(const unsigned char* ptr, uint16_t frFileNameLength, const char* expected);
-static uint8_t ZIP_nameHasFileType(const unsigned char* ptr, uint16_t frFileNameLength, const char* needle);
-static uint8_t ZIP_nameStartsWith(const unsigned char* ptr, uint16_t frFileNameLength, const char* needle);
+static uint8_t ZIP_checkNameOfRecord(const char* name, uint16_t frFileNameLength, const char* expected);
+static uint8_t ZIP_nameHasFileType(const char* name, uint16_t frFileNameLength, const char* needle);
+static uint8_t ZIP_nameStartsWith(const char* name, uint16_t frFileNameLength, const char* needle);
 static uint8_t ZIP_checkNeedles(ZipFileRecord* r,
                                 size_t offset,
                                 uint16_t* found_needles,
@@ -188,6 +188,8 @@ size_t ZIP_handleFileRecord(size_t offset,
     ptr = &block_l[offset];
 
     dd_offset = ZIP_fillRecored(&fr, ptr, offset, *abs_file_offset, file_size, fp, block_s);
+    if ( dd_offset == UINT64_MAX )
+        return UINT64_MAX;
 
     if ( ilevel >= INFO_LEVEL_EXTENDED )
         ZIP_printFileEntry(&fr, ptr, record_count, *abs_file_offset + offset, dd_offset, file_size, fp, block_s);
@@ -206,7 +208,7 @@ size_t ZIP_handleFileRecord(size_t offset,
 
     debug_info(" - abs_file_offset+offset: 0x%zx + 0x%zx =  0x%zx\n", *abs_file_offset, offset, (*abs_file_offset+offset));
     debug_info(" - offset += dd_offset + SIZE_OF_ZIP_DATA_DESCRIPTION - abs_file_offset: 0x%zx+ 0x%x - 0x%zx =  0x%zx\n",
-            dd_offset, SIZE_OF_ZIP_DATA_DESCRIPTION, *abs_file_offset, (dd_offset+ SIZE_OF_ZIP_DATA_DESCRIPTION- *abs_file_offset));
+            dd_offset, SIZE_OF_ZIP_DATA_DESCRIPTION, *abs_file_offset, (dd_offset+ SIZE_OF_ZIP_DATA_DESCRIPTION - *abs_file_offset));
 
 
     return offset;
@@ -245,11 +247,13 @@ size_t ZIP_fillRecored(ZipFileRecord* fr,
     if ( ZIP_usesDataDescritpor(fr) )
     {
         dd_offset = (size_t)ZIP_findDataDescriptionOffset(offset, fr, abs_file_offset, file_size, fp, block_s);
+        if ( dd_offset == UINT64_MAX )
+            return UINT64_MAX;
 //		dd_offset = ZIP_findDataDescriptionOffset(offset + fr->fileNameLength + ZipFileRecoredOffsets.fileName);
-//		uint32_t r_size = readCustomBlock(file_name, dd_offset, BLOCKSIZE, block_s);
-        r_size = readFile(fp, dd_offset, BLOCKSIZE, block_s);
+//		uint32_t r_size = readCustomBlock(file_name, dd_offset, BLOCKSIZE_SMALL, block_s);
+        r_size = readFile(fp, dd_offset, BLOCKSIZE_SMALL, block_s);
         if ( r_size == 0 )
-            return 0;
+            return UINT64_MAX;
         debug_info(" - - dd_offset: 0x%zx\n", dd_offset);
         debug_info(" - - abs_file_offset +  dd_offset: 0x%zx\n", abs_file_offset + dd_offset);
         if ( dd_offset < UINT64_MAX )
@@ -258,13 +262,13 @@ size_t ZIP_fillRecored(ZipFileRecord* fr,
 
             if ( checkBytes(MAGIC_ZIP_DATA_DESCRIPTOR_BYTES, MAGIC_ZIP_BYTES_LN, &ptr[0]) )
             {
-                fr->dataDescr.ddSignature[0] =  *((uint8_t*) &ptr[ZipDataDescriptionOffsets.signature + 0]);
-                fr->dataDescr.ddSignature[1] =  *((uint8_t*) &ptr[ZipDataDescriptionOffsets.signature + 1]);
-                fr->dataDescr.ddSignature[2] =  *((uint8_t*) &ptr[ZipDataDescriptionOffsets.signature + 2]);
-                fr->dataDescr.ddSignature[3] =  *((uint8_t*) &ptr[ZipDataDescriptionOffsets.signature + 3]);
-                fr->dataDescr.ddCRC = *((uint32_t*) &ptr[ZipDataDescriptionOffsets.crc]);
-                fr->dataDescr.ddCompressedSize =  *((uint32_t*) &ptr[ZipDataDescriptionOffsets.compressedSize]);
-                fr->dataDescr.ddUncompressedSize =  *((uint32_t*) &ptr[ZipDataDescriptionOffsets.uncompressedSize]);
+                fr->dataDescr.ddSignature[0] = GetIntXValueAtOffset(char, ptr, ZipDataDescriptionOffsets.signature + 0);
+                fr->dataDescr.ddSignature[1] =  GetIntXValueAtOffset(char, ptr, ZipDataDescriptionOffsets.signature + 1);
+                fr->dataDescr.ddSignature[2] =  GetIntXValueAtOffset(char, ptr, ZipDataDescriptionOffsets.signature + 2);
+                fr->dataDescr.ddSignature[3] =  GetIntXValueAtOffset(char, ptr, ZipDataDescriptionOffsets.signature + 3);
+                fr->dataDescr.ddCRC = GetIntXValueAtOffset(uint32_t, ptr, ZipDataDescriptionOffsets.crc);
+                fr->dataDescr.ddCompressedSize =  GetIntXValueAtOffset(uint32_t, ptr, ZipDataDescriptionOffsets.compressedSize);
+                fr->dataDescr.ddUncompressedSize =  GetIntXValueAtOffset(uint32_t, ptr, ZipDataDescriptionOffsets.uncompressedSize);
             }
             else
             {
@@ -272,9 +276,9 @@ size_t ZIP_fillRecored(ZipFileRecord* fr,
                 fr->dataDescr.ddSignature[1] = 0; // MAGIC_ZIP_DATA_DESCRIPTOR_BYTES[1];
                 fr->dataDescr.ddSignature[2] = 0; // MAGIC_ZIP_DATA_DESCRIPTOR_BYTES[2];
                 fr->dataDescr.ddSignature[3] = 0; // MAGIC_ZIP_DATA_DESCRIPTOR_BYTES[3];
-                fr->dataDescr.ddCRC = *((uint32_t*) &ptr[ZipDataDescriptionOffsets.crc - 4]);
-                fr->dataDescr.ddCompressedSize =  *((uint32_t*) &ptr[ZipDataDescriptionOffsets.compressedSize - 4]);
-                fr->dataDescr.ddUncompressedSize =  *((uint32_t*) &ptr[ZipDataDescriptionOffsets.uncompressedSize - 4]);
+                fr->dataDescr.ddCRC = GetIntXValueAtOffset(uint32_t, ptr, ZipDataDescriptionOffsets.crc - 4);
+                fr->dataDescr.ddCompressedSize =  GetIntXValueAtOffset(uint32_t, ptr, ZipDataDescriptionOffsets.compressedSize - 4);
+                fr->dataDescr.ddUncompressedSize =  GetIntXValueAtOffset(uint32_t, ptr, ZipDataDescriptionOffsets.uncompressedSize - 4);
 
                 dd_offset -= 4;
             }
@@ -328,7 +332,7 @@ size_t ZIP_findDataDescriptionOffset(size_t offset,
         // if compressed size, dd should immediately follow ?
         dd_offset =  abs_file_offset + offset + MIN_SIZE_OF_ZIP_RECORD + fr->compressedSize + fr->fileNameLength + fr->extraFieldLength;
 
-        r_size = readFile(fp, (size_t)dd_offset, BLOCKSIZE, block_s);
+        r_size = readFile(fp, (size_t)dd_offset, BLOCKSIZE_SMALL, block_s);
         if ( r_size == 0 )
             return UINT64_MAX;
         ptr = &block_s[0];
@@ -353,8 +357,8 @@ size_t ZIP_findDataDescriptionOffset(size_t offset,
     dd_offset = offset + MIN_SIZE_OF_ZIP_RECORD + fr->compressedSize + fr->fileNameLength + fr->extraFieldLength;
     f_offset = abs_file_offset + dd_offset;
 
-//	r_size = readCustomBlock(file_name, f_offset, BLOCKSIZE, block_s);
-    r_size = readFile(fp, (size_t)f_offset, BLOCKSIZE, block_s);
+//	r_size = readCustomBlock(file_name, f_offset, BLOCKSIZE_SMALL, block_s);
+    r_size = readFile(fp, (size_t)f_offset, BLOCKSIZE_SMALL, block_s);
     if ( r_size == 0 )
         return UINT64_MAX;
     offset = 0;
@@ -502,21 +506,24 @@ void ZIP_fillEndLocator(ZipEndLocator* r,
     r->commentLength = *((uint16_t*) &ptr[ZipEndLocatorOffsets.commentLength]);
 }
 
-uint8_t ZIP_checkNameOfRecord(const unsigned char* ptr,
+uint8_t ZIP_checkNameOfRecord(const char* name,
                               uint16_t frFileNameLength,
                               const char* expected)
 {
     uint16_t i;
+    if ( !name )
+        return 0;
+
     for ( i = 0; i < frFileNameLength; i++ )
     {
-        if ( ptr[ZipFileRecoredOffsets.fileName + i] != expected[i] )
+        if ( name[i] != expected[i] )
             return 0;
     }
 
     return 1;
 }
 
-uint8_t ZIP_nameHasFileType(const unsigned char* ptr,
+uint8_t ZIP_nameHasFileType(const char* name,
                             uint16_t frFileNameLength,
                             const char* needle)
 {
@@ -527,16 +534,18 @@ uint8_t ZIP_nameHasFileType(const unsigned char* ptr,
 
     if ( end_i < 0 )
         return 0;
+    if ( !name )
+        return 0;
 
     for ( i = start_i, j=start_j; i >= end_i; i--, j-- )
     {
-        if ( ptr[ZipFileRecoredOffsets.fileName + i] != needle[j] )
+        if ( name[i] != needle[j] )
             return 0;
     }
     return 1;
 }
 
-uint8_t ZIP_nameStartsWith(const unsigned char* ptr,
+uint8_t ZIP_nameStartsWith(const char* name,
                            uint16_t frFileNameLength,
                            const char* needle)
 {
@@ -545,10 +554,12 @@ uint8_t ZIP_nameStartsWith(const unsigned char* ptr,
 
     if ( end_i > frFileNameLength )
         return 0;
+    if ( !name )
+        return 0;
 
     for ( i = 0; i < end_i; i++ )
     {
-        if ( ptr[ZipFileRecoredOffsets.fileName + i] != needle[i] )
+        if ( name[i] != needle[i] )
             return 0;
     }
     return 1;
@@ -574,7 +585,7 @@ uint8_t ZIP_checkNeedles(ZipFileRecord* r,
                          unsigned char* block_s,
                          unsigned char* block_l)
 {
-    int i;
+    size_t r_size;
     uint8_t size_of_entry = MIN_SIZE_OF_ZIP_RECORD;
     const char* needles[] = {
             "META-INF/",
@@ -584,16 +595,20 @@ uint8_t ZIP_checkNeedles(ZipFileRecord* r,
             "AndroidManifest.xml", // apk
     };
     unsigned char* ptr = &block_l[offset];
+    char* name = NULL;
 
-    if ( r->fileNameLength != 0 )
+    if ( r->fileNameLength != 0 && r->fileNameLength < BLOCKSIZE_SMALL )
     {
-        if ( !checkFileSpace(offset, abs_file_offset, size_of_entry + r->fileNameLength, file_size) )
+        if ( !checkFileSpace(offset, abs_file_offset, ZipFileRecoredOffsets.fileName + r->fileNameLength, file_size) )
             return 0;
-        i = readStandardBlockIfLargeBlockIsExceeded(offset, abs_file_offset, size_of_entry+r->fileNameLength, block_s, fp);
-        if ( i == 2 )
-            ptr = &block_s[0];
-        else if ( i == 0 )
+
+        r_size = readStandardBlockIfLargeBlockIsExceeded(offset+abs_file_offset, ZipFileRecoredOffsets.fileName, r->fileNameLength, block_s, fp);
+        if ( r_size == (size_t)-1 )
             return 0;
+        else if ( r_size == 0 )
+            name = (char*)ptr + ZipFileRecoredOffsets.fileName;
+        else
+            name = (char*)(&block_s[0]);
 
 //		debug_info(" - - name: ");
 //		for ( i = 0; i < r->frFileNameLength; i++ )
@@ -604,14 +619,14 @@ uint8_t ZIP_checkNeedles(ZipFileRecord* r,
 
         if ( record_count < 2 )
         {
-            if ( !ZIP_checkNameOfRecord(ptr, r->fileNameLength, needles[record_count]) )
+            if ( !ZIP_checkNameOfRecord(name, r_size, needles[record_count]) )
                 found_needles[record_count]++;
         }
         else
         {
-            if ( ZIP_nameHasFileType(ptr, r->fileNameLength, needles[2]) )
+            if ( ZIP_nameHasFileType(name, r_size, needles[2]) )
                 found_needles[2]++;
-            if ( ZIP_nameStartsWith(ptr, r->fileNameLength, needles[3]) )
+            if ( ZIP_nameStartsWith(name, r_size, needles[3]) )
                 found_needles[3]++;
         }
     }
