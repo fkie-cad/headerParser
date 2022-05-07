@@ -81,7 +81,7 @@ int Elf_parseSymTab(
             name = "";
             name_max_size = 0;
         }
-        debug_info("name (0x%x): %.*s\n", name_size, name_max_size, name);
+        debug_info("name (0x%x): %.*s\n", name_max_size, name_max_size, name);
        
 
         Elf_printSymTabEntry(&sym, name, name_max_size, sym_i, nr_syms, bitness, fo+offset, ex);

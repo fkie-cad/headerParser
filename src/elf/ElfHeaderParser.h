@@ -371,6 +371,11 @@ uint8_t Elf_programHeaderOffsetsAreValid(
         header_info("INFO: The program header offset is 0.\n");
         return 0;
     }
+    if ( file_header->e_phentsize == 0 )
+    {
+        header_info("INFO: The program header entry size is 0.\n");
+//        return 0;
+    }
     if ( start_file_offset + file_header->e_phoff > file_size )
     {
         header_info("INFO: The program header offset (0x%"PRIx64") is greater than file_size (0x%zu).\n",
@@ -396,7 +401,7 @@ uint8_t Elf_programHeaderOffsetsAreValid(
  * @param table_block
  */
 void Elf_readProgramHeaderTableEntries(
-    const Elf64FileHeader* file_header,
+    const Elf64FileHeader* fh,
     size_t* abs_file_offset,
     size_t start_file_offset,
     size_t file_size,
@@ -407,44 +412,48 @@ void Elf_readProgramHeaderTableEntries(
 )
 {
     uint8_t* ptr = NULL;
-    size_t offset = (size_t)file_header->e_phoff;
+    size_t offset = (size_t)fh->e_phoff;
     uint16_t i = 0;
     *abs_file_offset = start_file_offset;
 
-    ElfProgramHeaderOffsets ph_offsets = Elf_getProgramHeaderOffsets(file_header);
+    ElfProgramHeaderOffsets ph_offsets = Elf_getProgramHeaderOffsets(fh);
     Elf64ProgramHeader program_header;
+    uint32_t entry_size = ( fh->EI_CLASS == ELFCLASS32 ) ? sizeof(Elf32ProgramHeader) : sizeof(Elf64ProgramHeader);
     
 #if LIB_MODE == 0
     if ( ilevel & INFO_LEVEL_ELF_PROG_H )
         printf("Program Header Table:\n");
 #endif
 
-    for ( i = 0; i < file_header->e_phnum; i++ )
-    {
-//        debug_info(" - %u / %u\n", (i + 1), file_header->e_phnum);
+    debug_info("entry_size: 0x%x\n", entry_size);
+    debug_info("e_phentsize: 0x%x\n", fh->e_phentsize);
 
-        if ( !checkFileSpace(offset, *abs_file_offset, file_header->e_phentsize, file_size) )
+    for ( i = 0; i < fh->e_phnum; i++ )
+    {
+//        debug_info(" - %u / %u\n", (i + 1), fh->e_phnum);
+
+        if ( !checkFileSpace(offset, *abs_file_offset, entry_size, file_size) )
             return;
 
-        if ( !checkLargeBlockSpace(&offset, abs_file_offset, file_header->e_phentsize, block_l, fp) )
+        if ( !checkLargeBlockSpace(&offset, abs_file_offset, entry_size, block_l, fp) )
             break;
 
         ptr = &block_l[offset];
 
-        Elf_readProgramHeaderTableEntry(ptr, &ph_offsets, file_header, &program_header);
+        Elf_readProgramHeaderTableEntry(ptr, &ph_offsets, fh, &program_header);
         
 #if LIB_MODE == 0
         if ( ilevel & INFO_LEVEL_ELF_PROG_H )
-            Elf_printProgramHeaderTableEntry(&program_header, i, file_header->e_phnum, *abs_file_offset+offset, bitness);
+            Elf_printProgramHeaderTableEntry(&program_header, i, fh->e_phnum, *abs_file_offset+offset, bitness);
 #endif
 
         if ( !Elf_checkProgramHeaderTableEntry(&program_header, i, start_file_offset, file_size))
         {
-//			offset += file_header->e_shentsize;
+//			offset += fh->e_shentsize;
 //			continue;
         }
 
-        offset += file_header->e_phentsize;
+        offset += fh->e_phentsize;
     }
 #if LIB_MODE == 0
     if ( ilevel & INFO_LEVEL_ELF_PROG_H )
@@ -453,10 +462,10 @@ void Elf_readProgramHeaderTableEntries(
 }
 
 ElfProgramHeaderOffsets Elf_getProgramHeaderOffsets(
-    const Elf64FileHeader* file_header
+    const Elf64FileHeader* fh
 )
 {
-    if ( file_header->EI_CLASS == ELFCLASS32 )
+    if ( fh->EI_CLASS == ELFCLASS32 )
         return Elf32ProgramHeaderOffsets;
     else
         return Elf64ProgramHeaderOffsets;
@@ -468,32 +477,32 @@ ElfProgramHeaderOffsets Elf_getProgramHeaderOffsets(
  *
  * @param ptr
  * @param sh_offsets
- * @param file_header
+ * @param fh
  * @param sh
  */
 void Elf_readProgramHeaderTableEntry(
     const uint8_t* ptr,
     ElfProgramHeaderOffsets* ph_offsets,
-    const Elf64FileHeader* file_header,
+    const Elf64FileHeader* fh,
     Elf64ProgramHeader* ph
 )
 {
 //	debug_info("\nElf_readProgramHeaderTableEntry()\n");
-    ph->p_type = *((uint32_t*) &ptr[ph_offsets->p_type]);
-    ph->p_flags = *((uint32_t*) &ptr[ph_offsets->p_flags]);
+    ph->p_type = GetIntXValueAtOffset(uint32_t, ptr, ph_offsets->p_type);
+    ph->p_flags = GetIntXValueAtOffset(uint32_t, ptr, ph_offsets->p_flags);
 
-    if ( file_header->EI_DATA == ELFDATA2MSB )
+    if ( fh->EI_DATA == ELFDATA2MSB )
     {
         ph->p_type = swapUint32(ph->p_type);
         ph->p_flags = swapUint32(ph->p_flags);
     }
 
-    ph->p_offset = Elf_parseBitnessedValue(file_header, ptr, ph_offsets->p_offset);
-    ph->p_vaddr = Elf_parseBitnessedValue(file_header, ptr, ph_offsets->p_vaddr);
-    ph->p_paddr = Elf_parseBitnessedValue(file_header, ptr, ph_offsets->p_paddr);
-    ph->p_filesz = Elf_parseBitnessedValue(file_header, ptr, ph_offsets->p_filesz);
-    ph->p_memsz = Elf_parseBitnessedValue(file_header, ptr, ph_offsets->p_memsz);
-    ph->p_align = Elf_parseBitnessedValue(file_header, ptr, ph_offsets->p_align);
+    ph->p_offset = Elf_parseBitnessedValue(fh, ptr, ph_offsets->p_offset);
+    ph->p_vaddr = Elf_parseBitnessedValue(fh, ptr, ph_offsets->p_vaddr);
+    ph->p_paddr = Elf_parseBitnessedValue(fh, ptr, ph_offsets->p_paddr);
+    ph->p_filesz = Elf_parseBitnessedValue(fh, ptr, ph_offsets->p_filesz);
+    ph->p_memsz = Elf_parseBitnessedValue(fh, ptr, ph_offsets->p_memsz);
+    ph->p_align = Elf_parseBitnessedValue(fh, ptr, ph_offsets->p_align);
 }
 
 /**
@@ -631,7 +640,7 @@ void Elf_readSectionHeaderTable(
     {
         s = Elf_getSectionTableEntryByNameType(NULL, ElfSectionHeaderTypes.SHT_SYMTAB, &sht_entry, &strtabs, fh, start_file_offset, abs_file_offset, file_size, block_l, fp);
         if ( s == 0 )
-            Elf_parseSymTab(strtabs.strtab, strtabs.strtab_size, start_file_offset, abs_file_offset, file_size, fp, &sht_entry, block_l, BLOCKSIZE, bitness, fh->EI_DATA, (ilevel&INFO_LEVEL_ELF_SYM_TAB_EX));
+            Elf_parseSymTab(strtabs.strtab, strtabs.strtab_size, start_file_offset, abs_file_offset, file_size, fp, &sht_entry, block_l, BLOCKSIZE_SMALL, bitness, fh->EI_DATA, (ilevel&INFO_LEVEL_ELF_SYM_TAB_EX));
         else
             printf("No symbol table found.\n");
     }
@@ -640,7 +649,7 @@ void Elf_readSectionHeaderTable(
     {
         s = Elf_getSectionTableEntryByNameType(NULL, ElfSectionHeaderTypes.SHT_DYNSYM, &sht_entry, &strtabs, fh, start_file_offset, abs_file_offset, file_size, block_l, fp);
         if ( s == 0 )
-            Elf_parseSymTab(strtabs.dynstr, strtabs.dynstr_size, start_file_offset, abs_file_offset, file_size, fp, &sht_entry, block_l, BLOCKSIZE, bitness, fh->EI_DATA, (ilevel&INFO_LEVEL_ELF_DYN_SYM_TAB_EX));
+            Elf_parseSymTab(strtabs.dynstr, strtabs.dynstr_size, start_file_offset, abs_file_offset, file_size, fp, &sht_entry, block_l, BLOCKSIZE_SMALL, bitness, fh->EI_DATA, (ilevel&INFO_LEVEL_ELF_DYN_SYM_TAB_EX));
         else
             printf("No dynamic symbol table found.\n");
     }
@@ -771,29 +780,29 @@ int Elf_getSectionTableEntryByNameType(
 }
 
 uint8_t Elf_sectionHeaderOffsetsAreValid(
-    const Elf64FileHeader* file_header,
+    const Elf64FileHeader* fh,
     size_t start_file_offset,
     size_t file_size
 )
 {
     size_t table_end = 0;
-    if ( file_header->e_shnum < 1 )
+    if ( fh->e_shnum < 1 )
     {
-        header_info("INFO: The section header number is %u.\n", file_header->e_shnum);
+        header_info("INFO: The section header number is %u.\n", fh->e_shnum);
         return 0;
     }
-    if ( file_header->e_shoff == 0 )
+    if ( fh->e_shoff == 0 )
     {
         header_info("INFO: The section header offset is 0.\n");
         return 0;
     }
-    if ( start_file_offset + file_header->e_shoff > file_size )
+    if ( start_file_offset + fh->e_shoff > file_size )
     {
         header_info("INFO: The section header offset (0x%"PRIx64") > file_size (0x%zu).\n",
-                file_header->e_shoff, file_size);
+                fh->e_shoff, file_size);
         return 0;
     }
-    table_end = (size_t)file_header->e_shoff + (file_header->e_shnum * file_header->e_shentsize);
+    table_end = (size_t)fh->e_shoff + (fh->e_shnum * fh->e_shentsize);
     if ( start_file_offset + table_end > file_size )
     {
         header_error("ERROR: end of section header table (0x%zx) > file_size (0x%zx)!\n",
@@ -929,7 +938,7 @@ uint32_t Elf_readSectionById(uint8_t** section,
         return 0;
 
 //	size = readBlock(file_name, e_offset+start_file_offset);
-    size = readFile(fp, (size_t)(e_offset+start_file_offset), BLOCKSIZE, block_s);
+    size = readFile(fp, (size_t)(e_offset+start_file_offset), BLOCKSIZE_SMALL, block_s);
     if ( size == 0 )
         return 0;
 
@@ -996,7 +1005,7 @@ uint64_t Elf_parseBitnessedValue(const Elf64FileHeader* fh, const uint8_t* ptr, 
 
     if ( fh->EI_CLASS == ELFCLASS32 )
     {
-        value = *((uint32_t*) &ptr[offset]);
+        value = GetIntXValueAtOffset(uint32_t, ptr, offset);
 
         if ( fh->EI_DATA == ELFDATA2MSB )
         {
@@ -1005,7 +1014,7 @@ uint64_t Elf_parseBitnessedValue(const Elf64FileHeader* fh, const uint8_t* ptr, 
     }
     else
     {
-        value = *((uint64_t*) &ptr[offset]);
+        value = GetIntXValueAtOffset(uint64_t, ptr, offset);
 
         if ( fh->EI_DATA == ELFDATA2MSB )
         {
