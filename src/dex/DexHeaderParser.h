@@ -210,8 +210,8 @@ void DEX_fillStringIdItem(uint32_t offset,
 
     item.offset = *((uint32_t*) &ptr[DexStringIdItemOffsets.offset]);
 
-//	r_size = readCustomBlock(gp->file_name, item.offset+gp->start_file_offset, BLOCKSIZE, gp->block_standard);
-    r_size = readFile(gp->fp, item.offset+(size_t)gp->start_file_offset, BLOCKSIZE, gp->block_standard);
+//	r_size = readCustomBlock(gp->file_name, item.offset+gp->start_file_offset, BLOCKSIZE_SMALL, gp->block_standard);
+    r_size = readFile(gp->fp, item.offset+(size_t)gp->start_file_offset, BLOCKSIZE_SMALL, gp->block_standard);
     if ( r_size == 0 )
     {
         header_error("ERROR: Reading block failed!\n");
