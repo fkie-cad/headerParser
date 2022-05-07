@@ -448,7 +448,7 @@ uint8_t PE_checkPESignature(const uint32_t e_lfanew,
     if ( e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE > BLOCKSIZE_LARGE )
     {
         *abs_file_offset = file_offset + e_lfanew;
-        size = readFile(fp, *abs_file_offset, BLOCKSIZE, block_s);
+        size = readFile(fp, *abs_file_offset, BLOCKSIZE_SMALL, block_s);
         if ( !size )
         {
             header_error("Read PE Signature block failed.\n");

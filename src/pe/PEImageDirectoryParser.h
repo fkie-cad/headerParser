@@ -300,7 +300,7 @@ void PE_parseImageImportTable(PE64OptHeader* oh,
             header_error("ERROR: name_offset beyond file bounds!\n");
             break;
         }
-        size = readFile(fp, name_offset, BLOCKSIZE, block_s);
+        size = readFile(fp, name_offset, BLOCKSIZE_SMALL, block_s);
         if ( size > 0 )
         {
             dll_name = (char*)block_s;
@@ -400,7 +400,7 @@ int PE_fillImportByName(PEImageImportByName* ibn,
 
     memset(ibn, 0, sizeof(PEImageImportByName));
 
-    r_size = readFile(fp, offset, BLOCKSIZE, block_s);
+    r_size = readFile(fp, offset, BLOCKSIZE_SMALL, block_s);
     if ( !r_size )
         return -1;
     
@@ -483,7 +483,7 @@ void PE_parseImageDelayImportTable(
             break;
         name_offset += start_file_offset;
 
-        size = readFile(fp, name_offset, BLOCKSIZE, block_s);
+        size = readFile(fp, name_offset, BLOCKSIZE_SMALL, block_s);
         if ( size > 0 )
         {
             dll_name = (char*)block_s;
@@ -668,7 +668,7 @@ void PE_parseImageBoundImportTable(
         if ( !checkFileSpace(0, name_offset, 1, file_size) )
             break;
 
-        size = readFile(fp, name_offset, BLOCKSIZE, block_s);
+        size = readFile(fp, name_offset, BLOCKSIZE_SMALL, block_s);
         if ( size > 0 )
         {
             dll_name = (char*)block_s;
@@ -689,7 +689,7 @@ void PE_parseImageBoundImportTable(
             if ( !checkFileSpace(0, name_offset, 1, file_size) )
                 break;
 
-            size = readFile(fp, name_offset, BLOCKSIZE, block_s);
+            size = readFile(fp, name_offset, BLOCKSIZE_SMALL, block_s);
             if ( size > 0 )
             {
                 dll_name = (char*)block_s;
@@ -786,7 +786,7 @@ void PE_parseImageExportTable(
     uint32_t function_rva, name_rva;
     size_t function_fo, name_fo;
     uint16_t name_ordinal;
-    char name[BLOCKSIZE];
+    char name[BLOCKSIZE_SMALL];
     
     if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_EXPORT )
     {
@@ -871,7 +871,7 @@ void PE_parseImageExportTable(
         
         name_size = 0;
         name_fo = 0;
-        memset(name, 0, BLOCKSIZE);
+        memset(name, 0, BLOCKSIZE_SMALL);
         if ( name_rva > 0 )
         {
             name_fo = PE_Rva2Foa(name_rva, svas, nr_of_sections);
@@ -879,7 +879,7 @@ void PE_parseImageExportTable(
             if ( name_fo != 0 )
             {
                 name_fo += start_file_offset;
-                name_size = readFile(fp, name_fo, BLOCKSIZE, (uint8_t*)name);
+                name_size = readFile(fp, name_fo, BLOCKSIZE_SMALL, (uint8_t*)name);
             }
             //printf("name_size: 0x%zx\n", name_size);
             if ( name_size < 2 || name_fo == 0 )
@@ -895,22 +895,25 @@ void PE_parseImageExportTable(
         
         bytes_size = 0;
         function_fo = 0;
-        memset(block_s, 0, BLOCKSIZE);
+        memset(block_s, 0, BLOCKSIZE_SMALL);
         if ( function_rva > 0 )
         {
             function_fo = PE_Rva2Foa(function_rva, svas, nr_of_sections);
             if ( function_fo != 0 )
             {
                 function_fo += start_file_offset;
-                bytes_size = readFile(fp, function_fo, BLOCKSIZE, block_s);
+                bytes_size = readFile(fp, function_fo, BLOCKSIZE_SMALL, block_s);
             }
-            
+
             if ( bytes_size == 0 || function_fo == 0)
             {
                 bytes_size = 0;
                 block_s[0] = 0;
             }
         }
+
+        if ( is_forwarded )
+            block_s[BLOCKSIZE_SMALL-1] = 0;
 
         PE_printImageExportDirectoryEntry(i, ied.NumberOfFunctions, name, name_size, name_ordinal, block_s, bytes_size, function_rva, function_fo, is_forwarded);
     }
@@ -931,7 +934,7 @@ int PE_fillImageExportDirectory(PE_IMAGE_EXPORT_DIRECTORY* ied,
         return 1;
 
     offset = offset + start_file_offset;
-    size = readFile(fp, offset, BLOCKSIZE, block_s);
+    size = readFile(fp, offset, BLOCKSIZE_SMALL, block_s);
     if ( size == 0 )
         return 2;
     offset = 0;
@@ -1182,7 +1185,7 @@ int PE_fillImageLoadConfigDirectory(PE_IMAGE_LOAD_CONFIG_DIRECTORY64* lcd,
     }
 
     offset = offset + start_file_offset;
-    size = readFile(fp, offset, BLOCKSIZE, block_s);
+    size = readFile(fp, offset, BLOCKSIZE_SMALL, block_s);
     if ( size == 0 )
         return -2;
     offset = 0;
@@ -1337,7 +1340,7 @@ int PE_fillImageResourceDirectory(PE_IMAGE_RESOURCE_DIRECTORY* rd,
         return 1;
 
     offset = offset + start_file_offset;
-    size = readFile(fp, offset, BLOCKSIZE, block_s);
+    size = readFile(fp, offset, BLOCKSIZE_SMALL, block_s);
     if ( size == 0 )
         return 2;
     offset = 0;
@@ -1469,7 +1472,7 @@ int PE_fillImageResourceDirectoryEntry(PE_IMAGE_RESOURCE_DIRECTORY_ENTRY* re,
         return 1;
 
     offset += start_file_offset;
-    size = readFile(fp, offset, BLOCKSIZE, block_s);
+    size = readFile(fp, offset, BLOCKSIZE_SMALL, block_s);
     if ( size == 0 )
         return 2;
 
@@ -1496,7 +1499,7 @@ int PE_fillImageResourceDataEntry(PE_IMAGE_RESOURCE_DATA_ENTRY* de,
         return 1;
     
     offset += start_file_offset;
-    size = readFile(fp, offset, BLOCKSIZE, block_s);
+    size = readFile(fp, offset, BLOCKSIZE_SMALL, block_s);
     if ( size == 0 )
         return 2;
     

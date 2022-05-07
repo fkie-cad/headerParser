@@ -66,9 +66,10 @@ void PE_getRealName(const char* short_name,
     int s = 0;
 
     debug_info("PE_getRealName");
-    debug_info(" - raw name: %s\n",short_name);
+    debug_info(" - raw name: %.*s\n", 8, short_name);
     if ( PE_isStringTableOffset(short_name) )
     {
+        ((char*)short_name)[IMAGE_SIZEOF_SHORT_NAME-1] = 0;
         s = PE_getNameOfStringTable(short_name, real_name, coff_header, start_file_offset, file_size, fp, block_s, st);
         if ( s == 0 ) return;
     }
@@ -203,8 +204,8 @@ uint32_t PE_getSizeOfStringTable(size_t ptr_to_string_table, size_t start_file_o
         return 0;
     }
 
-//	size = readCustomBlock(file_name, start_file_offset + ptr_to_string_table, BLOCKSIZE, block_s);
-    size = readFile(fp, (size_t)(start_file_offset + ptr_to_string_table), BLOCKSIZE, block_s);
+//	size = readCustomBlock(file_name, start_file_offset + ptr_to_string_table, BLOCKSIZE_SMALL, block_s);
+    size = readFile(fp, (size_t)(start_file_offset + ptr_to_string_table), BLOCKSIZE_SMALL, block_s);
 
     if ( !size )
     {

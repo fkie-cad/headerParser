@@ -478,7 +478,6 @@ void PE_printImageExportDirectoryEntry(size_t i,
     printf("   - ordinal: 0x%x\n", name_ordinal);
     if ( is_forwarded )
     {
-        bytes[bytes_max-1] = 0;
         printf("   - forwarded:\n");
         printf("     %s\n", bytes);
     }
@@ -601,7 +600,7 @@ void PE_printSizedRVAArray(uint64_t count,
 
     if ( count > 0 && offset < file_size )
     {
-        bytes_read = readFile(fp, (size_t)offset, BLOCKSIZE, block_s);
+        bytes_read = readFile(fp, (size_t)offset, BLOCKSIZE_SMALL, block_s);
         if ( bytes_read < ptr_size )
         {
             header_error("ERROR: read less than expected!\n")
@@ -616,7 +615,7 @@ void PE_printSizedRVAArray(uint64_t count,
                 if ( offset > file_size - ptr_size )
                     break;
 
-                bytes_read = readFile(fp, (size_t)offset, BLOCKSIZE, block_s);
+                bytes_read = readFile(fp, (size_t)offset, BLOCKSIZE_SMALL, block_s);
                 if ( bytes_read < ptr_size )
                 {
                     header_error("ERROR: read less than expected!\n")
@@ -769,7 +768,7 @@ void PE_printImageResourceDirectoryEntry(
         }
 
         name_offset = name_offset + start_file_offset;
-        bytes_read = readFile(fp, (size_t)name_offset, BLOCKSIZE, block_s);
+        bytes_read = readFile(fp, (size_t)name_offset, BLOCKSIZE_SMALL, block_s);
         if ( bytes_read <= 4 )
             return;
 
@@ -862,8 +861,8 @@ void PE_printTLSEntry(PE_IMAGE_TLS_DIRECTORY64* tls,
     if (s_offset < e_offset && e_offset < file_size)
     {
         size = e_offset - s_offset;
-        if ( size > BLOCKSIZE )
-            size = BLOCKSIZE;
+        if ( size > BLOCKSIZE_SMALL )
+            size = BLOCKSIZE_SMALL;
         size = readFile(fp, s_offset, size, block_s);
         if (size != 0)
         {
@@ -883,7 +882,7 @@ void PE_printTLSEntry(PE_IMAGE_TLS_DIRECTORY64* tls,
             if (cb_offset > file_size - ptr_size)
                 break;
 
-            size = readFile(fp, cb_offset, BLOCKSIZE, block_s);
+            size = readFile(fp, cb_offset, BLOCKSIZE_SMALL, block_s);
             if (size == 0)
                 break;
 
@@ -902,7 +901,7 @@ void PE_printTLSEntry(PE_IMAGE_TLS_DIRECTORY64* tls,
                 }
             }
 
-            cb_offset += BLOCKSIZE;
+            cb_offset += BLOCKSIZE_SMALL;
         }
     }
     printf("   - SizeOfZeroFill%s: 0x%x\n", fillOffset(offsets.SizeOfZeroFill, 0, start_file_offset), tls->SizeOfZeroFill);

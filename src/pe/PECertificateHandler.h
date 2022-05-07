@@ -273,8 +273,8 @@ int PE_writeCertificateToFile(PeAttributeCertificateTable* table,
 {
     size_t offset;
     size_t end;
-    size_t n = BLOCKSIZE;
-    size_t read_size = BLOCKSIZE;
+    size_t n = BLOCKSIZE_SMALL;
+    size_t read_size = BLOCKSIZE_SMALL;
     PeAttributeCertificateTable* entry = &table[id];
     int s = 0;
 
@@ -295,9 +295,9 @@ int PE_writeCertificateToFile(PeAttributeCertificateTable* table,
     }
 
     fseek(src, offset, SEEK_SET);
-    while ( n == BLOCKSIZE )
+    while ( n == BLOCKSIZE_SMALL )
     {
-        read_size = BLOCKSIZE;
+        read_size = BLOCKSIZE_SMALL;
         if ( offset + read_size > end ) 
             read_size = end - offset;
 
@@ -334,8 +334,8 @@ int PE_fillAttributeCertificateTableEntry(PeAttributeCertificateTable *entry,
     if ( !checkFileSpace(0, t_address, sizeof(PeAttributeCertificateTable), file_size) )
         return -1;
 
-//	size = readCustomBlock(file_name, start_file_offset + t_address, BLOCKSIZE, block_s);
-    size = readFile(fp, start_file_offset + t_address, BLOCKSIZE, block_s);
+//	size = readCustomBlock(file_name, start_file_offset + t_address, BLOCKSIZE_SMALL, block_s);
+    size = readFile(fp, start_file_offset + t_address, BLOCKSIZE_SMALL, block_s);
     if ( size == 0 )
         return -2;
 
