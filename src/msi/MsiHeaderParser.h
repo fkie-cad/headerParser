@@ -76,24 +76,24 @@ int MSI_readStructuredHeader(MSIStructuredStorageHeader* ssh,
     for ( i = 0; i < MSI_SSH_CLS_ID_SIZE; i++ )
         ssh->_clsid[i] = ptr[MSIStructuredStorageHeaderOffsets._clsid+i];
 
-    ssh->_uMinorVersion = *((uint16_t*) &ptr[MSIStructuredStorageHeaderOffsets._uMinorVersion]);
-    ssh->_uMajorVersion = *((uint16_t*) &ptr[MSIStructuredStorageHeaderOffsets._uMajorVersion]);
-    ssh->_uByteOrder = *((uint16_t*) &ptr[MSIStructuredStorageHeaderOffsets._uByteOrder]);
-    ssh->_uSectorShift = *((uint16_t*) &ptr[MSIStructuredStorageHeaderOffsets._uSectorShift]);
-    ssh->_uMiniSectorShift = *((uint16_t*) &ptr[MSIStructuredStorageHeaderOffsets._uMiniSectorShift]);
-    ssh->_usReserved = *((uint16_t*) &ptr[MSIStructuredStorageHeaderOffsets._usReserved]);
-    ssh->_ulReserved1 = *((uint32_t*) &ptr[MSIStructuredStorageHeaderOffsets._ulReserved1]);
-    ssh->_csectDir = *((uint32_t*) &ptr[MSIStructuredStorageHeaderOffsets._csectDir]);
-    ssh->_csectFat = *((uint32_t*) &ptr[MSIStructuredStorageHeaderOffsets._csectFat]);
-    ssh->_sectDirStart = *((uint32_t*) &ptr[MSIStructuredStorageHeaderOffsets._sectDirStart]);
-    ssh->_signature = *((uint32_t*) &ptr[MSIStructuredStorageHeaderOffsets._signature]);
-    ssh->_ulMiniSectorCutoff = *((uint32_t*) &ptr[MSIStructuredStorageHeaderOffsets._ulMiniSectorCutoff]);
-    ssh->_sectMiniFatStart = *((uint32_t*) &ptr[MSIStructuredStorageHeaderOffsets._sectMiniFatStart]);
-    ssh->_csectMiniFat = *((uint32_t*) &ptr[MSIStructuredStorageHeaderOffsets._csectMiniFat]);
-    ssh->_sectDifStart = *((uint32_t*) &ptr[MSIStructuredStorageHeaderOffsets._sectDifStart]);
-    ssh->_csectDif = *((uint32_t*) &ptr[MSIStructuredStorageHeaderOffsets._csectDif]);
+    ssh->_uMinorVersion = GetIntXValueAtOffset(uint16_t, ptr, MSIStructuredStorageHeaderOffsets._uMinorVersion);
+    ssh->_uMajorVersion = GetIntXValueAtOffset(uint16_t, ptr, MSIStructuredStorageHeaderOffsets._uMajorVersion);
+    ssh->_uByteOrder = GetIntXValueAtOffset(uint16_t, ptr, MSIStructuredStorageHeaderOffsets._uByteOrder);
+    ssh->_uSectorShift = GetIntXValueAtOffset(uint16_t, ptr, MSIStructuredStorageHeaderOffsets._uSectorShift);
+    ssh->_uMiniSectorShift = GetIntXValueAtOffset(uint16_t, ptr, MSIStructuredStorageHeaderOffsets._uMiniSectorShift);
+    ssh->_usReserved = GetIntXValueAtOffset(uint16_t, ptr, MSIStructuredStorageHeaderOffsets._usReserved);
+    ssh->_ulReserved1 = GetIntXValueAtOffset(uint32_t, ptr, MSIStructuredStorageHeaderOffsets._ulReserved1);
+    ssh->_csectDir = GetIntXValueAtOffset(uint32_t, ptr, MSIStructuredStorageHeaderOffsets._csectDir);
+    ssh->_csectFat = GetIntXValueAtOffset(uint32_t, ptr, MSIStructuredStorageHeaderOffsets._csectFat);
+    ssh->_sectDirStart = GetIntXValueAtOffset(uint32_t, ptr, MSIStructuredStorageHeaderOffsets._sectDirStart);
+    ssh->_signature = GetIntXValueAtOffset(uint32_t, ptr, MSIStructuredStorageHeaderOffsets._signature);
+    ssh->_ulMiniSectorCutoff = GetIntXValueAtOffset(uint32_t, ptr, MSIStructuredStorageHeaderOffsets._ulMiniSectorCutoff);
+    ssh->_sectMiniFatStart = GetIntXValueAtOffset(uint32_t, ptr, MSIStructuredStorageHeaderOffsets._sectMiniFatStart);
+    ssh->_csectMiniFat = GetIntXValueAtOffset(uint32_t, ptr, MSIStructuredStorageHeaderOffsets._csectMiniFat);
+    ssh->_sectDifStart = GetIntXValueAtOffset(uint32_t, ptr, MSIStructuredStorageHeaderOffsets._sectDifStart);
+    ssh->_csectDif = GetIntXValueAtOffset(uint32_t, ptr, MSIStructuredStorageHeaderOffsets._csectDif);
     for ( i = 0, j=0; i < end_i_of_sect_fat; i=i+4, j++ )
-        ssh->_sectFat[j] = *((uint32_t*) &ptr[MSIStructuredStorageHeaderOffsets._sectFat+i]);
+        ssh->_sectFat[j] = GetIntXValueAtOffset(uint32_t, ptr, MSIStructuredStorageHeaderOffsets._sectFat+i);
 
     return 0;
 }
@@ -108,6 +108,9 @@ uint8_t MSI_searchPEs(MSIStructuredStorageHeader* ssh,
     uint16_t sec_size = 1u<<ssh->_uSectorShift; // sec_size = 2^_uSectorShift
     uint16_t pe_count = 0;
     debug_info(" - sec_size: %x\n", sec_size);
+
+    if ( sec_size == 0 )
+        return 0;
 
     debug_info("searchPEs\n");
     for ( offset = sec_size; offset < gp->file_size; offset+=sec_size)
