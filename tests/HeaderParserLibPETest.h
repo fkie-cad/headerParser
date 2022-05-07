@@ -25,7 +25,7 @@ class HeaderParserLibPETest : public testing::Test
 		const char* pe_file_with_cert = "/path/to/file/with/cert.exe";
 		const char* elf_file = "tests/files/hello_world_release.elf";
 
-		unsigned char block_s[BLOCKSIZE];
+		unsigned char block_s[BLOCKSIZE_SMALL];
 		unsigned char block_l[BLOCKSIZE_LARGE];
 
 		static string getTempDir(const std::string& prefix)
@@ -123,7 +123,7 @@ TEST_F(HeaderParserLibPETest, test_getNumberOfCertificates)
     size_t file_size = getSizeFP(fp);
 
 	PEHeaderData* d = getPEHeaderData(src, start);
-	memset(block_s, 0, BLOCKSIZE);
+	memset(block_s, 0, BLOCKSIZE_SMALL);
 	uint8_t r = PE_getNumberOfCertificates(d->opt_header, start_file_offset, file_size, fp, block_s);
 
 	EXPECT_EQ(r, 0);
@@ -141,7 +141,7 @@ TEST_F(HeaderParserLibPETest, test_getNumberOfCertificates)
 
 	d = getPEHeaderData(src, start);
     ASSERT_TRUE(d!=NULL);
-    memset(block_s, 0, BLOCKSIZE);
+    memset(block_s, 0, BLOCKSIZE_SMALL);
 	r = PE_getNumberOfCertificates(d->opt_header, start_file_offset, file_size, fp, block_s);
 
 	EXPECT_EQ(r, 1);
@@ -163,13 +163,13 @@ TEST_F(HeaderParserLibPETest, test_fillOfCertificateTable)
 
 	PEHeaderData* d = getPEHeaderData(src, start);
     ASSERT_TRUE(d!=NULL);
-    memset(block_s, 0, BLOCKSIZE);
+    memset(block_s, 0, BLOCKSIZE_SMALL);
 	uint8_t n = PE_getNumberOfCertificates(d->opt_header, start_file_offset, file_size, fp, block_s);
 
 	vector<PeAttributeCertificateTable> table;
 	table.resize(n);
 
-    memset(block_s, 0, BLOCKSIZE);
+    memset(block_s, 0, BLOCKSIZE_SMALL);
 	PE_fillCertificateTable(d->opt_header, start_file_offset, file_size, fp, block_s, table.data(), n);
 
 	EXPECT_EQ(n, 1);
@@ -195,14 +195,14 @@ TEST_F(HeaderParserLibPETest, test_writeCertificatesToFile)
 
 	PEHeaderData* d = getPEHeaderData(src, start);
     ASSERT_TRUE(d!=NULL);
-    memset(block_s, 0, BLOCKSIZE);
+    memset(block_s, 0, BLOCKSIZE_SMALL);
 	uint8_t n = PE_getNumberOfCertificates(d->opt_header, start_file_offset, file_size, fp, block_s);
 
 	PeAttributeCertificateTable* table = new PeAttributeCertificateTable[n];
 
-    memset(block_s, 0, BLOCKSIZE);
+    memset(block_s, 0, BLOCKSIZE_SMALL);
 	PE_fillCertificateTable(d->opt_header, start_file_offset, file_size, fp, block_s, table, n);
-    memset(block_s, 0, BLOCKSIZE);
+    memset(block_s, 0, BLOCKSIZE_SMALL);
 	s = PE_writeCertificatesToFile(table, n, dir.c_str(), file_size, fp, block_s);
 
 	string cert_name = dir+"/cert-0.der";

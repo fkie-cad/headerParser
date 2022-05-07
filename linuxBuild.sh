@@ -7,6 +7,7 @@ target=${def_target}
 def_mode=Release
 mode=${def_mode}
 help=0
+debug_print=0
 
 # Clean build directory from meta files
 #
@@ -43,13 +44,14 @@ function buildTarget() {
     local target=$1
     local dir=$2
     local mode=$3
+    local dp=$4
 
     if ! mkdir -p ${dir}; then
         return 1
     fi
 
     # if no space at -B..., older cmake (ubuntu 18) will not build
-    if ! cmake -S ${ROOT} -B${dir} -DCMAKE_BUILD_TYPE=${mode}; then
+    if ! cmake -S ${ROOT} -B${dir} -DCMAKE_BUILD_TYPE=${mode} -DDEBUG_PRINT=${dp}; then
         return 2
     fi
 
@@ -75,7 +77,7 @@ function buildPackage()
     local dir=$2
     local mode=$3
 
-    if ! buildTarget ${target} ${dir} ${mode}; then
+    if ! buildTarget ${target} ${dir} ${mode} 0; then
         return 1
     fi
 
@@ -101,13 +103,16 @@ function printHelp() {
     return 0;
 }
 
-while getopts ":m:t:h" opt; do
+while getopts ":m:p:t:h" opt; do
     case $opt in
     h)
         help=1
         ;;
     m)
         mode="$OPTARG"
+        ;;
+    p)
+        debug_print="$OPTARG"
         ;;
     t)
         target="$OPTARG"
@@ -144,7 +149,7 @@ elif [[ ${target} == ${name}_pck ]]; then
     buildPackage ${name} ${release_build_dir} Release
     exit $?
 else
-    buildTarget ${target} ${build_dir} ${mode}
+    buildTarget ${target} ${build_dir} ${mode} ${debug_print}
     exit $?
 fi
 

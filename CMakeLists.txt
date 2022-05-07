@@ -21,6 +21,11 @@ set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-point
 #	set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fsanitize=undefined")
 
 
+message("DEBUG_PRINT : ${DEBUG_PRINT}")
+if (DEBUG_PRINT)
+    add_definitions(-DDEBUG_PRINT=${DEBUG_PRINT})
+endif()
+
 message("CMAKE_FLAGS_DEBUG : ${CMAKE_FLAGS_DEBUG}")
 message("CMAKE_C_FLAGS_DEBUG : ${CMAKE_C_FLAGS_DEBUG}")
 message("CMAKE_C_FLAGS_RELEASE : ${CMAKE_C_FLAGS_RELEASE}")

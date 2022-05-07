@@ -18,8 +18,8 @@ Compiles and runs under
 
 
 ## Version ##
-1.15.2  
-Last changed: 03.05.2022
+1.15.3  
+Last changed: 07.05.2022
 
 ## REQUIREMENTS ##
 - Linux

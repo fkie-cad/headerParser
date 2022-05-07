@@ -16,7 +16,6 @@
     #define PATH_MAX 4096
 #endif
 
-#define BLOCKSIZE (0x200u)
 #define BLOCKSIZE_SMALL (0x200u)
 #define BLOCKSIZE_LARGE (0x400u)
 
@@ -72,7 +71,7 @@ typedef struct GlobalParams
 {
     // dynamic
 //	struct data {
-    uint8_t block_standard[BLOCKSIZE];
+    uint8_t block_standard[BLOCKSIZE_SMALL];
     uint8_t block_large[BLOCKSIZE_LARGE];
     //uint8_t* block_standard;
     //uint8_t* block_large;

@@ -50,7 +50,7 @@ static uint8_t checkLargeBlockSpace(size_t* rel_offset,
  * @param rel_offset size_t*
  * @param abs_offset size_t*
  * @param needed uint16_t
- * @param block_s unsigned char[BLOCKSIZE]
+ * @param block_s unsigned char[BLOCKSIZE_SMALL]
  * @param file_name const char*
  * @return uint8_t bool success value
  */
@@ -68,11 +68,11 @@ static uint8_t checkStandardBlockSpace(size_t* rel_offset,
  * @param rel_offset size_t*
  * @param abs_offset size_t*
  * @param needed  uint16_t
- * @param block_s unsigned char[BLOCKSIZE]
+ * @param block_s unsigned char[BLOCKSIZE_SMALL]
  * @param file_name const char*
  * @return uint8_t 0: failed, 1: nothing happend (enough space), 2: block_standard filled.
  */
-static uint8_t readStandardBlockIfLargeBlockIsExceeded(size_t rel_offset,
+static size_t readStandardBlockIfLargeBlockIsExceeded(size_t rel_offset,
                                                        size_t abs_offset,
                                                        size_t needed,
                                                        unsigned char* block_s,
@@ -153,7 +153,7 @@ uint8_t checkLargeBlockSpace(size_t* rel_offset,
  * @param rel_offset size_t*
  * @param abs_offset size_t*
  * @param needed uint16_t
- * @param block_s unsigned char[BLOCKSIZE]
+ * @param block_s unsigned char[BLOCKSIZE_SMALL]
  * @param file_name const char*
  * @return uint8_t bool success value
  */
@@ -164,11 +164,11 @@ uint8_t checkStandardBlockSpace(size_t* rel_offset,
                                 FILE* fp)
 {
     size_t r_size = 0;
-    if ( *rel_offset + needed > BLOCKSIZE )
+    if ( *rel_offset + needed > BLOCKSIZE_SMALL )
     {
         *abs_offset += *rel_offset;
-//		r_size = readCustomBlock(file_name, *abs_offset, BLOCKSIZE, block_s);
-        r_size = readFile(fp, *abs_offset, BLOCKSIZE, block_s);
+//		r_size = readCustomBlock(file_name, *abs_offset, BLOCKSIZE_SMALL, block_s);
+        r_size = readFile(fp, *abs_offset, BLOCKSIZE_SMALL, block_s);
         if ( r_size == 0 )
         {
 //			prog_error("ERROR: 1 reading block failed.\n");
@@ -180,36 +180,6 @@ uint8_t checkStandardBlockSpace(size_t* rel_offset,
             return 0;
         }
         *rel_offset = 0;
-    }
-    return 1;
-}
-
-/**
- * Check space left in large block, depending on offset and needed size.
- * If block_large is too small, read in new bytes into block_standard.
- * abs_file_offset is not adjusted.
- *
- * @param rel_offset size_t*
- * @param abs_offset size_t*
- * @param needed  uint16_t
- * @param block_s unsigned char[BLOCKSIZE]
- * @param file_name const char*
- * @return uint8_t 0: failed, 1: nothing happend (enough space), 2: block_standard filled.
- */
-uint8_t readStandardBlockIfLargeBlockIsExceeded(size_t rel_offset,
-                                                size_t abs_offset,
-                                                size_t needed,
-                                                unsigned char* block_s,
-                                                FILE* fp)
-{
-    size_t r_size = 0;
-    if ( rel_offset + needed > BLOCKSIZE_LARGE )
-    {
-//		r_size = readCustomBlock(file_name, abs_offset+rel_offset, BLOCKSIZE, block_s);
-        r_size = readFile(fp, abs_offset+rel_offset, BLOCKSIZE, block_s);
-        if ( r_size == 0 )
-            return 0;
-        return 2;
     }
     return 1;
 }

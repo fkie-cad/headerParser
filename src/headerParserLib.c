@@ -64,7 +64,7 @@ int getBasicInfoA(const char* file, size_t start, uint8_t force, HeaderData* hd)
     gp.file_size = 0;
 
 //	memset(gp.block_large, 0, BLOCKSIZE_LARGE);
-//	memset(gp.block_standard, 0, BLOCKSIZE);
+//	memset(gp.block_standard, 0, BLOCKSIZE_SMALL);
     memset(file_name, 0, PATH_MAX);
 
     s = initHeaderData(hd, DEFAULT_CODE_REGION_CAPACITY);
@@ -172,7 +172,7 @@ int getPEHeaderDataA(const char* file, size_t start, PEHeaderData* pehd)
     gp.file_size = 0;
 
 //	memset(gp.block_large, 0, BLOCKSIZE_LARGE);
-//	memset(gp.block_standard, 0, BLOCKSIZE);
+//	memset(gp.block_standard, 0, BLOCKSIZE_SMALL);
     memset(file_name, 0, PATH_MAX);
 
     // is used in parsing
