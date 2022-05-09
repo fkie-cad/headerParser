@@ -65,7 +65,7 @@ void PE_getRealName(const char* short_name,
     size_t name_size = 0;
     int s = 0;
 
-    debug_info("PE_getRealName");
+    debug_info("PE_getRealName\n");
     debug_info(" - raw name: %.*s\n", 8, short_name);
     if ( PE_isStringTableOffset(short_name) )
     {

@@ -703,6 +703,8 @@ void fillSpaces(char* buf, size_t n, uint16_t level)
 //	}
 //}
 
+
+
 void PE_printImageResourceDirectory(const PE_IMAGE_RESOURCE_DIRECTORY* rd, size_t offset, uint16_t level)
 {
     char spaces[MAX_SPACES];
@@ -751,7 +753,7 @@ void PE_printImageResourceDirectoryEntry(
     size_t i = 0;
     uint8_t* ptr = NULL;
     PE_IMAGE_RESOURCE_DIR_STRING_U_PTR name;
-    struct Pe_Image_Resource_Dir_String_U_Offsets name_offsets = PeImageResourceDirStringUOffsets;
+    const struct Pe_Image_Resource_Dir_String_U_Offsets *name_offsets = &PeImageResourceDirStringUOffsets;
 
     char spaces[MAX_SPACES];
     fillSpaces(spaces, MAX_SPACES, level);
@@ -761,7 +763,7 @@ void PE_printImageResourceDirectoryEntry(
     if ( re->NAME_UNION.NAME_STRUCT.NameIsString )
     {
         name_offset = table_fo + re->NAME_UNION.NAME_STRUCT.NameOffset;
-        if ( !checkFileSpace(name_offset, start_file_offset, 4, file_size))
+        if ( !checkFileSpace(name_offset, start_file_offset, 4, file_size) )
         {
             header_error("ERROR: ressource name offset beyond file bounds!\n");
             return;
@@ -773,22 +775,22 @@ void PE_printImageResourceDirectoryEntry(
             return;
 
         ptr = block_s;
-        name.Length = *((uint16_t*) &ptr[name_offsets.Length]);
-        name.NameString = ((uint16_t*) &ptr[name_offsets.NameString]);
+        name.Length = GetIntXValueAtOffset(uint16_t, ptr, name_offsets->Length);
+        name.NameString = ((uint16_t*) &ptr[name_offsets->NameString]);
         if ( name.Length > (uint16_t)bytes_read - 4 ) // minus length - L'0'
             name.Length = (uint16_t)bytes_read-4;
         ptr[bytes_read-2] = 0;
         ptr[bytes_read-1] = 0;
 
-        if ( !checkFileSpace(name_offset, start_file_offset, 2+name_offsets.Length, file_size))
+        if ( !checkFileSpace(name_offset, start_file_offset, 2+name_offsets->Length, file_size))
         {
             header_error("ERROR: ressource name beyond file bounds!\n");
             return;
         }
 
-//		printf("   - Name.Length: 0x%x\n", name.Length);
-        // ??? how to print utf16 on linux ???
-        // hack considering it ascii
+        // wchar on linux is uint32_t
+        // TODO: convert windows wchar(uint16_t) to utf8 to print cross os without expecting it to be ascii
+        // hack: considering it ascii
         printf("%s  - Name (%u): ", spaces, name.Length);
         for ( i = 0; i < name.Length; i++ )
             printf("%c", name.NameString[i]);
@@ -1027,17 +1029,17 @@ const char* Pe_getDebugTypeString(uint32_t type)
     };
 };
 
-void PE_printDebugTableEntry(PE_DEBUG_TABLE_ENTRY* e, uint32_t i, uint32_t nr_of_entries, size_t start_file_offset)
+void PE_printDebugTableEntry(PE_DEBUG_TABLE_ENTRY* e, uint32_t i, uint32_t nr_of_entries, size_t file_offset)
 {
     printf(" - Entry %u / %u:\n", i, nr_of_entries);
-    printf("   - Characteristics%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.Characteristics, 0, start_file_offset), e->Characteristics);
-    printf("   - TimeDateStamp%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.TimeDateStamp, 0, start_file_offset), e->TimeDateStamp);
-    printf("   - MajorVersion%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.MajorVersion, 0, start_file_offset), e->MajorVersion);
-    printf("   - MinorVersion%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.MinorVersion, 0, start_file_offset), e->MinorVersion);
-    printf("   - Type%s: %s (0x%x)\n", fillOffset(PeImageDebugTableEntryOffsets.Type, 0, start_file_offset), Pe_getDebugTypeString(e->Type), e->Type);
-    printf("   - SizeOfData%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.SizeOfData, 0, start_file_offset), e->SizeOfData);
-    printf("   - AddressOfRawData%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.AddressOfRawData, 0, start_file_offset), e->AddressOfRawData);
-    printf("   - PointerToRawData%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.PointerToRawData, 0, start_file_offset), e->PointerToRawData);
+    printf("   - Characteristics%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.Characteristics, 0, file_offset), e->Characteristics);
+    printf("   - TimeDateStamp%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.TimeDateStamp, 0, file_offset), e->TimeDateStamp);
+    printf("   - MajorVersion%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.MajorVersion, 0, file_offset), e->MajorVersion);
+    printf("   - MinorVersion%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.MinorVersion, 0, file_offset), e->MinorVersion);
+    printf("   - Type%s: %s (0x%x)\n", fillOffset(PeImageDebugTableEntryOffsets.Type, 0, file_offset), Pe_getDebugTypeString(e->Type), e->Type);
+    printf("   - SizeOfData%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.SizeOfData, 0, file_offset), e->SizeOfData);
+    printf("   - AddressOfRawData%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.AddressOfRawData, 0, file_offset), e->AddressOfRawData);
+    printf("   - PointerToRawData%s: 0x%x\n", fillOffset(PeImageDebugTableEntryOffsets.PointerToRawData, 0, file_offset), e->PointerToRawData);
 }
 
 int ByteArrayToGUID(uint8_t* ba, int32_t ba_size, char* guid, int32_t guid_size)

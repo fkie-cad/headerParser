@@ -110,7 +110,7 @@ int getBasicInfoA(const char* file, size_t start, uint8_t force, HeaderData* hd)
 
     parseHeader(force, hd, &gp, &pep, &elfp);
 
-    exit:
+exit:
     if ( gp.fp != NULL )
         fclose(gp.fp);
 

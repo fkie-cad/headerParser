@@ -73,9 +73,10 @@ typedef struct GlobalParams
 //	struct data {
     uint8_t block_standard[BLOCKSIZE_SMALL];
     uint8_t block_large[BLOCKSIZE_LARGE];
-    //uint8_t* block_standard;
-    //uint8_t* block_large;
-    uint8_t* block_dyn;
+    //uint8_t* block_main;
+    //uint8_t* block_main_size;
+    //uint8_t* block_sub;
+    //uint8_t* block_sub_size;
 //    } data;
 
     // static after init
@@ -135,13 +136,13 @@ typedef struct GlobalParams
 #define INFO_LEVEL_ELF_EXTENDED (INFO_LEVEL_ELF_FILE_H | INFO_LEVEL_ELF_PROG_H | INFO_LEVEL_ELF_SEC_H)
 
 
-#define INFO_LEVEL_DEX_FILE_H (0x01)
-#define INFO_LEVEL_DEX_STRING_IDS (0x02)
-#define INFO_LEVEL_DEX_TYPE_IDS (0x04)
-#define INFO_LEVEL_DEX_PROTO_IDS (0x08)
-#define INFO_LEVEL_DEX_FIELD_IDS (0x10)
-#define INFO_LEVEL_DEX_METHOD_IDS (0x20)
-#define INFO_LEVEL_DEX_CLASS_DEFS (0x40)
+#define INFO_LEVEL_DEX_FILE_H       (0x01)
+#define INFO_LEVEL_DEX_STRING_IDS   (0x02)
+#define INFO_LEVEL_DEX_TYPE_IDS     (0x04)
+#define INFO_LEVEL_DEX_PROTO_IDS    (0x08)
+#define INFO_LEVEL_DEX_FIELD_IDS    (0x10)
+#define INFO_LEVEL_DEX_METHOD_IDS   (0x20)
+#define INFO_LEVEL_DEX_CLASS_DEFS   (0x40)
 
 #define INFO_LEVEL_DEX_EXTENDED (INFO_LEVEL_DEX_FILE_H)
 

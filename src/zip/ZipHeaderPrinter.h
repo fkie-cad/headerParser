@@ -78,7 +78,6 @@ void ZIP_printFileEntry(const ZipFileRecord* fr,
 {
     size_t i;
     const Zip_File_Recored_Offsets *offsets = &ZipFileRecoredOffsets;
-    uint8_t size_of_entry = MIN_SIZE_OF_ZIP_RECORD;
     size_t r_size;
     char* name = NULL;
 
@@ -179,6 +178,7 @@ void ZIP_printDirEntry(const ZipDirEntry* r,
     size_t r_size;
     char* name = NULL;
     char* comment = NULL;
+    size_t comment_offset;
 
     printf("Zip Directory Entry %u:\n", idx);
     printf(" - signature%s: %02x|%02x|%02x|%02x\n", fillOffset(offsets->signature, offset, 0), r->signature[0], r->signature[1], r->signature[2], r->signature[3]);
@@ -230,7 +230,7 @@ void ZIP_printDirEntry(const ZipDirEntry* r,
         else
             name = (char*)(&block_s[0]);
 
-        for ( i = 0; i < r_size; i++ )
+        for ( i = 0; i < r->fileNameLength; i++ )
         {
             printf("%c", name[i]);
         }
@@ -239,18 +239,20 @@ void ZIP_printDirEntry(const ZipDirEntry* r,
     printf(" - fileComment%s: ", fillOffset(offsets->fileComment, offset, 0));
     if ( r->fileCommentLength != 0 && r->fileCommentLength < BLOCKSIZE_SMALL )
     {
-        if ( !checkFileSpace(offset, 0, offsets->fileComment + r->fileNameLength + r->fileCommentLength, file_size) )
+        comment_offset = offsets->fileComment + r->fileNameLength;
+
+        if ( !checkFileSpace(offset, 0, comment_offset + r->fileCommentLength, file_size) )
             return;
 
-        r_size = readStandardBlockIfLargeBlockIsExceeded(offset, offsets->fileComment+r->fileNameLength, r->fileCommentLength, block_s, fp);
+        r_size = readStandardBlockIfLargeBlockIsExceeded(offset, comment_offset, r->fileCommentLength, block_s, fp);
         if ( r_size == (size_t)-1 )
             return;
-        else if ( r_size == 0 )
-            comment = (char*)ptr + offsets->fileComment + r->fileCommentLength;
-        else
+        else if ( r_size == 0 ) // old large block
+            comment = (char*)ptr + comment_offset;
+        else // new small block
             comment = (char*)(&block_s[0]);
 
-        for ( i = 0; i < r_size; i++ )
+        for ( i = 0; i < r->fileCommentLength; i++ )
         {
             printf("%c", comment[i]);
         }
@@ -294,7 +296,7 @@ void ZIP_printEndLocator(const ZipEndLocator* r,
         else
             comment = (char*)(&block_s[0]);
 
-        for ( i = 0; i < r_size; i++ )
+        for ( i = 0; i < r->commentLength; i++ )
         {
             printf("%c", comment[i]);
         }

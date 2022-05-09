@@ -586,7 +586,6 @@ uint8_t ZIP_checkNeedles(ZipFileRecord* r,
                          unsigned char* block_l)
 {
     size_t r_size;
-    uint8_t size_of_entry = MIN_SIZE_OF_ZIP_RECORD;
     const char* needles[] = {
             "META-INF/",
             "META-INF/MANIFEST.MF",
@@ -619,14 +618,14 @@ uint8_t ZIP_checkNeedles(ZipFileRecord* r,
 
         if ( record_count < 2 )
         {
-            if ( !ZIP_checkNameOfRecord(name, r_size, needles[record_count]) )
+            if ( !ZIP_checkNameOfRecord(name, r->fileNameLength, needles[record_count]) )
                 found_needles[record_count]++;
         }
         else
         {
-            if ( ZIP_nameHasFileType(name, r_size, needles[2]) )
+            if ( ZIP_nameHasFileType(name, r->fileNameLength, needles[2]) )
                 found_needles[2]++;
-            if ( ZIP_nameStartsWith(name, r_size, needles[3]) )
+            if ( ZIP_nameStartsWith(name, r->fileNameLength, needles[3]) )
                 found_needles[3]++;
         }
     }

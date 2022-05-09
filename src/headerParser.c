@@ -31,8 +31,8 @@
 //#define DILLER
 
 #define BIN_NAME "headerParser"
-#define BIN_VS "1.15.3"
-#define BIN_DATE "07.05.2022"
+#define BIN_VS "1.15.4"
+#define BIN_DATE "09.05.2022"
 
 #define LIN_PARAM_IDENTIFIER ('-')
 #define WIN_PARAM_IDENTIFIER ('/')
@@ -149,6 +149,7 @@ main(int argc, char** argv)
 exit:
     freeHeaderData(hd);
     hd = NULL;
+    
     if ( gp.fp != NULL )
         fclose(gp.fp);
 
