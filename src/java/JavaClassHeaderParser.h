@@ -46,7 +46,7 @@ void parseJavaClassHeader(PHeaderData hd, PGlobalParams gp)
 {
     // freed in freeInnerHeaderData
     char* vs_str = calloc(1, JAVA_VS_STR_MAX_SIZE);
-    JavaClass_getJavaVersionString(vs_str, gp->start_file_offset, gp->file_size, gp->block_large);
+    JavaClass_getJavaVersionString(vs_str, gp->file.start_offset, gp->file.size, gp->block_large);
 
     hd->headertype = HEADER_TYPE_JAVA_CLASS;
     hd->CPU_arch = ARCH_JAVA;

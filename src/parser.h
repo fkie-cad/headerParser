@@ -36,15 +36,17 @@ int isMSI(unsigned char* block);
 int isJavaClass(unsigned char* block);
 int isZipArchive(unsigned char* block);
 
+
+
 void parseHeader(uint8_t force, PHeaderData hd, PGlobalParams gp, PPEParams pep, PElfParams elfp)
 {
     info_level = gp->info_level;
     info_show_offsets = gp->info_show_offsets;
 
-    if ( gp->abs_file_offset + MIN_FILE_SIZE > gp->file_size )
+    if ( gp->file.abs_offset + MIN_FILE_SIZE > gp->file.size )
     {
         header_error("ERROR: filesize (0x%zx) is too small for a start offset of 0x%zx!\n",
-                     gp->file_size, gp->abs_file_offset);
+                     gp->file.size, gp->file.abs_offset);
         hd->headertype = HEADER_TYPE_NONE;
     }
     else if ( force == FORCE_PE )

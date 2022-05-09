@@ -102,16 +102,16 @@ main(int argc, char** argv)
         return 0;
 
     errno = 0;
-    gp.fp = fopen(file_name, "rb");
+    gp.file.handle = fopen(file_name, "rb");
     errsv = errno;
-    if ( gp.fp == NULL)
+    if ( gp.file.handle == NULL)
     {
         printf("ERROR (0x%x): Could not open file: \"%s\"\n", errsv, file_name);
         return -1;
     }
 
-    gp.file_size = getSizeFP(gp.fp);
-    if ( gp.file_size == 0 )
+    gp.file.size = getSizeFP(gp.file.handle);
+    if ( gp.file.size == 0 )
     {
         printf("ERROR: File \"%s\" is zero.\n", file_name);
         s = -2;
@@ -121,11 +121,10 @@ main(int argc, char** argv)
     sanitizeArgs(&gp);
 
     debug_info("file_name: %s\n", file_name);
-    debug_info("abs_file_offset: 0x%zx\n", gp.abs_file_offset);
-    debug_info("abs_file_offset: 0x%zx\n", gp.abs_file_offset);
-    debug_info("start_file_offset: 0x%zx\n", gp.start_file_offset);
+    debug_info("abs_file_offset: 0x%zx\n", gp.file.abs_offset);
+    debug_info("start_file_offset: 0x%zx\n", gp.file.start_offset);
 
-    n = readFile(gp.fp, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
+    n = readFile(gp.file.handle, gp.file.abs_offset, BLOCKSIZE_LARGE, gp.block_large);
     if ( !n )
     {
         printf("Read failed.\n");
@@ -150,8 +149,8 @@ exit:
     freeHeaderData(hd);
     hd = NULL;
     
-    if ( gp.fp != NULL )
-        fclose(gp.fp);
+    if ( gp.file.handle != NULL )
+        fclose(gp.file.handle);
 
     return s;
 }
@@ -240,12 +239,12 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
 
         if ( isArgOfType(arg, "-s") )
         {
-            if ( hasValue("-s", i, end_i))
+            if ( hasValue("-s", i, end_i) )
             {
-                s = parseSizeT(argv[i + 1], &gp->abs_file_offset);
+                s = parseSizeT(argv[i + 1], &gp->file.abs_offset);
                 if ( s != 0 )
-                    gp->abs_file_offset = 0;
-                gp->start_file_offset = gp->abs_file_offset;
+                    gp->file.abs_offset = 0;
+                gp->file.start_offset = gp->file.abs_offset;
                 i++;
             }
         }
@@ -344,43 +343,43 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
                 i++;
             }
         }
-        else if (isArgOfType(arg, "-dimp"))
+        else if ( isArgOfType(arg, "-dimp") )
         {
             pep->info_level |= INFO_LEVEL_PE_DIMP;
         }
-        else if (isArgOfType(arg, "-dimpx"))
+        else if ( isArgOfType(arg, "-dimpx") )
         {
             pep->info_level |= INFO_LEVEL_PE_DIMP | INFO_LEVEL_PE_DIMP_EX;
         }
-        else if (isArgOfType(arg, "-bimp"))
+        else if ( isArgOfType(arg, "-bimp") )
         {
             pep->info_level |= INFO_LEVEL_PE_BIMP;
         }
-        else if (isArgOfType(arg, "-lcfg"))
+        else if ( isArgOfType(arg, "-lcfg") )
         {
             pep->info_level |= INFO_LEVEL_PE_LCFG;
         }
-        else if (isArgOfType(arg, "-fileh"))
+        else if ( isArgOfType(arg, "-fileh") )
         {
             elfp->info_level |= INFO_LEVEL_ELF_FILE_H;
         }
-        else if (isArgOfType(arg, "-progh"))
+        else if ( isArgOfType(arg, "-progh") )
         {
             elfp->info_level |= INFO_LEVEL_ELF_PROG_H;
         }
-        else if (isArgOfType(arg, "-sym"))
+        else if ( isArgOfType(arg, "-sym") )
         {
             elfp->info_level |= INFO_LEVEL_ELF_SYM_TAB;
         }
-        else if (isArgOfType(arg, "-symx"))
+        else if ( isArgOfType(arg, "-symx") )
         {
             elfp->info_level |= INFO_LEVEL_ELF_SYM_TAB | INFO_LEVEL_ELF_SYM_TAB_EX;
         }
-        else if (isArgOfType(arg, "-dym"))
+        else if ( isArgOfType(arg, "-dym") )
         {
             elfp->info_level |= INFO_LEVEL_ELF_DYN_SYM_TAB;
         }
-        else if (isArgOfType(arg, "-dymx"))
+        else if ( isArgOfType(arg, "-dymx") )
         {
             elfp->info_level |= INFO_LEVEL_ELF_DYN_SYM_TAB | INFO_LEVEL_ELF_DYN_SYM_TAB_EX;
         }
@@ -438,12 +437,12 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
 
 void sanitizeArgs(PGlobalParams gp)
 {
-    if ( gp->abs_file_offset + 16 > gp->file_size )
+    if ( gp->file.abs_offset + 16 > gp->file.size )
     {
         header_info("INFO: filesize (0x%zx) is too small for a start offset of 0x%zx!\nSetting to 0!\n",
-            gp->file_size, gp->abs_file_offset);
-        gp->abs_file_offset = 0;
-        gp->start_file_offset = gp->abs_file_offset;
+            gp->file.size, gp->file.abs_offset);
+        gp->file.abs_offset = 0;
+        gp->file.start_offset = gp->file.abs_offset;
     }
 }
 

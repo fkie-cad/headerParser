@@ -80,14 +80,14 @@ typedef struct GlobalParams
 //    } data;
 
     // static after init
-//	struct file
-//    {
-//    char file_name[PATH_MAX];
-    FILE* fp;
-    size_t file_size;
-    size_t start_file_offset;
-    size_t abs_file_offset;
-//    } file;
+	struct file
+    {
+        //char file_name[PATH_MAX];
+        FILE* handle;
+        size_t size;
+        size_t start_offset;
+        size_t abs_offset;
+    } file;
 
     uint8_t info_level; // may be global. TODO: delete this or the global one
     uint8_t info_show_offsets; // may be global. TODO: delete this or the global one

@@ -29,7 +29,7 @@ void parseMSIHeader(PHeaderData hd,
     int s = 0;
     MSIStructuredStorageHeader ssh;
 
-    s = MSI_readStructuredHeader(&ssh, gp->start_file_offset, gp->file_size, gp->block_large);
+    s = MSI_readStructuredHeader(&ssh, gp->file.start_offset, gp->file.size, gp->block_large);
     if ( s != 0 ) return;
     if ( gp->info_level >= INFO_LEVEL_EXTENDED )
         MSI_printStructuredStorageHeader(&ssh);
@@ -113,9 +113,9 @@ uint8_t MSI_searchPEs(MSIStructuredStorageHeader* ssh,
         return 0;
 
     debug_info("searchPEs\n");
-    for ( offset = sec_size; offset < gp->file_size; offset+=sec_size)
+    for ( offset = sec_size; offset < gp->file.size; offset+=sec_size)
     {
-        if ( PE_hasHeaderAtOffset(offset, &gp->abs_file_offset, gp->file_size, gp->fp, gp->block_standard, gp->block_large) )
+        if ( PE_hasHeaderAtOffset(offset, &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->block_standard, gp->block_large) )
         {
             if ( pe_count == 0 )
             {
@@ -133,10 +133,10 @@ uint8_t MSI_searchPEs(MSIStructuredStorageHeader* ssh,
         {
             printf("PE file %u/%u at offset 0x%zx:\n", 1, pe_count, first_pe_offset);
         }
-        gp->start_file_offset = first_pe_offset;
-        gp->abs_file_offset = first_pe_offset;
+        gp->file.start_offset = first_pe_offset;
+        gp->file.abs_offset = first_pe_offset;
 
-        if ( !readFile(gp->fp, gp->abs_file_offset, BLOCKSIZE_LARGE, gp->block_large) )
+        if ( !readFile(gp->file.handle, gp->file.abs_offset, BLOCKSIZE_LARGE, gp->block_large) )
         {
             header_error("ERROR: Read failed.\n");
             return 0;

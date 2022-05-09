@@ -225,18 +225,18 @@ void parseMachOHeader(PHeaderData hd, PGlobalParams gp)
 
     MachO_fillHeaderDataWithMagic(hd, gp->block_large);
 
-    s = MachO_fillMachHeader(&mach_header, gp->start_file_offset, gp->file_size, hd->h_bitness, hd->endian, gp->block_large);
+    s = MachO_fillMachHeader(&mach_header, gp->file.start_offset, gp->file.size, hd->h_bitness, hd->endian, gp->block_large);
     if ( s != 0 ) return;
 
     if ( gp->info_level >= INFO_LEVEL_EXTENDED )
-        MachO_printFileHeader(&mach_header, hd->h_bitness, hd->endian, gp->start_file_offset);
+        MachO_printFileHeader(&mach_header, hd->h_bitness, hd->endian, gp->file.start_offset);
 
     arch = getArchitecture(mach_header.cputype, mach_o_arch_id_mapper, mach_o_arch_id_mapper_size);
     hd->Machine = arch->arch.name;
     hd->CPU_arch = arch->arch_id;
     hd->i_bitness = arch->bitness;
 
-    MachO_readCommands(mach_header.ncmds, &gp->abs_file_offset, gp->file_size, gp->info_level, hd, gp->fp, gp->block_large);
+    MachO_readCommands(mach_header.ncmds, &gp->file.abs_offset, gp->file.size, gp->info_level, hd, gp->file.handle, gp->block_large);
 }
 
 void MachO_fillHeaderDataWithMagic(PHeaderData hd,

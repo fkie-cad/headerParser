@@ -11,15 +11,19 @@
 #include "../utils/common_fileio.h"
 #include "../utils/Helper.h"
 
+
+
 static void parseArtHeader(PHeaderData hd, PGlobalParams gp);
 static void ARTfillVersion(size_t start_file_offset, size_t file_size, unsigned char* block);
 static void ARTreadFileHeader(ARTFileHeader009012 *fh, size_t start_file_offset, size_t file_size, unsigned char* block);
+
+
 
 void parseArtHeader(PHeaderData hd, PGlobalParams gp)
 {
     ARTFileHeader009012 file_header;
 
-    ARTfillVersion(gp->start_file_offset, gp->file_size, gp->block_large);
+    ARTfillVersion(gp->file.start_offset, gp->file.size, gp->block_large);
 
     hd->headertype = HEADER_TYPE_ART;
 //	hd->endian = ( file_header.endian_tag == ART_ENDIAN_CONSTANT ) ? ENDIAN_LITTLE : ENDIAN_BIG;
@@ -28,10 +32,10 @@ void parseArtHeader(PHeaderData hd, PGlobalParams gp)
     hd->h_bitness = 32;
     hd->i_bitness = 32;
 
-    ARTreadFileHeader(&file_header, gp->start_file_offset, gp->file_size, gp->block_large);
+    ARTreadFileHeader(&file_header, gp->file.start_offset, gp->file.size, gp->block_large);
 
     if ( gp->info_level >= INFO_LEVEL_EXTENDED )
-        ARTprintFileHeader009012(&file_header, gp->start_file_offset);
+        ARTprintFileHeader009012(&file_header, gp->file.start_offset);
 }
 
 void ARTfillVersion(size_t start_file_offset, size_t file_size, unsigned char* block)
@@ -62,18 +66,18 @@ void ARTreadFileHeader(ARTFileHeader009012 *fh, size_t start_file_offset, size_t
 
     for ( i = 0; i < MAGIC_ART_BYTES_FULL_LN; i++ )
         fh->magic[i] = (char)ptr[ARTFileHeader009012Offsets.magic + i];
-    fh->image_begin = *((uint32_t*) &ptr[ARTFileHeader009012Offsets.image_begin]);
-    fh->image_size = *((uint32_t*) &ptr[ARTFileHeader009012Offsets.image_size]);
-    fh->bitmap_off = *((uint32_t*) &ptr[ARTFileHeader009012Offsets.bitmap_off]);
-    fh->bitmap_size = *((uint32_t*) &ptr[ARTFileHeader009012Offsets.bitmap_size]);
-    fh->checksum = *((uint32_t*) &ptr[ARTFileHeader009012Offsets.checksum]);
-    fh->oat_begin = *((uint32_t*) &ptr[ARTFileHeader009012Offsets.oat_begin]);
-    fh->oat_data_begin = *((uint32_t*) &ptr[ARTFileHeader009012Offsets.oat_data_begin]);
-    fh->oat_data_end = *((uint32_t*) &ptr[ARTFileHeader009012Offsets.oat_data_end]);
-    fh->oat_end = *((uint32_t*) &ptr[ARTFileHeader009012Offsets.oat_end]);
-    fh->patch_delta = *((uint32_t*) &ptr[ARTFileHeader009012Offsets.patch_delta]);
-    fh->image_roots = *((uint32_t*) &ptr[ARTFileHeader009012Offsets.image_roots]);
-    fh->compile_pic = *((uint32_t*) &ptr[ARTFileHeader009012Offsets.compile_pic]);
+    fh->image_begin = GetIntXValueAtOffset(uint32_t, ptr, ARTFileHeader009012Offsets.image_begin);
+    fh->image_size = GetIntXValueAtOffset(uint32_t, ptr, ARTFileHeader009012Offsets.image_size);
+    fh->bitmap_off = GetIntXValueAtOffset(uint32_t, ptr, ARTFileHeader009012Offsets.bitmap_off);
+    fh->bitmap_size = GetIntXValueAtOffset(uint32_t, ptr, ARTFileHeader009012Offsets.bitmap_size);
+    fh->checksum = GetIntXValueAtOffset(uint32_t, ptr, ARTFileHeader009012Offsets.checksum);
+    fh->oat_begin = GetIntXValueAtOffset(uint32_t, ptr, ARTFileHeader009012Offsets.oat_begin);
+    fh->oat_data_begin = GetIntXValueAtOffset(uint32_t, ptr, ARTFileHeader009012Offsets.oat_data_begin);
+    fh->oat_data_end = GetIntXValueAtOffset(uint32_t, ptr, ARTFileHeader009012Offsets.oat_data_end);
+    fh->oat_end = GetIntXValueAtOffset(uint32_t, ptr, ARTFileHeader009012Offsets.oat_end);
+    fh->patch_delta = GetIntXValueAtOffset(uint32_t, ptr, ARTFileHeader009012Offsets.patch_delta);
+    fh->image_roots = GetIntXValueAtOffset(uint32_t, ptr, ARTFileHeader009012Offsets.image_roots);
+    fh->compile_pic = GetIntXValueAtOffset(uint32_t, ptr, ARTFileHeader009012Offsets.compile_pic);
 }
 
 #endif

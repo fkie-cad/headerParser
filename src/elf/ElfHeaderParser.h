@@ -221,7 +221,7 @@ void parseELFHeader(
         return;
     }
 
-    s = Elf_readFileHeader(&file_header, gp->block_large, gp->start_file_offset, gp->file_size);
+    s = Elf_readFileHeader(&file_header, gp->block_large, gp->file.start_offset, gp->file.size);
     if ( s != 0 )
         return;
 
@@ -229,13 +229,13 @@ void parseELFHeader(
 
 #if LIB_MODE == 0
     if ( elfp->info_level & INFO_LEVEL_ELF_FILE_H )
-        Elf_printFileHeader(&file_header, gp->start_file_offset);
+        Elf_printFileHeader(&file_header, gp->file.start_offset);
 
     if ( elfp->info_level & INFO_LEVEL_ELF_PROG_H )
-        Elf_readProgramHeaderTable(&file_header, &gp->abs_file_offset, gp->start_file_offset, gp->file_size, elfp->info_level, bitness, gp->fp, gp->block_large);
+        Elf_readProgramHeaderTable(&file_header, &gp->file.abs_offset, gp->file.start_offset, gp->file.size, elfp->info_level, bitness, gp->file.handle, gp->block_large);
 #endif
 
-    Elf_readSectionHeaderTable(&file_header, gp->start_file_offset, &gp->abs_file_offset, gp->file_size, elfp->info_level, bitness, gp->fp, gp->block_large, gp->block_standard, hd);
+    Elf_readSectionHeaderTable(&file_header, gp->file.start_offset, &gp->file.abs_offset, gp->file.size, elfp->info_level, bitness, gp->file.handle, gp->block_large, gp->block_standard, hd);
 }
 
 int Elf_readFileHeader(Elf64FileHeader* file_header, uint8_t* block_l, size_t start_file_offset, size_t file_size)
