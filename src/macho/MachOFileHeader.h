@@ -3,21 +3,40 @@
 
 #include <stdint.h>
 
-#define MACH_O_SEG_NAME_LN 16
+#define MACH_O_SEG_NAME_LN (0x10)
 
 const unsigned char MAGIC_MACH_O_BYTES_32[4] = { 0xFE, 0xED, 0xFA, 0xCE };
 const unsigned char MAGIC_MACH_O_BYTES_64[4] = { 0xFE, 0xED, 0xFA, 0xCF };
 const unsigned char MAGIC_MACH_O_BYTES_32_RV[4] = { 0xCE, 0xFA, 0xED, 0xFE };
 const unsigned char MAGIC_MACH_O_BYTES_64_RV[4] = { 0xCF, 0xFA, 0xED, 0xFE };
 
-#define MAGIC_MACH_O_BYTES_LN (4)
-#define SIZE_OF_MACHO_O_HEADER (28)
-#define SIZE_OF_MACHO_O_HEADER_64 (32)
-#define SIZE_OF_MACHO_O_LOAD_COMMAND (8)
-#define SIZE_OF_MACHO_O_SEGMENT_HEADER_32 (56)
-#define SIZE_OF_MACHO_O_SEGMENT_HEADER_64 (72)
-#define SIZE_OF_MACHO_O_SECTEION_HEADER_32 (68)
-#define SIZE_OF_MACHO_O_SECTEION_HEADER_64 (80)
+#define MAGIC_MACH_O_BYTES_LN (0x4)
+
+#define SIZE_OF_MACHO_O_HEADER (0x1C)
+#define SIZE_OF_MACHO_O_HEADER_64 (0x20)
+
+#define SIZE_OF_MACHO_O_BUILD_VERSION_COMMAND_32 0x1C
+#define SIZE_OF_MACHO_O_BUILD_VERSION_COMMAND_64 0x20
+#define SIZE_OF_MACHO_O_LOAD_COMMAND (0x8)
+#define SIZE_OF_MACHO_O_UUID_COMMAND (0x18)
+#define SIZE_OF_MACHO_O_DY_SYMTAB_COMMAND (0x50)
+#define SIZE_OF_MACHO_O_DYLIB_COMMAND (0x18)
+#define SIZE_OF_MACHO_O_DYLD_INFO_COMMAND (0x30)
+#define SIZE_OF_MACHO_O_LINKED_IT_DATA_COMMAND (0x10)
+#define SIZE_OF_MACHO_O_MAIN_DYLIB_COMMAND (0x18)
+#define SIZE_OF_MACHO_O_PREBOUND_DYLIB_COMMAND (0x14)
+#define SIZE_OF_MACHO_O_ROUTINES_COMMAND_32 (0x28)
+#define SIZE_OF_MACHO_O_ROUTINES_COMMAND_64 (0x48)
+#define SIZE_OF_MACHO_O_SEGMENT_HEADER_32 (0x38)
+#define SIZE_OF_MACHO_O_SEGMENT_HEADER_64 (0x48)
+#define SIZE_OF_MACHO_O_SECTION_HEADER_32 (0x44)
+#define SIZE_OF_MACHO_O_SECTION_HEADER_64 (0x50)
+#define SIZE_OF_MACHO_O_SOURCE_VERSION_COMMAND (0x10)
+#define SIZE_OF_MACHO_O_SUB_COMMAND (0x0C)
+#define SIZE_OF_MACHO_O_SYMTAB_COMMAND (0x18)
+#define SIZE_OF_MACHO_O_THREAD_COMMAND (0x10)
+#define SIZE_OF_MACHO_O_VERSION_MIN_COMMAND (0x10)
+
 
 typedef uint32_t cpu_type_t;
 typedef uint32_t cpu_subtype_t;
@@ -165,7 +184,7 @@ typedef struct mach_0_load_command
     uint32_t cmdsize;
 } LoadCommand;
 
-#define MACH_O_UUID_LN 16
+#define MACH_O_UUID_LN (0x10)
 
 typedef struct UuidCommand
 {
@@ -329,7 +348,7 @@ typedef struct twolevel_hints_command
 
 union lc_str
 {
-    uint32_t offset;
+    uint32_t offset;// 0 4
 #ifndef __LP64__
     char *ptr;
 #endif
@@ -337,74 +356,74 @@ union lc_str
 
 typedef struct dylib
 {
-    union lc_str name;
-    uint32_t timestamp;
-    uint32_t current_version;
-    uint32_t compatibility_version;
-} Dylib;
+    union lc_str name; // 0x0
+    uint32_t timestamp; // 0x4
+    uint32_t current_version; // 0x8
+    uint32_t compatibility_version; // 0x1c
+} Dylib; // 0x10
 
 typedef struct dylib_command
 {
-    uint32_t cmd;
-    uint32_t cmdsize;
-    struct dylib dylib;
-} DylibCommand;
+    uint32_t cmd; // 0x0
+    uint32_t cmdsize; // 0x4
+    struct dylib dylib; // 0x8
+} DylibCommand; // 0x18
 
 typedef struct prebound_dylib_command
 {
-    uint32_t cmd;
-    uint32_t cmdsize;
-    union lc_str name;
-    uint32_t nmodules;
-    union lc_str linked_modules;
-} PreboundDylibCommand;
+    uint32_t cmd; // 0x0
+    uint32_t cmdsize; // 0x4
+    union lc_str name; // 0x8
+    uint32_t nmodules; // 0xC
+    union lc_str linked_modules; // 0x10
+} PreboundDylibCommand; // 0x14
 
 // LC_THREAD | LC_UNIXTHREAD
 typedef struct thread_command
 {
-    uint32_t cmd;
-    uint32_t cmdsize;
-    uint32_t flavor;
-    uint32_t count;
-//	struct cpu_thread_state state;
-} ThreadCommand;
+    uint32_t cmd; // 0x0
+    uint32_t cmdsize; // 0x4
+    uint32_t flavor; // 0x8
+    uint32_t count; // 0xC
+//	struct cpu_thread_state state; // 0x
+} ThreadCommand; // 0x10
 
 // LC_ROUTINES
 typedef struct routines_command
 {
-    uint32_t cmd;
-    uint32_t cmdsize;
-    uint32_t init_address;
-    uint32_t init_module;
-    uint32_t reserved1;
-    uint32_t reserved2;
-    uint32_t reserved3;
-    uint32_t reserved4;
-    uint32_t reserved5;
-    uint32_t reserved6;
-} RoutinesCommand;
+    uint32_t cmd; // 0x00
+    uint32_t cmdsize; // 0x04
+    uint32_t init_address; // 0x08
+    uint32_t init_module; // 0x0C
+    uint32_t reserved1; // 0x10
+    uint32_t reserved2; // 0x14
+    uint32_t reserved3; // 0x18
+    uint32_t reserved4; // 0x1C
+    uint32_t reserved5; // 0x20
+    uint32_t reserved6; // 0x24
+} RoutinesCommand; // 0x28
 
 // LC_ROUTINES_64
 typedef struct routines_command_64
 {
-    uint32_t cmd;
-    uint32_t cmdsize;
-    uint64_t init_address;
-    uint64_t init_module;
-    uint64_t reserved1;
-    uint64_t reserved2;
-    uint64_t reserved3;
-    uint64_t reserved4;
-    uint64_t reserved5;
-    uint64_t reserved6;
-} RoutinesCommand64;
+    uint32_t cmd; // 0x0
+    uint32_t cmdsize; // 0x4
+    uint64_t init_address; // 0x8
+    uint64_t init_module; // 0x10
+    uint64_t reserved1; // 0x18
+    uint64_t reserved2; // 0x20
+    uint64_t reserved3; // 0x28
+    uint64_t reserved4; // 0x30
+    uint64_t reserved5; // 0x38
+    uint64_t reserved6; // 0x40
+} RoutinesCommand64; // 0x48
 
 typedef struct sub_command
 {
-    uint32_t cmd;
-    uint32_t cmdsize;
-    union lc_str name;
-} SubCommand;
+    uint32_t cmd; // 0x0
+    uint32_t cmdsize; // 0x4
+    union lc_str name; // 0x8
+} SubCommand; // 0x0C
 
 typedef SubCommand SubFrameworkCommand; // LC_SUB_FRAMEWORK
 typedef SubCommand SubUmbrellaCommand; // LC_SUB_UMBRELLA
@@ -415,13 +434,13 @@ typedef SubCommand DyLinkerCommand; // LC_SUB_CLIENT
 // LC_SYMTAB
 typedef struct symtab_command
 {
-    uint32_t cmd;
-    uint32_t cmdsize;
-    uint32_t symoff;
-    uint32_t nsyms;
-    uint32_t stroff;
-    uint32_t strsize;
-} SymtabCommand;
+    uint32_t cmd; // 0x0
+    uint32_t cmdsize; // 0x4
+    uint32_t symoff; // 0x8
+    uint32_t nsyms; // 0xC
+    uint32_t stroff; // 0x10
+    uint32_t strsize; // 0x14
+} SymtabCommand; // 0x18
 
 // entry of symtab
 struct nlist
@@ -451,27 +470,27 @@ struct nlist_64 {
 // LC_DYSYMTAB
 typedef struct dysymtab_command
 {
-    uint32_t cmd;
-    uint32_t cmdsize;
-    uint32_t ilocalsym;
-    uint32_t nlocalsym;
-    uint32_t iextdefsym;
-    uint32_t nextdefsym;
-    uint32_t iundefsym;
-    uint32_t nundefsym;
-    uint32_t tocoff;
-    uint32_t ntoc;
-    uint32_t modtaboff;
-    uint32_t nmodtab;
-    uint32_t extrefsymoff;
-    uint32_t nextrefsyms;
-    uint32_t indirectsymoff;
-    uint32_t nindirectsyms;
-    uint32_t extreloff;
-    uint32_t nextrel;
-    uint32_t locreloff;
-    uint32_t nlocrel;
-} DySymtabCommand;
+    uint32_t cmd; // 0x0
+    uint32_t cmdsize; // 0x4
+    uint32_t ilocalsym; // 0x8
+    uint32_t nlocalsym; // 0xC
+    uint32_t iextdefsym; // 0x10
+    uint32_t nextdefsym; // 0x14
+    uint32_t iundefsym; // 0x18
+    uint32_t nundefsym; // 0x1C
+    uint32_t tocoff; // 0x20
+    uint32_t ntoc; // 0x24
+    uint32_t modtaboff; // 0x28
+    uint32_t nmodtab; // 0x2C
+    uint32_t extrefsymoff; // 0x30
+    uint32_t nextrefsyms; // 0x34
+    uint32_t indirectsymoff; // 0x38
+    uint32_t nindirectsyms; // 0x3C
+    uint32_t extreloff; // 0x40
+    uint32_t nextrel; // 0x44
+    uint32_t locreloff; // 0x48
+    uint32_t nlocrel; // 0x4C
+} DySymtabCommand; // 0x50
 
 struct dylib_table_of_contents
 {
@@ -519,19 +538,19 @@ struct dylib_module_64
  */
 // LC_VERSION_MIN_MACOSX | LC_VERSION_MIN_IPHONEOS
 typedef struct version_min_command {
-    uint32_t cmd;
-    uint32_t cmdsize;	/* sizeof(struct min_version_command) */
-    uint32_t version;	/* X.Y.Z is encoded in nibbles xxxx.yy.zz */
-    uint32_t reserved;	/* zero */
-} VersionMinCommand;
+    uint32_t cmd; // 0x0
+    uint32_t cmdsize; // 0x4 sizeof(struct min_version_command)
+    uint32_t version; //0x8 X.Y.Z is encoded in nibbles xxxx.yy.zz
+    uint32_t reserved; // 0xC zero
+} VersionMinCommand; // 0x10
 
 typedef struct linked_it_data_command
 {
-    uint32_t cmd;
-    uint32_t cmdsize;
-    uint32_t offset;
-    uint32_t size;
-} LinkedItDataCommand;
+    uint32_t cmd;//0x0
+    uint32_t cmdsize;//0x4
+    uint32_t offset;//0x8
+    uint32_t size; // 0xC
+} LinkedItDataCommand;// 0x10
 
 typedef LinkedItDataCommand CodeSignatureCommand; // LC_CODE_SIGNATURE
 typedef LinkedItDataCommand SegmentSplitInfoCommand; // LC_SEGMENT_SPLIT_INFO
@@ -553,14 +572,14 @@ typedef struct dyld_info_command {
     uint32_t   lazy_bind_size;  /* size of lazy binding infs */
     uint32_t   export_off;  /* file offset to lazy binding info */
     uint32_t   export_size; /* size of lazy binding infos */
-} DyldInfoCommand;
+} DyldInfoCommand; // 0x30
 
 typedef struct source_version_command
 {
     uint32_t cmd;
     uint32_t cmdsize;
     uint64_t version;
-} SourceVersionCommand;
+} SourceVersionCommand; // 0x10
 
 typedef struct main_dylib_command
 {
@@ -568,7 +587,7 @@ typedef struct main_dylib_command
     uint32_t cmdsize;
     uint64_t entry_off;
     uint64_t stack_size;
-} MainDylibCommand;
+} MainDylibCommand; // 0x18
 
 typedef struct
 {
