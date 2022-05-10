@@ -105,15 +105,24 @@ uint8_t MSI_searchPEs(MSIStructuredStorageHeader* ssh,
 {
     size_t offset;
     size_t first_pe_offset = 0;
-    uint16_t sec_size = 1u<<ssh->_uSectorShift; // sec_size = 2^_uSectorShift
+    uint16_t sec_size = 1u << ssh->_uSectorShift; // sec_size = 2^_uSectorShift
     uint16_t pe_count = 0;
+//    uint16_t max_pe_offsets = 0x10;
+//    size_t* pe_offsets = NULL;
     debug_info(" - sec_size: %x\n", sec_size);
 
     if ( sec_size == 0 )
         return 0;
 
+//    pe_offsets = (size_t*) malloc(max_pe_offsets * sizeof(size_t));
+//    if ( pe_offsets == NULL)
+//    {
+//        int errsv = errno;
+//        printf("ERROR (0x%x): No memory for pe offsets failed!\n", errsv);
+//        return false;
+//    }
     debug_info("searchPEs\n");
-    for ( offset = sec_size; offset < gp->file.size; offset+=sec_size)
+    for ( offset = sec_size; offset < gp->file.size; offset += sec_size)
     {
         if ( PE_hasHeaderAtOffset(offset, &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->data.block_sub, gp->data.block_main) )
         {
@@ -121,6 +130,19 @@ uint8_t MSI_searchPEs(MSIStructuredStorageHeader* ssh,
             {
                 first_pe_offset = offset;
             }
+//            if ( pe_count > max_pe_offsets )
+//            {
+//                max_pe_offsets = max_pe_offsets<1;
+//                size_t* temp = (size_t*)realloc(pe_offsets, max_pe_offsets*sizeof(size_t));
+//                if ( !temp )
+//                {
+//                    int errsv = errno;
+//                    printf("ERROR (0x%x): Reallocating pe offsets failed!\n", errsv);
+//                    return false;
+//                }
+//                pe_offsets = temp;
+//            }
+//            pe_offsets[pe_count] = offset;
             pe_count++;
             debug_info(" - found PE at 0x%zx\n", offset);
         }

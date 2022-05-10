@@ -179,6 +179,8 @@ typedef struct GlobalParams
 #define INFO_LEVEL_MACHO_BUILD_VERSION              (0x20000000)
 #define INFO_LEVEL_MACHO_MAIN                       (0x40000000)
 
+#define INFO_LEVEL_MACHO_EXTENDED (INFO_LEVEL_MACHO_FILE_H)
+
 
 
 
