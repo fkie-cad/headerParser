@@ -87,18 +87,18 @@ void parseZip(PHeaderData hd, PGlobalParams gp)
     {
         if ( !checkFileSpace(offset, gp->file.abs_offset, MAGIC_ZIP_BYTES_LN, gp->file.size) )
             break;
-        if ( !checkLargeBlockSpace(&offset, &gp->file.abs_offset, MAGIC_ZIP_BYTES_LN, gp->block_large, gp->file.handle))
+        if ( !checkLargeBlockSpace(&offset, &gp->file.abs_offset, MAGIC_ZIP_BYTES_LN, gp->data.block_main, gp->file.handle))
             break;
 
-        debug_info("magic: %02x%02x%02x%02x\n", gp->block_large[offset], gp->block_large[offset+1], gp->block_large[offset+2], gp->block_large[offset+3]);
+        debug_info("magic: %02x%02x%02x%02x\n", gp->data.block_main[offset], gp->data.block_main[offset+1], gp->data.block_main[offset+2], gp->data.block_main[offset+3]);
         debug_info("offset: 0x%zx\n", offset);
         debug_info("abs_file_offset: 0x%zx\n", gp->file.abs_offset);
 
-        if ( checkBytes(MAGIC_ZIP_FILE_ENTRY_BYTES, MAGIC_ZIP_BYTES_LN, &gp->block_large[offset]) )
+        if ( checkBytes(MAGIC_ZIP_FILE_ENTRY_BYTES, MAGIC_ZIP_BYTES_LN, &gp->data.block_main[offset]) )
         {
             debug_info("record: %u\n", record_count);
             offset = ZIP_handleFileRecord(offset, found_needles, record_count, &gp->file.abs_offset, gp->file.size,
-                                 gp->info_level, gp->file.handle, gp->block_standard, gp->block_large);
+                                 gp->info_level, gp->file.handle, gp->data.block_sub, gp->data.block_main);
             if ( offset == UINT64_MAX )
                 break;
 
@@ -108,21 +108,21 @@ void parseZip(PHeaderData hd, PGlobalParams gp)
         {
             break;
         }
-        else if ( checkBytes(MAGIC_ZIP_DIR_ENTRY_BYTES, MAGIC_ZIP_BYTES_LN, &gp->block_large[offset]) )
+        else if ( checkBytes(MAGIC_ZIP_DIR_ENTRY_BYTES, MAGIC_ZIP_BYTES_LN, &gp->data.block_main[offset]) )
         {
             debug_info("dir: %u\n", dir_count);
             offset = ZIP_handleDirEntry(offset, found_needles, dir_count, &gp->file.abs_offset, gp->file.size, gp->info_level,
-                               gp->file.handle, gp->block_standard, gp->block_large);
+                               gp->file.handle, gp->data.block_sub, gp->data.block_main);
             if ( offset == UINT64_MAX )
                 break;
 
             dir_count++;
         }
-        else if ( checkBytes(MAGIC_ZIP_END_LOCATOR_BYTES, MAGIC_ZIP_BYTES_LN, &gp->block_large[offset]) )
+        else if ( checkBytes(MAGIC_ZIP_END_LOCATOR_BYTES, MAGIC_ZIP_BYTES_LN, &gp->data.block_main[offset]) )
         {
             debug_info("The end!\n");
             offset = ZIP_handleEndLocator(offset, &gp->file.abs_offset, gp->file.size, gp->info_level, gp->file.handle,
-                                 gp->block_standard, gp->block_large);
+                                 gp->data.block_sub, gp->data.block_main);
             break;
         }
         else

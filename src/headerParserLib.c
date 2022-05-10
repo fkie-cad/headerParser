@@ -59,12 +59,12 @@ int getBasicInfoA(const char* file, size_t start, uint8_t force, HeaderData* hd)
     memset(&elfp, 0, sizeof(ElfParams));
 
     gp.info_level = INFO_LEVEL_BASIC;
-    gp.abs_file_offset = start;
-    gp.start_file_offset = start;
-    gp.file_size = 0;
+    gp.file.abs_offset = start;
+    gp.file.start_offset = start;
+    gp.file.size = 0;
 
-//	memset(gp.block_large, 0, BLOCKSIZE_LARGE);
-//	memset(gp.block_standard, 0, BLOCKSIZE_SMALL);
+//	memset(gp.data.block_main, 0, BLOCKSIZE_LARGE);
+//	memset(gp.data.block_sub, 0, BLOCKSIZE_SMALL);
     memset(file_name, 0, PATH_MAX);
 
     s = initHeaderData(hd, DEFAULT_CODE_REGION_CAPACITY);
@@ -74,34 +74,34 @@ int getBasicInfoA(const char* file, size_t start, uint8_t force, HeaderData* hd)
     }
     expandFilePath(file, file_name);
 
-    //debug_info("abs_file_offset: 0x%zx\n", gp.abs_file_offset);
-    //debug_info("start_file_offset: 0x%zx\n", gp.start_file_offset);
+    //debug_info("abs_file_offset: 0x%zx\n", gp.file.abs_offset);
+    //debug_info("start_file_offset: 0x%zx\n", gp.file.start_offset);
     //debug_info("file_name: %s\n", file_name);
 
     errno = 0;
-    gp.fp = fopen(file_name, "rb");
+    gp.file.handle = fopen(file_name, "rb");
     errsv = errno;
-    if ( gp.fp == NULL)
+    if ( gp.file.handle == NULL)
     {
 //        printf("ERROR (0x%x): Could not open file: \"%s\"\n", errsv, gp.file_name);
         return -1;
     }
 
-    gp.file_size = getSizeFP(gp.fp);
-    if ( gp.file_size == 0 )
+    gp.file.size = getSizeFP(gp.file.handle);
+    if ( gp.file.size == 0 )
     {
         s = -2;
         goto exit;
     }
 
-    if ( sanitizeArgs(gp.abs_file_offset, gp.file_size) != 0 )
+    if ( sanitizeArgs(gp.file.abs_offset, gp.file.size) != 0 )
     {
         // return no error, so not NULL initialized data is returned
         s = 0;
         goto exit;
     }
 
-    n = readFile(gp.fp, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
+    n = readFile(gp.file.handle, gp.file.abs_offset, BLOCKSIZE_LARGE, gp.data.block_main);
     if ( !n )
     {
         s = -3;
@@ -111,8 +111,8 @@ int getBasicInfoA(const char* file, size_t start, uint8_t force, HeaderData* hd)
     parseHeader(force, hd, &gp, &pep, &elfp);
 
 exit:
-    if ( gp.fp != NULL )
-        fclose(gp.fp);
+    if ( gp.file.handle != NULL )
+        fclose(gp.file.handle);
 
     return s;
 }
@@ -167,12 +167,12 @@ int getPEHeaderDataA(const char* file, size_t start, PEHeaderData* pehd)
     memset(&pep, 0, sizeof(PEParams));
 
     gp.info_level = INFO_LEVEL_EXTENDED;
-    gp.abs_file_offset = start;
-    gp.start_file_offset = start;
-    gp.file_size = 0;
+    gp.file.abs_offset = start;
+    gp.file.start_offset = start;
+    gp.file.size = 0;
 
-//	memset(gp.block_large, 0, BLOCKSIZE_LARGE);
-//	memset(gp.block_standard, 0, BLOCKSIZE_SMALL);
+//	memset(gp.data.block_main, 0, BLOCKSIZE_LARGE);
+//	memset(gp.data.block_sub, 0, BLOCKSIZE_SMALL);
     memset(file_name, 0, PATH_MAX);
 
     // is used in parsing
@@ -185,42 +185,42 @@ int getPEHeaderDataA(const char* file, size_t start, PEHeaderData* pehd)
 //	initExtendedPEHeaderData(HD, DEFAULT_CODE_REGION_CAPACITY);
     expandFilePath(file, file_name);
 
-    //debug_info("abs_file_offset: 0x%lx\n", gp.abs_file_offset);
-    //debug_info("start_file_offset: 0x%lx\n", gp.start_file_offset);
+    //debug_info("abs_file_offset: 0x%lx\n", gp.file.abs_offset);
+    //debug_info("start_file_offset: 0x%lx\n", gp.file.start_offset);
     //debug_info("file_name: %s\n", file_name);
 
     errno = 0;
-    gp.fp = fopen(file_name, "rb");
+    gp.file.handle = fopen(file_name, "rb");
     errsv = errno;
-    if ( gp.fp == NULL)
+    if ( gp.file.handle == NULL)
     {
 //        printf("ERROR (0x%x): Could not open file: \"%s\"\n", errsv, gp.file_name);
         return -2;
     }
 
-    gp.file_size = getSizeFP(gp.fp);
-    if ( gp.file_size == 0 )
+    gp.file.size = getSizeFP(gp.file.handle);
+    if ( gp.file.size == 0 )
     {
         s = -3;
         goto exit;
     }
 
-    if ( sanitizeArgs(gp.abs_file_offset, gp.file_size) != 0 )
+    if ( sanitizeArgs(gp.file.abs_offset, gp.file.size) != 0 )
     {
         s = -4;
         goto exit;
     }
 
-    n = readFile(gp.fp, gp.abs_file_offset, BLOCKSIZE_LARGE, gp.block_large);
+    n = readFile(gp.file.handle, gp.file.abs_offset, BLOCKSIZE_LARGE, gp.data.block_main);
     if ( !n )
     {
         s = -5;
         goto exit;
     }
 
-    if ( gp.abs_file_offset + MIN_FILE_SIZE > gp.file_size )
+    if ( gp.file.abs_offset + MIN_FILE_SIZE > gp.file.size )
     {
-        header_error("ERROR: filesize (0x%zx) is too small for a start offset of 0x%zx!\n", gp.file_size, gp.abs_file_offset);
+        header_error("ERROR: filesize (0x%zx) is too small for a start offset of 0x%zx!\n", gp.file.size, gp.file.abs_offset);
         s = -6;
         goto exit;
     }
@@ -235,8 +235,8 @@ int getPEHeaderDataA(const char* file, size_t start, PEHeaderData* pehd)
     }
 
 exit:
-    if ( gp.fp != NULL )
-        fclose(gp.fp);
+    if ( gp.file.handle != NULL )
+        fclose(gp.file.handle);
 
     return s;
 }

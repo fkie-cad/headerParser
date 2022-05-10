@@ -221,7 +221,7 @@ int parsePEHeader(
 
 //    debug_info("parsePEHeader\n");
 
-    s = PE_readImageDosHeader(image_dos_header, gp->file.start_offset, gp->file.size, gp->block_large);
+    s = PE_readImageDosHeader(image_dos_header, gp->file.start_offset, gp->file.size, gp->data.block_main);
     if ( s != 0 )
         return -2;
     
@@ -230,7 +230,7 @@ int parsePEHeader(
         PE_printImageDosHeader(image_dos_header, gp->file.start_offset);
 #endif
 
-    if ( !checkBytes(MAGIC_DOS_STUB_BEGINNING, MAGIC_DOS_STUB_BEGINNING_LN, &gp->block_large[PE_DOS_STUB_OFFSET]) )
+    if ( !checkBytes(MAGIC_DOS_STUB_BEGINNING, MAGIC_DOS_STUB_BEGINNING_LN, &gp->data.block_main[PE_DOS_STUB_OFFSET]) )
     {
 #if LIB_MODE == 0
         if ( pep->info_level & INFO_LEVEL_PE_DOS_H )
@@ -252,7 +252,7 @@ int parsePEHeader(
     }
 
     pe_header_type = PE_checkPESignature(image_dos_header->e_lfanew, gp->file.start_offset, &gp->file.abs_offset, gp->file.size,
-                                      gp->file.handle, gp->block_standard, gp->block_large);
+                                      gp->file.handle, gp->data.block_sub, gp->data.block_main);
     if ( pe_header_type != 1 && !force )
     {
 //        debug_info("No valid PE00 section signature found!\n");
@@ -272,7 +272,7 @@ int parsePEHeader(
     hd->endian = ENDIAN_LITTLE;
 
     s = PE_readCoffHeader((size_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE, coff_header, gp->file.start_offset,
-                       &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->block_large);
+                       &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->data.block_main);
     if ( s != 0 ) return -5;
     
 #if LIB_MODE == 0
@@ -285,7 +285,7 @@ int parsePEHeader(
 
     optional_header_offset = (size_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE + PE_COFF_FILE_HEADER_SIZE;
 //    debug_info(" - optional_header_offset: #%zx (%zu)\n", optional_header_offset, optional_header_offset);
-    s = PE_readOptionalHeader(optional_header_offset, opt_header, gp->file.start_offset, &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->block_large);
+    s = PE_readOptionalHeader(optional_header_offset, opt_header, gp->file.start_offset, &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->data.block_main);
     if ( s != 0 ) return -7;
     
 #if LIB_MODE == 0
@@ -298,46 +298,46 @@ int parsePEHeader(
     section_header_offset = (size_t)image_dos_header->e_lfanew + SIZE_OF_MAGIC_PE_SIGNATURE + PE_COFF_FILE_HEADER_SIZE + coff_header->SizeOfOptionalHeader;
 //    debug_info(" - section_header_offset: #%zx (%zu)\n", section_header_offset, section_header_offset);
     PE_readSectionHeader(section_header_offset, coff_header, gp->file.start_offset, &gp->file.abs_offset, gp->file.size, pep->info_level&INFO_LEVEL_PE_SEC_H,
-                         gp->file.handle, gp->block_standard, gp->block_large, &pehd->st, parse_svas, &pehd->svas, hd);
+                         gp->file.handle, gp->data.block_sub, gp->data.block_main, &pehd->st, parse_svas, &pehd->svas, hd);
 
 
     //if ( opt_header->NumberOfRvaAndSizes > 0 )
     {
         if ( pep->info_level & INFO_LEVEL_PE_IMP )
             PE_parseImageImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->file.start_offset,
-                                     &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->block_large, gp->block_standard, pep->info_level & INFO_LEVEL_PE_IMP_EX);
+                                     &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->data.block_main, gp->data.block_sub, pep->info_level & INFO_LEVEL_PE_IMP_EX);
 
         if (pep->info_level & INFO_LEVEL_PE_DIMP )
             PE_parseImageDelayImportTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->file.start_offset,
-                &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->block_large, gp->block_standard, pep->info_level & INFO_LEVEL_PE_DIMP_EX);
+                &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->data.block_main, gp->data.block_sub, pep->info_level & INFO_LEVEL_PE_DIMP_EX);
 
         if (pep->info_level & INFO_LEVEL_PE_BIMP )
-            PE_parseImageBoundImportTable(opt_header, gp->file.start_offset, &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->block_large, gp->block_standard);
+            PE_parseImageBoundImportTable(opt_header, gp->file.start_offset, &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->data.block_main, gp->data.block_sub);
 
         if ( pep->info_level & INFO_LEVEL_PE_EXP )
-            PE_parseImageExportTable(opt_header, coff_header->NumberOfSections, gp->file.start_offset, gp->file.size, gp->file.handle, gp->block_standard, pehd->svas);
+            PE_parseImageExportTable(opt_header, coff_header->NumberOfSections, gp->file.start_offset, gp->file.size, gp->file.handle, gp->data.block_sub, pehd->svas);
 
         if ( pep->info_level & INFO_LEVEL_PE_RES )
-            PE_parseImageResourceTable(opt_header, coff_header->NumberOfSections, gp->file.start_offset, gp->file.size, gp->file.handle, gp->block_standard, pehd->svas);
+            PE_parseImageResourceTable(opt_header, coff_header->NumberOfSections, gp->file.start_offset, gp->file.size, gp->file.handle, gp->data.block_sub, pehd->svas);
 
         if ( pep->info_level & INFO_LEVEL_PE_DBG )
-            PE_parseImageDebugTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->file.start_offset, &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->block_large, gp->block_standard, pep->info_level & INFO_LEVEL_PE_DBG_EX);
+            PE_parseImageDebugTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->file.start_offset, &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->data.block_main, gp->data.block_sub, pep->info_level & INFO_LEVEL_PE_DBG_EX);
 
         //if ( pep->info_level & INFO_LEVEL_PE_EXC )
-            //PE_parseImageExceptionTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->file.start_offset, &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->block_large, gp->block_standard);
+            //PE_parseImageExceptionTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->file.start_offset, &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->data.block_main, gp->data.block_sub);
 
         if (pep->info_level & INFO_LEVEL_PE_REL )
-            PE_parseImageBaseRelocationTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->file.start_offset, &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->block_large, gp->block_standard);
+            PE_parseImageBaseRelocationTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->file.start_offset, &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->data.block_main, gp->data.block_sub);
 
         if ( pep->info_level & INFO_LEVEL_PE_CRT )
-            PE_parseCertificates(opt_header, gp->file.start_offset, gp->file.size, pep->certificate_directory, gp->file.handle, gp->block_standard);
+            PE_parseCertificates(opt_header, gp->file.start_offset, gp->file.size, pep->certificate_directory, gp->file.handle, gp->data.block_sub);
 
         if (pep->info_level & INFO_LEVEL_PE_TLS )
-            PE_parseImageTLSTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->file.start_offset, &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->block_large, gp->block_standard);
+            PE_parseImageTLSTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->file.start_offset, &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->data.block_main, gp->data.block_sub);
     
         if (pep->info_level & INFO_LEVEL_PE_LCFG )
             PE_parseImageLoadConfigTable(opt_header, coff_header->NumberOfSections, pehd->svas, hd->h_bitness, gp->file.start_offset,
-                                          &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->block_standard);
+                                          &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->data.block_sub);
     }
     //else
     //{

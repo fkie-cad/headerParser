@@ -13,7 +13,7 @@
 #endif
 
 #ifndef PATH_MAX
-    #define PATH_MAX 4096
+    #define PATH_MAX (0x1000)
 #endif
 
 #define BLOCKSIZE_SMALL (0x200u)
@@ -33,7 +33,7 @@
 // _t_ type
 // _p_ pointer
 // _o_ offset
-#define GetIntXValueAtOffset(_t_, _p_, _o_) *((_t_*) &(_p_)[_o_])
+#define GetIntXValueAtOffset(_t_, _p_, _o_) (*((_t_*) &(_p_)[_o_]))
 
 
 
@@ -70,23 +70,23 @@ uint8_t info_show_offsets; // may be global.
 typedef struct GlobalParams
 {
     // dynamic
-//	struct data {
-    uint8_t block_standard[BLOCKSIZE_SMALL];
-    uint8_t block_large[BLOCKSIZE_LARGE];
-    //uint8_t* block_main;
-    //uint8_t* block_main_size;
-    //uint8_t* block_sub;
-    //uint8_t* block_sub_size;
-//    } data;
+	struct data {
+        uint8_t block_sub[BLOCKSIZE_SMALL];
+        uint8_t block_main[BLOCKSIZE_LARGE];
+        //uint8_t* block_main;
+        //uint8_t* block_main_size;
+        //uint8_t* block_sub;
+        //uint8_t* block_sub_size;
+    } data;
 
-    // static after init
+    // mostly const after init
 	struct file
     {
         //char file_name[PATH_MAX];
         FILE* handle;
         size_t size;
         size_t start_offset;
-        size_t abs_offset;
+        size_t abs_offset; // dynamic
     } file;
 
     uint8_t info_level; // may be global. TODO: delete this or the global one
@@ -147,37 +147,37 @@ typedef struct GlobalParams
 #define INFO_LEVEL_DEX_EXTENDED (INFO_LEVEL_DEX_FILE_H)
 
 
-#define INFO_LEVEL_MACHO_FILE_H (0x01)
-#define INFO_LEVEL_MACHO_SEG (0x02)
-#define INFO_LEVEL_MACHO_UUID (0x04)
-#define INFO_LEVEL_MACHO_ID_DYLIB (0x08)
-#define INFO_LEVEL_MACHO_PREBOUND_DYLIB (0x10)
-#define INFO_LEVEL_MACHO_SUB_FRAMEWORK (0x20)
-#define INFO_LEVEL_MACHO_SUB_UMBRELLA (0x40)
-#define INFO_LEVEL_MACHO_SUB_LIBRARY (0x80)
-#define INFO_LEVEL_MACHO_SUB_CLIENT (0x100)
-#define INFO_LEVEL_MACHO_SYMTAB (0x200)
-#define INFO_LEVEL_MACHO_DYSYMTAB (0x400)
-#define INFO_LEVEL_MACHO_LOAD_DYLINKER (0x800)
-#define INFO_LEVEL_MACHO_ID_DYLINKER (0x1000)
-#define INFO_LEVEL_MACHO_ROUTINES (0x2000)
-#define INFO_LEVEL_MACHO_THREAD (0x4000)
-#define INFO_LEVEL_MACHO_UNIXTHREAD (0x8000)
-#define INFO_LEVEL_MACHO_VERSION_MIN_MACOSX (0x10000)
-#define INFO_LEVEL_MACHO_VERSION_MIN_IPHONEOS (0x20000)
-#define INFO_LEVEL_MACHO_VERSION_MIN_TVOS (0x40000)
-#define INFO_LEVEL_MACHO_VERSION_MIN_WATCHOS (0x80000)
-#define INFO_LEVEL_MACHO_DYLD_INFO (0x100000)
-#define INFO_LEVEL_MACHO_DYLD_INFO_ONLY (0x200000)
-#define INFO_LEVEL_MACHO_CODE_SIGNATURE (0x400000)
-#define INFO_LEVEL_MACHO_SEGMENT_SPLIT_INFO (0x800000)
-#define INFO_LEVEL_MACHO_FUNCTION_STARTS (0x1000000)
-#define INFO_LEVEL_MACHO_DATA_IN_CODE (0x2000000)
-#define INFO_LEVEL_MACHO_DYLIB_CODE_SIGN_DRS (0x4000000)
-#define INFO_LEVEL_MACHO_LINKER_OPTIMIZATION_HINT (0x8000000)
-#define INFO_LEVEL_MACHO_SOURCE_VERSION (0x10000000)
-#define INFO_LEVEL_MACHO_BUILD_VERSION (0x20000000)
-#define INFO_LEVEL_MACHO_MAIN (0x40000000)
+#define INFO_LEVEL_MACHO_FILE_H                           (0x01)
+#define INFO_LEVEL_MACHO_SEG                              (0x02)
+#define INFO_LEVEL_MACHO_UUID                             (0x04)
+#define INFO_LEVEL_MACHO_ID_DYLIB                         (0x08)
+#define INFO_LEVEL_MACHO_PREBOUND_DYLIB                   (0x10)
+#define INFO_LEVEL_MACHO_SUB_FRAMEWORK                    (0x20)
+#define INFO_LEVEL_MACHO_SUB_UMBRELLA                     (0x40)
+#define INFO_LEVEL_MACHO_SUB_LIBRARY                      (0x80)
+#define INFO_LEVEL_MACHO_SUB_CLIENT                      (0x100)
+#define INFO_LEVEL_MACHO_SYMTAB                          (0x200)
+#define INFO_LEVEL_MACHO_DYSYMTAB                        (0x400)
+#define INFO_LEVEL_MACHO_LOAD_DYLINKER                   (0x800)
+#define INFO_LEVEL_MACHO_ID_DYLINKER                    (0x1000)
+#define INFO_LEVEL_MACHO_ROUTINES                       (0x2000)
+#define INFO_LEVEL_MACHO_THREAD                         (0x4000)
+#define INFO_LEVEL_MACHO_UNIXTHREAD                     (0x8000)
+#define INFO_LEVEL_MACHO_VERSION_MIN_MACOSX            (0x10000)
+#define INFO_LEVEL_MACHO_VERSION_MIN_IPHONEOS          (0x20000)
+#define INFO_LEVEL_MACHO_VERSION_MIN_TVOS              (0x40000)
+#define INFO_LEVEL_MACHO_VERSION_MIN_WATCHOS           (0x80000)
+#define INFO_LEVEL_MACHO_DYLD_INFO                    (0x100000)
+#define INFO_LEVEL_MACHO_DYLD_INFO_ONLY               (0x200000)
+#define INFO_LEVEL_MACHO_CODE_SIGNATURE               (0x400000)
+#define INFO_LEVEL_MACHO_SEGMENT_SPLIT_INFO           (0x800000)
+#define INFO_LEVEL_MACHO_FUNCTION_STARTS             (0x1000000)
+#define INFO_LEVEL_MACHO_DATA_IN_CODE                (0x2000000)
+#define INFO_LEVEL_MACHO_DYLIB_CODE_SIGN_DRS         (0x4000000)
+#define INFO_LEVEL_MACHO_LINKER_OPTIMIZATION_HINT    (0x8000000)
+#define INFO_LEVEL_MACHO_SOURCE_VERSION             (0x10000000)
+#define INFO_LEVEL_MACHO_BUILD_VERSION              (0x20000000)
+#define INFO_LEVEL_MACHO_MAIN                       (0x40000000)
 
 
 

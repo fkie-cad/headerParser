@@ -37,7 +37,7 @@ static const char* ZIP_getCompressionString(uint16_t type);
 
 /**
  * Check space left in large block, depending on offset and needed size.
- * If block_large is too small, read in new bytes into block_standard.
+ * If data.block_main is too small, read in new bytes into data.block_sub.
  * abs_file_offset is not adjusted.
  *
  * @param rel_offset size_t*
@@ -45,7 +45,7 @@ static const char* ZIP_getCompressionString(uint16_t type);
  * @param needed  uint16_t
  * @param block_s uint8_t[BLOCKSIZE_SMALL]
  * @param file_name const char*
- * @return uint8_t 0: failed, 1: nothing happend (enough space), 2: block_standard filled.
+ * @return uint8_t 0: failed, 1: nothing happend (enough space), 2: data.block_sub filled.
  */
 size_t readStandardBlockIfLargeBlockIsExceeded(
     size_t file_offset,

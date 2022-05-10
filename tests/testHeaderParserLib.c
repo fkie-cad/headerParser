@@ -90,15 +90,18 @@ int main(int argc, char** argv)
 
 void runParser(const char* src, size_t offset, uint8_t force)
 {
-	printf("=======runParser=======\n");
-	printf("src: %s\n", src);
-	printf("offset: 0x%zx\n", offset);
-	printf("force: %u\n", force);
-	printf("\n");
-	HeaderData* data = getBasicHeaderParserInfo(src, offset, force);
+    printf("=======runParser=======\n");
+    printf("src: %s\n", src);
+    printf("offset: 0x%zx\n", offset);
+    printf("force: %u\n", force);
+    printf("\n");
+    HeaderData* data = getBasicHeaderParserInfo(src, offset, force);
 
-	if ( data == NULL )
-		return;
+    if ( data == NULL)
+    {
+        printf("getBasicHeaderParserInfo returned NULL!\n");
+        return;
+    }
 
 	printHeaderData(data);
 
@@ -143,20 +146,20 @@ HeaderData* getPeGuessedHeaderData(const char* file_src)
 	}
 }
 
-void printHeaderData(HeaderData* data)
+void printHeaderData(HeaderData* hd)
 {
 	size_t i;
 	printf("\nHeaderData:\n");
 	printf("coderegions:\n");
-	for ( i = 0; i < data->code_regions_size; i++ )
+	for ( i = 0; i < hd->code_regions_size; i++ )
 	{
 		printf(" (%zu) %s: ( 0x%016zx - 0x%016zx )\n",
-			   i+1, data->code_regions[i].name, data->code_regions[i].start, data->code_regions[i].end);
+			   i+1, hd->code_regions[i].name, hd->code_regions[i].start, hd->code_regions[i].end);
 	}
 	printf("headertype: %s (%d)\n", getHeaderDataHeaderType(hd->headertype), hd->h_bitness);
-	printf("bitness: %d-bit\n", data->h_bitness);
-	printf("endian: %s (0x%x)\n", getHeaderDataEndianType(data->endian), data->endian);
-	printf("CPU_arch: %s (0x%x)\n", getHeaderDataArchitecture(data->CPU_arch), data->CPU_arch);
-	printf("Machine: %s\n", data->Machine);
+	printf("bitness: %d-bit\n", hd->h_bitness);
+	printf("endian: %s (0x%x)\n", getHeaderDataEndianType(hd->endian), hd->endian);
+	printf("CPU_arch: %s (0x%x)\n", getHeaderDataArchitecture(hd->CPU_arch), hd->CPU_arch);
+	printf("Machine: %s\n", hd->Machine);
 	printf("\n");
 }

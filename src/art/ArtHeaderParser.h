@@ -23,7 +23,7 @@ void parseArtHeader(PHeaderData hd, PGlobalParams gp)
 {
     ARTFileHeader009012 file_header;
 
-    ARTfillVersion(gp->file.start_offset, gp->file.size, gp->block_large);
+    ARTfillVersion(gp->file.start_offset, gp->file.size, gp->data.block_main);
 
     hd->headertype = HEADER_TYPE_ART;
 //	hd->endian = ( file_header.endian_tag == ART_ENDIAN_CONSTANT ) ? ENDIAN_LITTLE : ENDIAN_BIG;
@@ -32,7 +32,7 @@ void parseArtHeader(PHeaderData hd, PGlobalParams gp)
     hd->h_bitness = 32;
     hd->i_bitness = 32;
 
-    ARTreadFileHeader(&file_header, gp->file.start_offset, gp->file.size, gp->block_large);
+    ARTreadFileHeader(&file_header, gp->file.start_offset, gp->file.size, gp->data.block_main);
 
     if ( gp->info_level >= INFO_LEVEL_EXTENDED )
         ARTprintFileHeader009012(&file_header, gp->file.start_offset);

@@ -46,8 +46,8 @@ void parseDexHeader(PHeaderData hd, PGlobalParams gp)
     uint32_t i;
     uint8_t s;
     DEXFileHeader file_header = {0};
-    DEX_fillVersion(gp->file.start_offset, gp->block_large, gp->file.size);
-    DEX_readFileHeader(&file_header, gp->block_large, gp->file.start_offset, gp->file.size);
+    DEX_fillVersion(gp->file.start_offset, gp->data.block_main, gp->file.size);
+    DEX_readFileHeader(&file_header, gp->data.block_main, gp->file.start_offset, gp->file.size);
     char** strings = NULL;
 
 //    debug_info(" - architecture: %s\n", dex_arch_id_mapper[0].arch.name);
@@ -79,7 +79,7 @@ void parseDexHeader(PHeaderData hd, PGlobalParams gp)
         s = DEX_readItemIds(file_header.class_defs_off, file_header.class_defs_size, DEX_SIZE_OF_CLASS_DEF_ITEM, "Class Ids", DEX_fillClassDefItem, gp, strings);
     }
 
-    DEX_readMap(&file_header, gp->block_large, gp->info_level, &gp->file.abs_offset, gp->file.start_offset, hd, gp->file.handle, gp->file.size);
+    DEX_readMap(&file_header, gp->data.block_main, gp->info_level, &gp->file.abs_offset, gp->file.start_offset, hd, gp->file.handle, gp->file.size);
 
     if ( strings != NULL )
     {
@@ -166,8 +166,8 @@ uint8_t DEX_readItemIds(size_t offset,
         return 2;
 
     // read block at start to ease up offsetting
-//	i = readCustomBlock(gp->file_name, offset+gp->file.start_offset, BLOCKSIZE_LARGE, gp->block_large);
-    i = readFile(gp->file.handle, offset+gp->file.start_offset, BLOCKSIZE_LARGE, gp->block_large);
+//	i = readCustomBlock(gp->file_name, offset+gp->file.start_offset, BLOCKSIZE_LARGE, gp->data.block_main);
+    i = readFile(gp->file.handle, offset+gp->file.start_offset, BLOCKSIZE_LARGE, gp->data.block_main);
     if ( i == 0 )
     {
         header_error("ERROR: reading block failed.\n");
@@ -183,7 +183,7 @@ uint8_t DEX_readItemIds(size_t offset,
     {
         if ( !checkFileSpace(offset, gp->file.abs_offset, item_size, gp->file.size) )
             return 2;
-        if ( !checkLargeBlockSpace(&offset, &gp->file.abs_offset, item_size, gp->block_large, gp->file.handle) )
+        if ( !checkLargeBlockSpace(&offset, &gp->file.abs_offset, item_size, gp->data.block_main, gp->file.handle) )
             return 3;
 
         filler((uint32_t)offset, (uint32_t)i, size, gp, strings);
@@ -205,20 +205,20 @@ void DEX_fillStringIdItem(uint32_t offset,
     uint8_t utf16_size_ln;
     DexStringIdItem item;
     DexStringDataItem data;
-    unsigned char* ptr = &gp->block_large[offset];
+    unsigned char* ptr = &gp->data.block_main[offset];
     char* string = NULL;
 
     item.offset = *((uint32_t*) &ptr[DexStringIdItemOffsets.offset]);
 
-//	r_size = readCustomBlock(gp->file_name, item.offset+gp->file.start_offset, BLOCKSIZE_SMALL, gp->block_standard);
-    r_size = readFile(gp->file.handle, item.offset+(size_t)gp->file.start_offset, BLOCKSIZE_SMALL, gp->block_standard);
+//	r_size = readCustomBlock(gp->file_name, item.offset+gp->file.start_offset, BLOCKSIZE_SMALL, gp->data.block_sub);
+    r_size = readFile(gp->file.handle, item.offset+(size_t)gp->file.start_offset, BLOCKSIZE_SMALL, gp->data.block_sub);
     if ( r_size == 0 )
     {
         header_error("ERROR: Reading block failed!\n");
         return;
     }
 
-    ptr = &gp->block_standard[0];
+    ptr = &gp->data.block_sub[0];
     utf16_size_ln = (uint8_t)parseUleb128(ptr, DexStringDataItemOffsets.utf16_size, &utf16_size);
     data.utf16_size.val = utf16_size;
 //	data.data = item.offset;
@@ -232,7 +232,7 @@ void DEX_fillStringIdItem(uint32_t offset,
     strings[idx] = string;
 
     if ( gp->info_level >= INFO_LEVEL_EXTENDED )
-        DEX_printStringIdItem(&item, &data, strings, idx + 1, size, gp->file.abs_offset+offset, gp->file.start_offset, gp->block_standard);
+        DEX_printStringIdItem(&item, &data, strings, idx + 1, size, gp->file.abs_offset+offset, gp->file.start_offset, gp->data.block_sub);
 }
 
 void DEX_fillTypeIdItem(uint32_t offset,
@@ -242,7 +242,7 @@ void DEX_fillTypeIdItem(uint32_t offset,
                         char** strings)
 {
     DexTypeIdItem item;
-    unsigned char* ptr = &gp->block_large[offset];
+    unsigned char* ptr = &gp->data.block_main[offset];
 
     item.descriptor_idx = *((uint32_t*) &ptr[DexTypeIdItemOffsets.descriptor_idx]);
 
@@ -257,7 +257,7 @@ void DEX_fillProtoIdItem(uint32_t offset,
                          char** strings)
 {
     DexProtoIdItem item;
-    unsigned char* ptr = &gp->block_large[offset];
+    unsigned char* ptr = &gp->data.block_main[offset];
     (void)strings;
 
     item.shorty_idx = *((uint32_t*) &ptr[DexProtoIdItemOffsets.shorty_idx]);
@@ -275,7 +275,7 @@ void DEX_fillFieldIdItem(uint32_t offset,
                          char** strings)
 {
     DexFieldIdItem item;
-    unsigned char* ptr = &gp->block_large[offset];
+    unsigned char* ptr = &gp->data.block_main[offset];
 
     item.class_idx = *((uint16_t*) &ptr[DexFieldIdItemOffsets.class_idx]);
     item.type_idx = *((uint16_t*) &ptr[DexFieldIdItemOffsets.type_idx]);
@@ -292,7 +292,7 @@ void DEX_fillMethodIdItem(uint32_t offset,
                           char** strings)
 {
     DexMethodIdItem item;
-    unsigned char* ptr = &gp->block_large[offset];
+    unsigned char* ptr = &gp->data.block_main[offset];
 
     item.class_idx = *((uint16_t*) &ptr[DexMethodIdItemOffsets.class_idx]);
     item.proto_idx = *((uint16_t*) &ptr[DexMethodIdItemOffsets.proto_idx]);
@@ -309,7 +309,7 @@ void DEX_fillClassDefItem(uint32_t offset,
                           char** strings)
 {
     DexClassDefItem item;
-    unsigned char* ptr = &gp->block_large[offset];
+    unsigned char* ptr = &gp->data.block_main[offset];
 
     item.class_idx = *((uint32_t*) &ptr[DexClassDefItemOffsets.class_idx]);
     item.access_flags = *((uint32_t*) &ptr[DexClassDefItemOffsets.access_flags]);

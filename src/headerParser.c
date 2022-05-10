@@ -31,8 +31,8 @@
 //#define DILLER
 
 #define BIN_NAME "headerParser"
-#define BIN_VS "1.15.4"
-#define BIN_DATE "09.05.2022"
+#define BIN_VS "1.15.5"
+#define BIN_DATE "10.05.2022"
 
 #define LIN_PARAM_IDENTIFIER ('-')
 #define WIN_PARAM_IDENTIFIER ('/')
@@ -124,7 +124,7 @@ main(int argc, char** argv)
     debug_info("abs_file_offset: 0x%zx\n", gp.file.abs_offset);
     debug_info("start_file_offset: 0x%zx\n", gp.file.start_offset);
 
-    n = readFile(gp.file.handle, gp.file.abs_offset, BLOCKSIZE_LARGE, gp.block_large);
+    n = readFile(gp.file.handle, gp.file.abs_offset, BLOCKSIZE_LARGE, gp.data.block_main);
     if ( !n )
     {
         printf("Read failed.\n");
@@ -143,7 +143,7 @@ main(int argc, char** argv)
     initHeaderData(hd, DEFAULT_CODE_REGION_CAPACITY);
 
     parseHeader(force, hd, &gp, &pep, &elfp);
-    printHeaderData(gp.info_level, hd, gp.block_large);
+    printHeaderData(gp.info_level, hd, gp.data.block_main);
 
 exit:
     freeHeaderData(hd);

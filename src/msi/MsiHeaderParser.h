@@ -29,7 +29,7 @@ void parseMSIHeader(PHeaderData hd,
     int s = 0;
     MSIStructuredStorageHeader ssh;
 
-    s = MSI_readStructuredHeader(&ssh, gp->file.start_offset, gp->file.size, gp->block_large);
+    s = MSI_readStructuredHeader(&ssh, gp->file.start_offset, gp->file.size, gp->data.block_main);
     if ( s != 0 ) return;
     if ( gp->info_level >= INFO_LEVEL_EXTENDED )
         MSI_printStructuredStorageHeader(&ssh);
@@ -115,7 +115,7 @@ uint8_t MSI_searchPEs(MSIStructuredStorageHeader* ssh,
     debug_info("searchPEs\n");
     for ( offset = sec_size; offset < gp->file.size; offset+=sec_size)
     {
-        if ( PE_hasHeaderAtOffset(offset, &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->block_standard, gp->block_large) )
+        if ( PE_hasHeaderAtOffset(offset, &gp->file.abs_offset, gp->file.size, gp->file.handle, gp->data.block_sub, gp->data.block_main) )
         {
             if ( pe_count == 0 )
             {
@@ -136,7 +136,7 @@ uint8_t MSI_searchPEs(MSIStructuredStorageHeader* ssh,
         gp->file.start_offset = first_pe_offset;
         gp->file.abs_offset = first_pe_offset;
 
-        if ( !readFile(gp->file.handle, gp->file.abs_offset, BLOCKSIZE_LARGE, gp->block_large) )
+        if ( !readFile(gp->file.handle, gp->file.abs_offset, BLOCKSIZE_LARGE, gp->data.block_main) )
         {
             header_error("ERROR: Read failed.\n");
             return 0;

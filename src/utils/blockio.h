@@ -28,7 +28,7 @@ static uint8_t checkFileSpace(size_t rel_offset,
 
 /**
  * Check space left in large block, depending on offset and needed size.
- * If block_large is too small, read in new bytes starting form offset and adjust abs_file_offset and rel_offset.
+ * If data.block_main is too small, read in new bytes starting form offset and adjust abs_file_offset and rel_offset.
  *
  * @param rel_offset size_t*
  * @param abs_offset size_t*
@@ -45,7 +45,7 @@ static uint8_t checkLargeBlockSpace(size_t* rel_offset,
 
 /**
  * Check space left in standard block, depending on offset and needed size.
- * If block_standard is too small, read in new bytes starting form offset and adjust abs_file_offset.
+ * If data.block_sub is too small, read in new bytes starting form offset and adjust abs_file_offset.
  *
  * @param rel_offset size_t*
  * @param abs_offset size_t*
@@ -62,7 +62,7 @@ static uint8_t checkStandardBlockSpace(size_t* rel_offset,
 
 /**
  * Check space left in large block, depending on offset and needed size.
- * If block_large is too small, read in new bytes into block_standard.
+ * If data.block_main is too small, read in new bytes into data.block_sub.
  * abs_file_offset is not adjusted.
  *
  * @param rel_offset size_t*
@@ -70,7 +70,7 @@ static uint8_t checkStandardBlockSpace(size_t* rel_offset,
  * @param needed  uint16_t
  * @param block_s unsigned char[BLOCKSIZE_SMALL]
  * @param file_name const char*
- * @return uint8_t 0: failed, 1: nothing happend (enough space), 2: block_standard filled.
+ * @return uint8_t 0: failed, 1: nothing happend (enough space), 2: data.block_sub filled.
  */
 static size_t readStandardBlockIfLargeBlockIsExceeded(size_t rel_offset,
                                                        size_t abs_offset,
@@ -106,7 +106,7 @@ uint8_t checkFileSpace(size_t rel_offset,
 
 /**
  * Check space left in large block, depending on offset and needed size.
- * If block_large is too small, read in new bytes starting form offset and adjust abs_file_offset and rel_offset.
+ * If data.block_main is too small, read in new bytes starting form offset and adjust abs_file_offset and rel_offset.
  *
  * @param rel_offset size_t*
  * @param abs_offset size_t*
@@ -148,7 +148,7 @@ uint8_t checkLargeBlockSpace(size_t* rel_offset,
 
 /**
  * Check space left in standard block, depending on offset and needed size.
- * If block_standard is too small, read in new bytes starting form offset and adjust abs_file_offset.
+ * If data.block_sub is too small, read in new bytes starting form offset and adjust abs_file_offset.
  *
  * @param rel_offset size_t*
  * @param abs_offset size_t*

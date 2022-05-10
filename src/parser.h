@@ -53,39 +53,39 @@ void parseHeader(uint8_t force, PHeaderData hd, PGlobalParams gp, PPEParams pep,
     {
         parsePEHeaderData(FORCE_PE, hd, gp, pep);
     }
-    else if ( isELF(gp->block_large) )
+    else if ( isELF(gp->data.block_main) )
     {
         parseELFHeader(hd, gp, elfp);
     }
-    else if ( isPE(gp->block_large) )
+    else if ( isPE(gp->data.block_main) )
     {
         parsePEHeaderData(FORCE_NONE, hd, gp, pep);
     }
-    else if ( isDEX(gp->block_large) )
+    else if ( isDEX(gp->data.block_main) )
     {
         parseDexHeader(hd, gp);
     }
-    else if ( isMachO(gp->block_large) )
+    else if ( isMachO(gp->data.block_main) )
     {
         parseMachOHeader(hd, gp);
     }
-    else if ( isMSI(gp->block_large) )
+    else if ( isMSI(gp->data.block_main) )
     {
         parseMSIHeader(hd, gp, pep);
     }
-//	else if ( isPEArchive(gp->block_large))
+//	else if ( isPEArchive(gp->data.block_main))
 //	{
 //		header_info("INFO: Archive\n");
 //	}
-    else if ( isJavaClass(gp->block_large) )
+    else if ( isJavaClass(gp->data.block_main) )
     {
         parseJavaClassHeader(hd, gp);
     }
-    else if ( isZipArchive(gp->block_large) )
+    else if ( isZipArchive(gp->data.block_main) )
     {
         parseZip(hd, gp);
     }
-    else if ( isART(gp->block_large) )
+    else if ( isART(gp->data.block_main) )
     {
         parseArtHeader(hd, gp);
     }
@@ -173,21 +173,21 @@ const char* getHeaderDataEndianType(uint8_t id)
 //int initGlobalParams(GlobalParams* gp)
 //{
 //    memset(gp, 0, sizeof(GlobalParams));
-//    gp->block_large = (uint8_t*)malloc(BLOCKSIZE_LARGE);
-//    if ( !gp->block_large )
+//    gp->data.block_main = (uint8_t*)malloc(BLOCKSIZE_LARGE);
+//    if ( !gp->data.block_main )
 //        return -1;
-//    gp->block_standard = (uint8_t*)malloc(BLOCKSIZE_SMALL);
-//    if ( !gp->block_standard )
+//    gp->data.block_sub = (uint8_t*)malloc(BLOCKSIZE_SMALL);
+//    if ( !gp->data.block_sub )
 //        return -1;
 //}
 //
 //int freeGlobalParams(GlobalParams* gp)
 //{
-//    if ( gp->block_large )
-//        free(gp->block_large);
+//    if ( gp->data.block_main )
+//        free(gp->data.block_main);
 //
-//    if ( !gp->block_standard )
-//        free(gp->block_standard);
+//    if ( !gp->data.block_sub )
+//        free(gp->data.block_sub);
 //
 //    if ( !gp->block_dyn )
 //        free(gp->block_dyn);

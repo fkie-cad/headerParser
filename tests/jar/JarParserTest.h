@@ -76,9 +76,9 @@ void JarParserTest::expectJar(const char* src, bool expected_jar)
 	if ( !n )
 		return;
 	GlobalParams gp;
-    gp.abs_file_offset = 0;
-    gp.start_file_offset = 0;
-    gp.file_size = getSize(src);
+    gp.file.abs_offset = 0;
+    gp.file.start_offset = 0;
+    gp.file.size = getSize(src);
 	snprintf(file_name, PATH_MAX, "%s", src);
 
 //	uint16_t found_needles[5] = {0};
