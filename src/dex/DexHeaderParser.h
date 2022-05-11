@@ -44,7 +44,7 @@ static void DEX_fillCodeRegion(DexMapItem* item, PHeaderData hd);
 void parseDexHeader(PHeaderData hd, PGlobalParams gp)
 {
     uint32_t i;
-    uint8_t s;
+    int s;
     DEXFileHeader file_header = {0};
     DEX_fillVersion(gp->file.start_offset, gp->data.block_main, gp->file.size);
     DEX_readFileHeader(&file_header, gp->data.block_main, gp->file.start_offset, gp->file.size);
