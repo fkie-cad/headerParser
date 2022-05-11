@@ -1,17 +1,20 @@
 @echo off
 
-set prog_name=%~n0
-set user_dir="%~dp0"
+set my_name=%~n0
+set my_dir="%~dp0"
 
 set name=headerParser
-set target=%name%
-set ct=Application
+
+set /a app=0
+set /a lib=0
+set /a tlib=0
+set /a tplib=0
 
 set /a bitness=64
 set platform=x64
 set mode=Release
 
-set /a rt=0
+set /a rtl=0
 set /a dp=0
 set pdb=0
 
@@ -33,11 +36,23 @@ GOTO :ParseParams
     if [%1]==[/h] goto help
     if [%1]==[/help] goto help
 
-    IF /i "%~1"=="/t" (
-        SET target=%2
-        SHIFT
+    IF /i "%~1"=="/app" (
+        SET /a app=1
         goto reParseParams
     )
+    IF /i "%~1"=="/lib" (
+        SET /a lib=1
+        goto reParseParams
+    )
+    IF /i "%~1"=="/tlib" (
+        SET /a tlib=1
+        goto reParseParams
+    )
+    IF /i "%~1"=="/tplib" (
+        SET /a tplib=1
+        goto reParseParams
+    )
+
     IF /i "%~1"=="/b" (
         SET /a bitness=%~2
         SHIFT
@@ -58,8 +73,8 @@ GOTO :ParseParams
         SHIFT
         goto reParseParams
     )
-    IF /i "%~1"=="/rt" (
-        SET /a rt=1
+    IF /i "%~1"=="/rtl" (
+        SET /a rtl=1
         goto reParseParams
     )
     IF /i "%~1"=="/pdb" (
@@ -91,62 +106,39 @@ GOTO :ParseParams
     set build_dir=build\%bitness%
     if /i [%mode%]==[debug] set build_dir=build\debug\%bitness%
 
-    set valid=0
+    set /a valid=0
     if [%bitness%] == [32] (
         set platform=x86
-        set valid=1
+        set /a valid=1
     ) else (
         if [%bitness%] == [64] (
             set platform=x64
-            set valid=1
+            set /a valid=1
         )
     )
-    if [%valid%] == [0] (
-        goto help
-    )
-    :: test valid targets
-    set valid=0
-    set test=0
-    if /i [%target%] == [%name%] (
-        set valid=1
-        set proj=HeaderParser.vcxproj
-    )
-    if /i [%target%] == [%name%_lib] (
-        set valid=1
-        set proj=HeaderParser.vcxproj
-    )
-    if /i [%target%] == [TestLib] (
-        set test=1
-        set valid=1
-        set proj=tests\Tests.vcxproj
-    )
-    if /i [%target%] == [TestPELib] (
-        set test=1
-        set valid=1
-        set proj=tests\Tests.vcxproj
-    )
-    if [%valid%] == [0] (
+    if %valid% == 0 (
         goto help
     )
 
-    :: set ConfigurationType
-    set ct=Application
-    if /i [%target%] == [%name%_lib] (
-        set ct=DynamicLibrary
+    :: test valid targets
+    set /a "valid=%app%+%lib%+%tlib%+%tplib%"
+    if %valid% == 0 (
+        set /a app=1
     )
+
 
     :: set runtime lib
     set rtlib=No
     set valid=0
     if /i [%mode%] == [debug] (
-        if [%rt%] == [1] (
+        if [%rtl%] == [1] (
             set rtlib=Debug
         )
         set pdb=1
         set valid=1
     ) else (
         if /i [%mode%] == [release] (
-            if [%rt%] == [1] (
+            if [%rtl%] == [1] (
                 set rtlib=Release
             )
             set valid=1
@@ -157,8 +149,8 @@ GOTO :ParseParams
     )
 
     if [%verbose%] == [1] (
-        echo target=%target%
-        echo ConfigurationType=%ct%
+        echo app=%app%
+        echo lib=%lib%
         echo bitness=%bitness%
         echo platform=%platform%
         echo mode=%mode%
@@ -169,46 +161,65 @@ GOTO :ParseParams
         echo proj=%proj%
     )
 
-    set vcvars=""
+    set vcvars=call :: pseudo nop command to prevent if else bug in :build
     :: WHERE %msbuild% >nul 2>nul
     :: IF %ERRORLEVEL% NEQ 0 set vcvars="%buildTools:~1,-1%\VC\Auxiliary\Build\vcvars%bitness%.bat"
     if [%VisualStudioVersion%] EQU [] (
         set vcvars="%buildTools:~1,-1%\VC\Auxiliary\Build\vcvars%bitness%.bat"
     )
 
-    if [%test%] == [0] (
-        goto build
-    ) else (
-        goto buildTest
-    )
+    if %app% == 1 (
+        call :build HeaderParser.vcxproj Application
+    ) 
+    if %lib% == 1 (
+        call :build HeaderParser.vcxproj DynamicLibrary
+    ) 
+    if %tlib% == 1 (
+        call :build Tests.vcxproj Application TestLib
+    ) 
+    if %tplib% == 1 (
+        call :build Tests.vcxproj Application TestPELib
+    ) 
 
 :build
-    cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:PlatformToolset=%pts% /p:Configuration=%mode% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct%  /p:DebugPrint=%dp%  & exit"
+    setlocal
+        set proj=%1
+        set ct=%2
+        cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:PlatformToolset=%pts% /p:Configuration=%mode% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct%  /p:DebugPrint=%dp%  & exit"
 
+    endlocal
     exit /B 0
+
 
 :buildTest
-    if [%vcvars%] EQU [] ( 
-        cmd /k "msbuild %proj% /p:Platform=%platform% /p:Configuration=%mode% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct% /p:TestTarget=%target% & exit"
-    ) else (
-        cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:Configuration=%mode% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct% /p:TestTarget=%target% & exit"
-    )
+    setlocal
+        set proj=%1
+        set ct=%2
+        set target=%3
 
+        cmd /k "msbuild %proj% /p:Platform=%platform% /p:Configuration=%mode% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct% /p:TestTarget=%target% & exit"
+        
+    endlocal
     exit /B 0
 
+
 :usage
-    echo Usage: %prog_name% [/t %name%^|%name%_lib] [/b 32^|64] [/m Debug^|Release] [/rt] [/pdb] [/bt C:\Build\Tools\] [/v] [/h]
-    echo Default: %prog_name% [/t %target% /b %bitness% /m %mode% /bt %buildTools%]
+    echo Usage: %my_name% [/app] [/lib] [/b ^<bitness^>] [/m ^<mode^>] [/rtl] [/pdb] [/pts ^<toolset^>] [/bt ^<path^>] [/v] [/h]
+::    echo Usage: %my_name% [/app] [/lib] [/b ^<bitness^>] [/m ^<mode^>] [/rtl] [/pdb] [/pts ^<toolset^>] [/bt ^<path^>] [/v] [/h]
+    echo Default: %my_name% [/app /b %bitness% /m %mode% /bt %buildTools%]
     exit /B 0
     
 :help
     call :usage
     echo.
+    echo Targets:
+    echo /app Build HeaderParser.exe application.
+    echo /lib Build HeaderParser.dll library.
+    echo.
     echo Options:
-    echo /t Target to build: %name%^|%name%_lib. Default: %name%.
     echo /b Target bitness: 32^|64. Default: 64.
     echo /m Build mode: Debug^|Release. Default: Release.
-    echo /rt Statically include LIBCMT.lib. May be needed if a "VCRUNTIMExxx.dll not found Error" occurs on the target system.
+    echo /rtl Statically include runtime libs. May be needed if a "VCRUNTIMExxx.dll not found Error" occurs on the target system.
     echo /pdb Include pdb symbols into release build. Default in debug mode. 
     echo /bt Custom path to Microsoft Visual Studio BuildTools
     echo /pts Platformtoolset. If WDK is not installed, set this to "v142". Default: "WindowsApplicationForDrivers10.0".

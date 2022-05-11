@@ -13,6 +13,7 @@
 #include "headerParserLibPE.h"
 #include "headerDataHandler.h"
 
+#include "errorCodes.h"
 #include "Globals.h"
 #include "utils/Helper.h"
 #include "utils/common_fileio.h"
