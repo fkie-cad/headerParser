@@ -175,11 +175,13 @@ GOTO :ParseParams
         call :build HeaderParser.vcxproj DynamicLibrary
     ) 
     if %tlib% == 1 (
-        call :build Tests.vcxproj Application TestLib
+        call :build tests\Tests.vcxproj Application TestLib
     ) 
     if %tplib% == 1 (
-        call :build Tests.vcxproj Application TestPELib
+        call :build tests\Tests.vcxproj Application TestPELib
     ) 
+
+    exit /b %errorlevel%
 
 :build
     setlocal
@@ -188,7 +190,7 @@ GOTO :ParseParams
         cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:PlatformToolset=%pts% /p:Configuration=%mode% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct%  /p:DebugPrint=%dp%  & exit"
 
     endlocal
-    exit /B 0
+    exit /B %errorlevel%
 
 
 :buildTest
@@ -200,7 +202,7 @@ GOTO :ParseParams
         cmd /k "msbuild %proj% /p:Platform=%platform% /p:Configuration=%mode% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct% /p:TestTarget=%target% & exit"
         
     endlocal
-    exit /B 0
+    exit /B %errorlevel%
 
 
 :usage
@@ -226,4 +228,5 @@ GOTO :ParseParams
     echo.
     echo /v more verbose output
     echo /h print this
+
     exit /B 0
