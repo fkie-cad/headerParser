@@ -197,7 +197,8 @@ class HeaderParserTest(unittest.TestCase):
         return ln
 
     def get_header_parser_raw_output(self, file, i=1):
-        parser_process = subprocess.Popen([self._get_header_parser_path(), file, '-i', str(i)], stdout=subprocess.PIPE)
+        hp = self._get_header_parser_path()
+        parser_process = subprocess.Popen([hp, file, '-i', str(i)], stdout=subprocess.PIPE)
         output = parser_process.communicate()[0]
         return output
 
@@ -207,7 +208,7 @@ class HeaderParserTest(unittest.TestCase):
 
     def _get_header_parser_path(self):
         this_dir = os.path.dirname(os.path.abspath(__file__))
-        return os.path.join(this_dir, '../headerParser')
+        return os.path.join(this_dir, '../build/headerParser')
 
     def _parse_x_regions_with_header_parser(self, file):
         parser_process = subprocess.Popen([self._get_header_parser_path(), file], stdout=subprocess.PIPE)

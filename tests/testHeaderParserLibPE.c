@@ -9,6 +9,9 @@
 #include <stdint.h>
 #include <string.h>
 
+uint8_t info_level; // may be global.
+uint8_t info_show_offsets; // may be global.
+
 #include "../src/HeaderData.h"
 #include "../src/stringPool.h"
 #include "../src/utils/Converter.h"

@@ -13,6 +13,7 @@
 
 #include <gtest/gtest.h>
 
+#include "../../src/errorCodes.h"
 #include "../../src/Globals.h"
 #include "../../src/utils/Helper.h"
 
