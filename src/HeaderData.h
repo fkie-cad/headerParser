@@ -130,7 +130,7 @@ enum ARCHITECTURE_IDS {
 
 enum endian_type_ids { ENDIAN_NONE, ENDIAN_LITTLE, ENDIAN_BIG };
 
-#define MACHINE_NONE ("unsupported")
+#define MACHINE_NONE "unsupported"
 
 #define DEFAULT_CODE_REGION_CAPACITY (2)
 

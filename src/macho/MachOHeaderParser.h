@@ -301,6 +301,8 @@ int MachO_fillMachHeader(MachHeader64* h,
 {
     unsigned char *ptr;
 
+    memset(h, 0, sizeof(MachHeader64));
+
     if ( !checkFileSpace(0, start_file_offset, SIZE_OF_MACHO_O_HEADER_64, file_size) )
         return 1;
 

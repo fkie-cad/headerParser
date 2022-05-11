@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(HeaderParser VERSION 1.0.9 DESCRIPTION "A PE, ELF and other types header parser" LANGUAGES C)
+project(HeaderParser VERSION 1.15.5 DESCRIPTION "A PE, ELF and other types header parser" LANGUAGES C)
 
 if (WIN32)
     message("No cmake support on Windows. Use msbuild and winBuild.bat.")
@@ -7,10 +7,10 @@ if (WIN32)
 endif()
 
 set(LANGUAGE C)
-set(CMAKE_C_STANDARD 90)
+#set(CMAKE_C_STANDARD 90)
 
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall -pedantic -Werror=return-type -Werror=overflow -Werror=format -D_FILE_OFFSET_BITS=64")
-set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -Wl,-z,relro,-z,now -fno-builtin -Werror=return-type -Werror=overflow -D_FILE_OFFSET_BITS=64 -Ofast")
+set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -Wl,-z,relro,-z,now -fno-builtin -Wall -pedantic  -Werror=return-type -Werror=overflow -D_FILE_OFFSET_BITS=64 -Ofast")
 
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address -fsanitize=leak -fno-omit-frame-pointer")
 #	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=undefined") # multiple times occuring due to raw bytes casting,  etc.

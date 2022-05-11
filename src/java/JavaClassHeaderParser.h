@@ -1,6 +1,11 @@
 #ifndef HEADER_PARSER_JAVA_JAVA_CLASS_HEADER_PARSER_H
 #define HEADER_PARSER_JAVA_JAVA_CLASS_HEADER_PARSER_H
 
+
+const unsigned char MAGIC_JAVA_CLASS_BYTES[] = { 0xCA, 0xFE, 0xBA, 0xBE };
+#define MAGIC_JAVA_CLASS_BYTES_LN (sizeof(MAGIC_JAVA_CLASS_BYTES))
+
+
 struct JavaClassHeader {
     uint32_t magic_number;
     uint16_t minor_version;

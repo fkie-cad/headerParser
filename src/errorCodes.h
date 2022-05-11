@@ -6,5 +6,6 @@
 #define HP_ERROR_BAF                (0xFFFFFFFD)
 #define ERROR_DATA_DIR_TOO_SMALL    (0xFFFFFFFC)
 #define ERROR_DATA_BEYOND_FILE_SIZE (0xFFFFFFFB)
+#define ERROR_ALLOCATING            (0xFFFFFFFA)
 
 #endif

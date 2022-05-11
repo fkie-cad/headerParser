@@ -8,6 +8,10 @@
 #include <stdint.h>
 #include <wchar.h>
 
+
+const unsigned char MAGIC_PE_ARCHIV_BYTES[] = { 0x21, 0x3C, 0x61, 0x72, 0x63, 0x68, 0x3E };
+#define MAGIC_PE_ARCHIV_BYTES_LN (sizeof(MAGIC_PE_ARCHIV_BYTES))
+
 const unsigned char MAGIC_PE_BYTES[2] = { 0x4D, 0x5A };
 const unsigned char MAGIC_PE_SIGNATURE[4] = { 0x50, 0x45, 0x00, 0x00 };
 const unsigned char MAGIC_NE_SIGNATURE[2] = { 0x4E, 0x45 };

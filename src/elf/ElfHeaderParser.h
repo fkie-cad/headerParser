@@ -419,7 +419,7 @@ void Elf_readProgramHeaderTableEntries(
     ElfProgramHeaderOffsets ph_offsets = Elf_getProgramHeaderOffsets(fh);
     Elf64ProgramHeader program_header;
     uint32_t entry_size = ( fh->EI_CLASS == ELFCLASS32 ) ? sizeof(Elf32ProgramHeader) : sizeof(Elf64ProgramHeader);
-    
+
 #if LIB_MODE == 0
     if ( ilevel & INFO_LEVEL_ELF_PROG_H )
         printf("Program Header Table:\n");
@@ -441,7 +441,7 @@ void Elf_readProgramHeaderTableEntries(
         ptr = &block_l[offset];
 
         Elf_readProgramHeaderTableEntry(ptr, &ph_offsets, fh, &program_header);
-        
+
 #if LIB_MODE == 0
         if ( ilevel & INFO_LEVEL_ELF_PROG_H )
             Elf_printProgramHeaderTableEntry(&program_header, i, fh->e_phnum, *abs_file_offset+offset, bitness);
@@ -734,7 +734,6 @@ int Elf_getSectionTableEntryByNameType(
 
     *abs_file_offset = table_start;
     ElfSectionHeaderOffsets sh_offsets = Elf_getSectionHeaderOffsets(fh);
-    CodeRegionData code_region_data;
 
     for ( i = 0; i < fh->e_shnum; i++ )
     {

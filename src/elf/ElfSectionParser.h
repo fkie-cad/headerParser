@@ -27,7 +27,7 @@ int Elf_parseSymTab(
     int s = 0;
     size_t fo;
     size_t size = 0;
-    size_t s_end = 0;
+//    size_t s_end = 0;
     unsigned char* ptr = NULL;
     size_t offset = 0;
     size_t h_size = sizeof(Elf64_Sym);
@@ -49,7 +49,7 @@ int Elf_parseSymTab(
 
     // read new block to ease up offsetting
     fo = start_file_offset + (size_t)sh->sh_offset;
-    s_end = start_file_offset + (size_t)sh->sh_offset + (size_t)sh->sh_size;
+//    s_end = start_file_offset + (size_t)sh->sh_offset + (size_t)sh->sh_size;
     size = readFile(fp, fo, buffer_size, buffer);
     if ( size == 0 )
         return -1;

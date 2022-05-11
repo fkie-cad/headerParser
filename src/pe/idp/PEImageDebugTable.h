@@ -49,7 +49,6 @@ int PE_parseImageDebugTable(
 )
 {
     size_t table_fo;
-    size_t fo;
     size_t offset;
     size_t dte_offset;
     size_t size;

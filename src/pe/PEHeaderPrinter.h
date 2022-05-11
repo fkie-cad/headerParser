@@ -1027,7 +1027,7 @@ const char* Pe_getDebugTypeString(uint32_t type)
         case PE_IMAGE_DEBUG_TYPE_R2R_PERF_MAP: return "R2R_PERF_MAP";
         default: return "UNKNOWN";
     };
-};
+}
 
 void PE_printDebugTableEntry(PE_DEBUG_TABLE_ENTRY* e, uint32_t i, uint32_t nr_of_entries, size_t file_offset)
 {

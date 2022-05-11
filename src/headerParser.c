@@ -15,6 +15,13 @@
 #define LIB_MODE (0)
 #endif
 
+
+uint8_t info_level; // may be global.
+uint8_t info_show_offsets; // may be global.
+
+const char* FORCE_PE_STR = "pe";
+
+
 #include "print.h"
 #include "utils/env.h"
 #include "errorCodes.h"
@@ -31,8 +38,8 @@
 //#define DILLER
 
 #define BIN_NAME "headerParser"
-#define BIN_VS "1.15.5"
-#define BIN_DATE "10.05.2022"
+#define BIN_VS "1.15.6"
+#define BIN_DATE "11.05.2022"
 
 #define LIN_PARAM_IDENTIFIER ('-')
 #define WIN_PARAM_IDENTIFIER ('/')
@@ -41,7 +48,6 @@
 #else
 #define PARAM_IDENTIFIER LIN_PARAM_IDENTIFIER
 #endif
-
 
 static void printUsage();
 static void printHelp();

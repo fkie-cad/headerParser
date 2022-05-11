@@ -2,8 +2,8 @@
 
 name=headerParser
 def_target=${name}
-pos_targets="${def_target}|headerParser_so|clean"
-target=${def_target}
+pos_targets="app|lib|pck|cln"
+target="app"
 def_mode=Release
 mode=${def_mode}
 help=0
@@ -89,8 +89,8 @@ function buildPackage()
 }
 
 function printUsage() {
-    echo "Usage: $0 [-t=${pos_targets}] [-m=Debug|Release] [-h]"
-    echo "Default: $0 [-t=${def_target}] [-m=${def_mode}]"
+    echo "Usage: $0 [-t ${pos_targets}] [-m Debug|Release] [-h]"
+    echo "Default: $0 [-t app -m ${def_mode}]"
     return 0;
 }
 
@@ -98,6 +98,10 @@ function printHelp() {
     printUsage
     echo ""
     echo "-t A possible target: ${pos_targets}"
+    echo "  * app: build headerParser application"
+    echo "  * lib: build headerParser shared library"
+    echo "  * pck: build headerParser application and clean up build dir"
+    echo "  * cln: clean up build dir"
     echo "-m A compile mode: Release|Debug"
     echo "-h Print this."
     return 0;
@@ -142,14 +146,28 @@ echo "target: "${target}
 echo "mode: "${mode}
 echo "build_dir: "${build_dir}
 
-if [[ ${target} == "clean" || ${target} == "Clean" ]]; then
+if [[ ${target} == "cln" || ${target} == "clean" ]]; then
     clean ${build_dir}
     exit $?
-elif [[ ${target} == ${name}_pck ]]; then
+elif [[ ${target} == "pck" ]]; then
+    target=${name}_pck
+
     buildPackage ${name} ${release_build_dir} Release
+
     exit $?
 else
+    if [[ ${target} == "app" ]]; then
+        target=${name}
+    elif [[ ${target} == "lib" ]]; then
+        target=${name}_so
+    elif [[ ${target} == "tlib" ]]; then
+        target=testHeaderParserLib
+    elif [[ ${target} == "tplib" ]]; then
+        target=testHeaderParserLibPE
+    fi
+
     buildTarget ${target} ${build_dir} ${mode} ${debug_print}
+
     exit $?
 fi
 

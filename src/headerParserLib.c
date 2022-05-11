@@ -9,6 +9,9 @@
 #include <stdint.h>
 #include <string.h>
 
+uint8_t info_level; // may be global.
+uint8_t info_show_offsets; // may be global.
+
 #include "headerParserLib.h"
 #include "headerParserLibPE.h"
 #include "headerDataHandler.h"

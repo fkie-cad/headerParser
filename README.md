@@ -18,8 +18,8 @@ Compiles and runs under
 
 
 ## Version ##
-1.15.5  
-Last changed: 10.05.2022
+1.15.6  
+Last changed: 11.05.2022
 
 ## REQUIREMENTS ##
 - Linux
@@ -32,7 +32,7 @@ Last changed: 10.05.2022
 ## BUILD ##
 ### Linux (gcc) & cmake ###
 ```bash
-$ ./linuxBuild.sh [-t headerParser] [-m Release|Debug] [-h]  
+$ ./linuxBuild.sh [-t app] [-m Release|Debug] [-h]  
 ```
 
 ### Linux (gcc) ###
@@ -45,11 +45,13 @@ Use `clang` instead of `gcc` in Termux on Android.
 
 ### Windows (MsBuild) ###
 ```bash
-$ winBuild.bat [/t headerParser] [/m <Release|Debug>] [/b <32|64>] [/rt] [/pdb] [/bt <a\path>] [/pts <PlatformToolset>] [/h]
+$ winBuild.bat [/app] [/m <Release|Debug>] [/b <32|64>] [/rtl] [/pdb] [/bt <path>] [/pts <PlatformToolset>] [/h]
 ```
 This will run in a normal cmd.  
 The correct path to your build tools may be passed as a parameter or changed in the script [winBuild.bat](winBuild.bat) itself.  
-```
+
+In a developer cmd you can also type:
+```bash
 $devcmd> msbuild HeaderParser.vcxproj /p:Configuration=<Release|Debug> /p:Platform=<x64|x86> [/p:PlatformToolset=<v142|WindowsApplicationForDrivers10.0>]
 ```
 Use `PlatformToolset=v142` if WDK is not installed.
@@ -175,7 +177,7 @@ HeaderParser may also be build as a shared library.
 ### Build ###
 *Linux*
 ```bash
-./linuxBuild.sh -t headerParser_so [-m Release|Debug] [-h]
+./linuxBuild.sh -t lib [-m Release|Debug] [-h]
 ```
 or plain:
 ```bash
@@ -184,7 +186,7 @@ gcc -fPIC -Wl,-z,relro,-z,now -shared -Ofast -D_FILE_OFFSET_BITS=64 -o build/lib
 ```
 *Windows*
 ```bash
-winBuild.bat /t headerParser_lib [/m Release|Debug] [/b 32|64]
+winBuild.bat /lib [/m Release|Debug] [/b 32|64]
 ```
 
 ### Usage ###

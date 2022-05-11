@@ -47,7 +47,7 @@
 
 #define MAX_SIZE_OF_SECTION_NAME (128)
 
-const char* FORCE_PE_STR = "pe";
+
 #ifndef FORCE_NONE
 #define FORCE_NONE 0
 #endif
@@ -55,17 +55,8 @@ const char* FORCE_PE_STR = "pe";
 #define FORCE_PE 1
 #endif
 
-const unsigned char MAGIC_PE_ARCHIV_BYTES[] = { 0x21, 0x3C, 0x61, 0x72, 0x63, 0x68, 0x3E };
-#define MAGIC_PE_ARCHIV_BYTES_LN (sizeof(MAGIC_PE_ARCHIV_BYTES))
-
-const unsigned char MAGIC_JAVA_CLASS_BYTES[] = { 0xCA, 0xFE, 0xBA, 0xBE };
-#define MAGIC_JAVA_CLASS_BYTES_LN (sizeof(MAGIC_JAVA_CLASS_BYTES))
-
 enum InfoLevel { INFO_LEVEL_NONE=0, INFO_LEVEL_BASIC=1, INFO_LEVEL_EXTENDED=2 };
 
-
-uint8_t info_level; // may be global.
-uint8_t info_show_offsets; // may be global.
 
 typedef struct GlobalParams
 {
