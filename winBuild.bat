@@ -19,7 +19,6 @@ set buildTools="C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\"
 set pts=WindowsApplicationForDrivers10.0
 set verbose=0
 
-where msbuild
 
 :: default
 if [%1]==[] goto main
@@ -170,13 +169,12 @@ GOTO :ParseParams
         echo proj=%proj%
     )
 
-    set vcvars=
+    set vcvars=""
     :: WHERE %msbuild% >nul 2>nul
     :: IF %ERRORLEVEL% NEQ 0 set vcvars="%buildTools:~1,-1%\VC\Auxiliary\Build\vcvars%bitness%.bat"
     if [%VisualStudioVersion%] EQU [] (
         set vcvars="%buildTools:~1,-1%\VC\Auxiliary\Build\vcvars%bitness%.bat"
     )
-
 
     if [%test%] == [0] (
         goto build
@@ -185,15 +183,7 @@ GOTO :ParseParams
     )
 
 :build
-    if [%vcvars%] EQU [] ( 
-        cmd /k "msbuild %proj% /p:Platform=%platform% /p:PlatformToolset=%pts% /p:Configuration=%mode% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct%  /p:DebugPrint=%dp%  & exit"
-    ) else (
-        cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:PlatformToolset=%pts% /p:Configuration=%mode% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct%  /p:DebugPrint=%dp%  & exit"
-    )
-
-    :: if /i [%mode%]==[release] (
-    ::     certutil -hashfile %build_dir%\%target%.exe sha256 | find /i /v "sha256" | find /i /v "certutil" > %build_dir%\%target%.sha256
-    :: )
+    cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:PlatformToolset=%pts% /p:Configuration=%mode% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct%  /p:DebugPrint=%dp%  & exit"
 
     exit /B 0
 
