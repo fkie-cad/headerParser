@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#define ELF_SIZE_OF_SECTION_HEADER_32 (0x28)
+#define ELF_SIZE_OF_SECTION_HEADER_64 (0x40)
+
 typedef struct Elf32SectionHeader {
     uint32_t sh_name;
     uint32_t sh_type;

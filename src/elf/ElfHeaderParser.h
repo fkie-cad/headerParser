@@ -118,7 +118,8 @@ int Elf_readSectionByNameType(
     size_t* abs_file_offset,
     size_t file_size,
     uint8_t* block_l,
-    FILE* fp
+    FILE* fp,
+    uint8_t bitness
 );
 
 static
@@ -132,7 +133,8 @@ int Elf_getSectionTableEntryByNameType(
     size_t* abs_file_offset,
     size_t file_size,
     uint8_t* block_l,
-    FILE* fp
+    FILE* fp,
+    uint8_t bitness
 );
 
 static uint8_t Elf_sectionHeaderOffsetsAreValid(
@@ -145,7 +147,8 @@ static void Elf_readSectionHeaderTableEntry(
     const uint8_t* ptr,
     ElfSectionHeaderOffsets* sh_offsets,
     const Elf64FileHeader* fh,
-    Elf64SectionHeader* sh
+    Elf64SectionHeader* sh,
+    uint8_t bitness
 );
 
 static uint8_t Elf_checkSectionHeaderTableEntry(
@@ -244,6 +247,7 @@ int Elf_readFileHeader(Elf64FileHeader* file_header, uint8_t* block_l, size_t st
     ElfFileHeaderOffsets fh_offsets;
     uint8_t ei_class;
     uint8_t header_size;
+    int s = 0;
 
     ptr = &block_l[0];
     ei_class = *(&ptr[Elf64FileHeaderOffsets.EI_CLASS]);
@@ -289,7 +293,40 @@ int Elf_readFileHeader(Elf64FileHeader* file_header, uint8_t* block_l, size_t st
         return -1;
     }
 
-    return 0;
+    if ( file_header->EI_CLASS == ELFCLASS32 )
+    {
+        if ( file_header->e_phentsize != ELF_SIZE_OF_PROGRAM_HEADER_32 )
+        {
+            header_error("ERROR: e_phentsize (0x%x) is too small (0x%x)!", file_header->e_phentsize, ELF_SIZE_OF_PROGRAM_HEADER_32)
+            s = -1;
+        }
+        if ( file_header->e_shentsize != ELF_SIZE_OF_SECTION_HEADER_32 )
+        {
+            header_error("ERROR: e_shentsize (0x%x) is too small (0x%x)!", file_header->e_shentsize, ELF_SIZE_OF_SECTION_HEADER_32)
+            s = -1;
+        }
+    }
+    else if ( file_header->EI_CLASS == ELFCLASS64 )
+    {
+        if ( file_header->e_phentsize != ELF_SIZE_OF_PROGRAM_HEADER_64 )
+        {
+            header_error("ERROR: e_phentsize (0x%x) is too small (0x%x)!", file_header->e_phentsize, ELF_SIZE_OF_PROGRAM_HEADER_64)
+            s = -1;
+        }
+
+        if ( file_header->e_shentsize != ELF_SIZE_OF_SECTION_HEADER_64 )
+        {
+            header_error("ERROR: e_phentsize (0x%x) is too small (0x%x)!", file_header->e_shentsize, ELF_SIZE_OF_SECTION_HEADER_64)
+            s = -1;
+        }
+    }
+    else
+    {
+        header_error("ERROR: unknown EI_CLASS: 0x%x!", file_header->EI_CLASS)
+        s = -1;
+    }
+
+    return s;
 }
 
 void Elf_swapFileHeaderEntries(Elf64FileHeader* file_header)
@@ -603,7 +640,8 @@ void Elf_readSectionHeaderTable(
                 ".strtab", ElfSectionHeaderTypes.SHT_STRTAB,
                 &strtabs,
                 &strtabs.strtab, &strtabs.strtab_size,
-                fh, start_file_offset, abs_file_offset, file_size, block_l, fp
+                fh, start_file_offset, abs_file_offset, file_size, block_l, fp,
+                bitness
         );
         if ( s != 0)
         {
@@ -619,7 +657,8 @@ void Elf_readSectionHeaderTable(
                 ".dynstr", ElfSectionHeaderTypes.SHT_STRTAB,
                 &strtabs,
                 &strtabs.dynstr, &strtabs.dynstr_size,
-                fh, start_file_offset, abs_file_offset, file_size, block_l, fp
+                fh, start_file_offset, abs_file_offset, file_size, block_l, fp,
+                bitness
         );
         if ( s != 0)
         {
@@ -638,7 +677,7 @@ void Elf_readSectionHeaderTable(
 
     if ( ilevel & (INFO_LEVEL_ELF_SYM_TAB|INFO_LEVEL_ELF_SYM_TAB_EX) )
     {
-        s = Elf_getSectionTableEntryByNameType(NULL, ElfSectionHeaderTypes.SHT_SYMTAB, &sht_entry, &strtabs, fh, start_file_offset, abs_file_offset, file_size, block_l, fp);
+        s = Elf_getSectionTableEntryByNameType(NULL, ElfSectionHeaderTypes.SHT_SYMTAB, &sht_entry, &strtabs, fh, start_file_offset, abs_file_offset, file_size, block_l, fp, bitness);
         if ( s == 0 )
             Elf_parseSymTab(strtabs.strtab, strtabs.strtab_size, start_file_offset, abs_file_offset, file_size, fp, &sht_entry, block_l, BLOCKSIZE_SMALL, bitness, fh->EI_DATA, (ilevel&INFO_LEVEL_ELF_SYM_TAB_EX));
         else
@@ -647,7 +686,7 @@ void Elf_readSectionHeaderTable(
 
     if ( ilevel & (INFO_LEVEL_ELF_DYN_SYM_TAB|INFO_LEVEL_ELF_DYN_SYM_TAB_EX) )
     {
-        s = Elf_getSectionTableEntryByNameType(NULL, ElfSectionHeaderTypes.SHT_DYNSYM, &sht_entry, &strtabs, fh, start_file_offset, abs_file_offset, file_size, block_l, fp);
+        s = Elf_getSectionTableEntryByNameType(NULL, ElfSectionHeaderTypes.SHT_DYNSYM, &sht_entry, &strtabs, fh, start_file_offset, abs_file_offset, file_size, block_l, fp, bitness);
         if ( s == 0 )
             Elf_parseSymTab(strtabs.dynstr, strtabs.dynstr_size, start_file_offset, abs_file_offset, file_size, fp, &sht_entry, block_l, BLOCKSIZE_SMALL, bitness, fh->EI_DATA, (ilevel&INFO_LEVEL_ELF_DYN_SYM_TAB_EX));
         else
@@ -672,7 +711,8 @@ int Elf_readSectionByNameType(
     size_t* abs_file_offset,
     size_t file_size,
     uint8_t* block_l,
-    FILE* fp
+    FILE* fp,
+    uint8_t bitness
 )
 {
     int s;
@@ -682,7 +722,8 @@ int Elf_readSectionByNameType(
             sec_name, sec_type,
             &sht_entry,
             strtabs, fh,
-            start_file_offset, abs_file_offset, file_size, block_l, fp
+            start_file_offset, abs_file_offset, file_size, block_l, fp,
+            bitness
         );
     if ( s != 0 )
         return s;
@@ -709,7 +750,8 @@ int Elf_getSectionTableEntryByNameType(
     size_t* abs_file_offset,
     size_t file_size,
     uint8_t* block_l,
-    FILE* fp
+    FILE* fp,
+    uint8_t bitness
 )
 {
     int s = -1;
@@ -723,6 +765,7 @@ int Elf_getSectionTableEntryByNameType(
 
     if ( sec_name == NULL && sec_type == (uint32_t)-1 )
         return -1;
+
     if ( !checkFileSpace((size_t)fh->e_shoff, start_file_offset, fh->e_shentsize, file_size) )
         return -1;
 
@@ -754,7 +797,7 @@ int Elf_getSectionTableEntryByNameType(
 
         ptr = &block_l[offset];
 
-        Elf_readSectionHeaderTableEntry(ptr, &sh_offsets, fh, sht_entry);
+        Elf_readSectionHeaderTableEntry(ptr, &sh_offsets, fh, sht_entry, bitness);
 
         s_name = ( sht_entry->sh_name < strtabs->shstrtab_size-1 ) ? (char*) &strtabs->shstrtab[sht_entry->sh_name] : "";
 
@@ -869,7 +912,7 @@ void Elf_readSectionHeaderEntries(
 
         ptr = &block_l[offset];
 
-        Elf_readSectionHeaderTableEntry(ptr, &sh_offsets, fh, &sht_entry);
+        Elf_readSectionHeaderTableEntry(ptr, &sh_offsets, fh, &sht_entry, hd->h_bitness);
 
         s_name = ( sht_entry.sh_name < strtabs->shstrtab_size-1 ) ? (char*) &strtabs->shstrtab[sht_entry.sh_name] : "";
         
@@ -974,8 +1017,15 @@ ElfSectionHeaderOffsets Elf_getSectionHeaderOffsets(const Elf64FileHeader* file_
  * @param fh Elf64FileHeader*
  * @param sh Elf64SectionHeader*
  */
-void Elf_readSectionHeaderTableEntry(const uint8_t* ptr, ElfSectionHeaderOffsets* sh_offsets, const Elf64FileHeader* fh, Elf64SectionHeader* sh)
+void Elf_readSectionHeaderTableEntry(const uint8_t* ptr, ElfSectionHeaderOffsets* sh_offsets, const Elf64FileHeader* fh, Elf64SectionHeader* sh, uint8_t bitness)
 {
+    uint16_t sh_entry_size = ( bitness == 64 ) ? ELF_SIZE_OF_SECTION_HEADER_64 : ELF_SIZE_OF_SECTION_HEADER_32;
+    if ( sh_entry_size > fh->e_shentsize )
+    {
+        header_error("ERROR: provided section header size (0x%x) too small (0x%x)!\n", fh->e_shentsize, sh_entry_size);
+        return;
+    }
+
     sh->sh_offset = Elf_parseBitnessedValue(fh, ptr, sh_offsets->sh_offset);
     sh->sh_size = Elf_parseBitnessedValue(fh, ptr, sh_offsets->sh_size);
 

@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#define ELF_SIZE_OF_PROGRAM_HEADER_32 (0x20)
+#define ELF_SIZE_OF_PROGRAM_HEADER_64 (0x38)
+
 typedef struct Elf32ProgramHeader {
     uint32_t p_type;
     uint32_t p_offset;
