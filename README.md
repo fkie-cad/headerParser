@@ -48,17 +48,18 @@ Use `clang` instead of `gcc` in Termux on Android.
 $ winBuild.bat [/app] [/m <Release|Debug>] [/b <32|64>] [/rtl] [/pdb] [/bt <path>] [/pts <PlatformToolset>] [/h]
 ```
 This will run in a normal cmd.  
-The correct path to your build tools may be passed as a parameter or changed in the script [winBuild.bat](winBuild.bat) itself.  
+
+The correct path to your build tools may be passed  with the `/bt` parameter or changed in the script [winBuild.bat](winBuild.bat) itself.  
+
+The PlatformToolset defaults to "v142", but may be changed with the `/pts` option.
+"v142" is used for VS 2019 version, "v143" would be used in VS 2022, 
+or you could also use "WindowsApplicationForDrivers10.0" with WDK10 installed, 
+as this creates the smallest and cleanest builds.
 
 In a developer cmd you can also type:
 ```bash
-$devcmd> msbuild HeaderParser.vcxproj /p:Configuration=<Release|Debug> /p:Platform=<x64|x86> [/p:PlatformToolset=<v142|WindowsApplicationForDrivers10.0>]
+$devcmd> msbuild HeaderParser.vcxproj /p:Configuration=<Release|Debug> /p:Platform=<x64|x86> [/p:PlatformToolset=<v142|v143|WindowsApplicationForDrivers10.0>]
 ```
-Use `PlatformToolset=v142` if WDK is not installed.
-
-**Remarks**  
-The .vcxproj file is using `WindowsApplicationForDrivers10.0` as the `PlatformToolset`, which leads to smaller builds. 
-If the WDK is not installed, the `PlatformToolset` may be changed to `v142` and it should compile without errors.
 
 
 ### Windows Context Menu ###

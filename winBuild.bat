@@ -1,4 +1,5 @@
 @echo off
+setlocal
 
 set my_name=%~n0
 set my_dir="%~dp0"
@@ -16,10 +17,12 @@ set mode=Release
 
 set /a rtl=0
 set /a dp=0
-set pdb=0
+set /a pdb=0
 
+:: adjust this path, if you're using another version or path.
 set buildTools="C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\"
-set pts=WindowsApplicationForDrivers10.0
+set pts=v142
+:: set pts=WindowsApplicationForDrivers10.0
 set verbose=0
 
 
@@ -103,9 +106,7 @@ GOTO :ParseParams
 
 :main
 
-    set build_dir=build\%bitness%
-    if /i [%mode%]==[debug] set build_dir=build\debug\%bitness%
-
+    :: set platform
     set /a valid=0
     if [%bitness%] == [32] (
         set platform=x86
@@ -147,14 +148,14 @@ GOTO :ParseParams
     if [%valid%] == [0] (
         goto help
     )
-
+    
+    :: verbose print
     if [%verbose%] == [1] (
         echo app=%app%
         echo lib=%lib%
         echo bitness=%bitness%
         echo platform=%platform%
         echo mode=%mode%
-        echo build_dir=%build_dir%
         echo buildTools=%buildTools%
         echo rtlib=%rtlib%
         echo pts=%pts%
@@ -165,9 +166,15 @@ GOTO :ParseParams
     :: WHERE %msbuild% >nul 2>nul
     :: IF %ERRORLEVEL% NEQ 0 set vcvars="%buildTools:~1,-1%\VC\Auxiliary\Build\vcvars%bitness%.bat"
     if [%VisualStudioVersion%] EQU [] (
+        if not exist %buildTools% (
+            echo [e] No build tools found in %buildTools%!
+            echo     Please set the correct path in this script or with the /bt option.
+            exit /b -1
+        )
         set vcvars="%buildTools:~1,-1%\VC\Auxiliary\Build\vcvars%bitness%.bat"
     )
-
+    
+    :: build targets
     if %app% == 1 (
         call :build HeaderParser.vcxproj Application
     ) 
@@ -180,7 +187,8 @@ GOTO :ParseParams
     if %tplib% == 1 (
         call :build tests\Tests.vcxproj Application TestPELib
     ) 
-
+    
+    endlocal
     exit /b %errorlevel%
 
 :build
@@ -207,8 +215,7 @@ GOTO :ParseParams
 
 :usage
     echo Usage: %my_name% [/app] [/lib] [/b ^<bitness^>] [/m ^<mode^>] [/rtl] [/pdb] [/pts ^<toolset^>] [/bt ^<path^>] [/v] [/h]
-::    echo Usage: %my_name% [/app] [/lib] [/b ^<bitness^>] [/m ^<mode^>] [/rtl] [/pdb] [/pts ^<toolset^>] [/bt ^<path^>] [/v] [/h]
-    echo Default: %my_name% [/app /b %bitness% /m %mode% /bt %buildTools%]
+    echo Default: %my_name% [/app /b %bitness% /m %mode% /pts %pts% /bt %buildTools%]
     exit /B 0
     
 :help
@@ -223,10 +230,11 @@ GOTO :ParseParams
     echo /m Build mode: Debug^|Release. Default: Release.
     echo /rtl Statically include runtime libs. May be needed if a "VCRUNTIMExxx.dll not found Error" occurs on the target system.
     echo /pdb Include pdb symbols into release build. Default in debug mode. 
-    echo /bt Custom path to Microsoft Visual Studio BuildTools
-    echo /pts Platformtoolset. If WDK is not installed, set this to "v142". Default: "WindowsApplicationForDrivers10.0".
+    echo /bt Custom path to Microsoft Visual Studio BuildTools.
+    echo /pts Platformtoolset. Defaults to "v142".
     echo.
     echo /v more verbose output
     echo /h print this
-
+    
+    endlocal
     exit /B 0
