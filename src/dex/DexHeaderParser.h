@@ -24,8 +24,8 @@ typedef void (*DEX_fillXXXIdItem)(uint32_t offset, uint32_t idx, uint32_t size, 
 
 static void parseDexHeader(PHeaderData hd, PGlobalParams gp);
 
-static void DEX_fillVersion(size_t start_file_offset, unsigned char* block, size_t file_size);
-static void DEX_readFileHeader(DEXFileHeader *fh, unsigned char* block_l, size_t start_file_offset, size_t file_size);
+static void DEX_fillVersion(size_t start_file_offset, uint8_t* block, size_t file_size);
+static void DEX_readFileHeader(DEXFileHeader *fh, uint8_t* block_l, size_t start_file_offset, size_t file_size);
 static int DEX_readItemIds(size_t offset, uint32_t size, uint32_t item_size, char* item_label, DEX_fillXXXIdItem filler, PGlobalParams gp, char** strings, uint32_t stringsNr);
 
 static void DEX_fillStringIdItem(uint32_t offset, uint32_t idx, uint32_t size, PGlobalParams gp, char** strings, uint32_t stringsNr);
@@ -35,8 +35,25 @@ static void DEX_fillFieldIdItem(uint32_t offset, uint32_t idx, uint32_t size, PG
 static void DEX_fillMethodIdItem(uint32_t offset, uint32_t idx, uint32_t size, PGlobalParams gp, char** strings, uint32_t stringsNr);
 static void DEX_fillClassDefItem(uint32_t offset, uint32_t idx, uint32_t size, PGlobalParams gp, char** strings, uint32_t stringsNr);
 
-static int DEX_readMap(DEXFileHeader *fh, unsigned char* block_l, uint8_t info_level, size_t* abs_file_offset, size_t start_file_offset, PHeaderData hd, FILE* fp, size_t file_size);
-static size_t DEX_readMapItem(size_t offset, uint32_t idx, uint32_t ln, unsigned char* block_l, uint8_t info_level, size_t abs_file_offset, PHeaderData hd);
+static int DEX_readMap(
+    DEXFileHeader *fh,
+    uint8_t* block_l,
+    uint8_t ilevel,
+    size_t* abs_file_offset,
+    size_t start_file_offset,
+    PHeaderData hd,
+    FILE* fp,
+    size_t file_size
+);
+static size_t DEX_readMapItem(
+    size_t offset,
+    uint32_t idx,
+    uint32_t ln,
+    uint8_t* block_l,
+    uint8_t ilevel,
+    size_t abs_file_offset,
+    PHeaderData hd
+);
 static void DEX_fillCodeRegion(DexMapItem* item, PHeaderData hd);
 
 
@@ -125,10 +142,10 @@ void parseDexHeader(PHeaderData hd, PGlobalParams gp)
 }
 
 void DEX_fillVersion(size_t start_file_offset,
-                     unsigned char* block,
+                     uint8_t* block,
                      size_t file_size)
 {
-    unsigned char *ptr;
+    uint8_t *ptr;
     char* architecture;
 
     if ( !checkFileSpace(0, start_file_offset, MAGIC_DEX_BYTES_FULL_LN, file_size) )
@@ -143,11 +160,11 @@ void DEX_fillVersion(size_t start_file_offset,
 }
 
 void DEX_readFileHeader(DEXFileHeader *fh,
-                        unsigned char* block_l,
+                        uint8_t* block_l,
                         size_t start_file_offset,
                         size_t file_size)
 {
-    unsigned char *ptr;
+    uint8_t *ptr;
     int i;
 
     if ( !checkFileSpace(0, start_file_offset, DEX_FILE_HEADER_SIZE, file_size) )
@@ -157,29 +174,29 @@ void DEX_readFileHeader(DEXFileHeader *fh,
 
     for ( i = 0; i < MAGIC_DEX_BYTES_FULL_LN; i++ )
         fh->magic[i] = (char)ptr[DEXFileHeaderOffsets.magic + i];
-    fh->checksum = *((uint32_t*) &ptr[DEXFileHeaderOffsets.checksum]);
+    fh->checksum = GetIntXValueAtOffset(uint32_t, ptr, DEXFileHeaderOffsets.checksum);
     for ( i = 0; i < DEX_SIGNATURE_LN; i++ )
         fh->signature[i] = (char)ptr[DEXFileHeaderOffsets.signature + i];
-    fh->file_size = *((uint32_t*) &ptr[DEXFileHeaderOffsets.file_size]);
-    fh->header_size = *((uint32_t*) &ptr[DEXFileHeaderOffsets.header_size]);
-    fh->endian_tag = *((uint32_t*) &ptr[DEXFileHeaderOffsets.endian_tag]);
-    fh->link_size = *((uint32_t*) &ptr[DEXFileHeaderOffsets.link_size]);
-    fh->link_off = *((uint32_t*) &ptr[DEXFileHeaderOffsets.link_off]);
-    fh->map_off = *((uint32_t*) &ptr[DEXFileHeaderOffsets.map_off]);
-    fh->string_ids_size = *((uint32_t*) &ptr[DEXFileHeaderOffsets.string_ids_size]);
-    fh->string_ids_off = *((uint32_t*) &ptr[DEXFileHeaderOffsets.string_ids_off]);
-    fh->type_ids_size = *((uint32_t*) &ptr[DEXFileHeaderOffsets.type_ids_size]);
-    fh->type_ids_off = *((uint32_t*) &ptr[DEXFileHeaderOffsets.type_ids_off]);
-    fh->proto_ids_size = *((uint32_t*) &ptr[DEXFileHeaderOffsets.proto_ids_size]);
-    fh->proto_ids_off = *((uint32_t*) &ptr[DEXFileHeaderOffsets.proto_ids_off]);
-    fh->field_ids_size = *((uint32_t*) &ptr[DEXFileHeaderOffsets.field_ids_size]);
-    fh->field_ids_off = *((uint32_t*) &ptr[DEXFileHeaderOffsets.field_ids_off]);
-    fh->method_ids_size = *((uint32_t*) &ptr[DEXFileHeaderOffsets.method_ids_size]);
-    fh->method_ids_off = *((uint32_t*) &ptr[DEXFileHeaderOffsets.method_ids_off]);
-    fh->class_defs_size = *((uint32_t*) &ptr[DEXFileHeaderOffsets.class_defs_size]);
-    fh->class_defs_off = *((uint32_t*) &ptr[DEXFileHeaderOffsets.class_defs_off]);
-    fh->data_size = *((uint32_t*) &ptr[DEXFileHeaderOffsets.data_size]);
-    fh->data_off = *((uint32_t*) &ptr[DEXFileHeaderOffsets.data_off]);
+    fh->file_size = GetIntXValueAtOffset(uint32_t, ptr, DEXFileHeaderOffsets.file_size);
+    fh->header_size = GetIntXValueAtOffset(uint32_t, ptr, DEXFileHeaderOffsets.header_size);
+    fh->endian_tag = GetIntXValueAtOffset(uint32_t, ptr, DEXFileHeaderOffsets.endian_tag);
+    fh->link_size = GetIntXValueAtOffset(uint32_t, ptr, DEXFileHeaderOffsets.link_size);
+    fh->link_off = GetIntXValueAtOffset(uint32_t, ptr, DEXFileHeaderOffsets.link_off);
+    fh->map_off = GetIntXValueAtOffset(uint32_t, ptr, DEXFileHeaderOffsets.map_off);
+    fh->string_ids_size = GetIntXValueAtOffset(uint32_t, ptr, DEXFileHeaderOffsets.string_ids_size);
+    fh->string_ids_off = GetIntXValueAtOffset(uint32_t, ptr, DEXFileHeaderOffsets.string_ids_off);
+    fh->type_ids_size = GetIntXValueAtOffset(uint32_t, ptr, DEXFileHeaderOffsets.type_ids_size);
+    fh->type_ids_off = GetIntXValueAtOffset(uint32_t, ptr, DEXFileHeaderOffsets.type_ids_off);
+    fh->proto_ids_size = GetIntXValueAtOffset(uint32_t, ptr, DEXFileHeaderOffsets.proto_ids_size);
+    fh->proto_ids_off = GetIntXValueAtOffset(uint32_t, ptr, DEXFileHeaderOffsets.proto_ids_off);
+    fh->field_ids_size = GetIntXValueAtOffset(uint32_t, ptr, DEXFileHeaderOffsets.field_ids_size);
+    fh->field_ids_off = GetIntXValueAtOffset(uint32_t, ptr, DEXFileHeaderOffsets.field_ids_off);
+    fh->method_ids_size = GetIntXValueAtOffset(uint32_t, ptr, DEXFileHeaderOffsets.method_ids_size);
+    fh->method_ids_off = GetIntXValueAtOffset(uint32_t, ptr, DEXFileHeaderOffsets.method_ids_off);
+    fh->class_defs_size = GetIntXValueAtOffset(uint32_t, ptr, DEXFileHeaderOffsets.class_defs_size);
+    fh->class_defs_off = GetIntXValueAtOffset(uint32_t, ptr, DEXFileHeaderOffsets.class_defs_off);
+    fh->data_size = GetIntXValueAtOffset(uint32_t, ptr, DEXFileHeaderOffsets.data_size);
+    fh->data_off = GetIntXValueAtOffset(uint32_t, ptr, DEXFileHeaderOffsets.data_off);
 
 //    debug_info("DEXreadFileHeader()\n");
 //    debug_info(" - endian_tag: 0x%x\n",fh->endian_tag);
@@ -249,11 +266,11 @@ void DEX_fillStringIdItem(uint32_t offset,
     uint8_t utf16_size_ln;
     DexStringIdItem item;
     DexStringDataItem data;
-    unsigned char* ptr = &gp->data.block_main[offset];
+    uint8_t* ptr = &gp->data.block_main[offset];
     char* string = NULL;
     size_t data_fo;
 
-    item.offset = *((uint32_t*) &ptr[DexStringIdItemOffsets.offset]);
+    item.offset = GetIntXValueAtOffset(uint32_t, ptr, DexStringIdItemOffsets.offset);
     data_fo = item.offset + gp->file.start_offset;
 
     r_size = readFile(gp->file.handle, data_fo, BLOCKSIZE_SMALL, gp->data.block_sub);
@@ -313,9 +330,9 @@ void DEX_fillTypeIdItem(uint32_t offset,
                         uint32_t stringsNr)
 {
     DexTypeIdItem item;
-    unsigned char* ptr = &gp->data.block_main[offset];
+    uint8_t* ptr = &gp->data.block_main[offset];
 
-    item.descriptor_idx = *((uint32_t*) &ptr[DexTypeIdItemOffsets.descriptor_idx]);
+    item.descriptor_idx = GetIntXValueAtOffset(uint32_t, ptr, DexTypeIdItemOffsets.descriptor_idx);
 
     if ( gp->info_level >= INFO_LEVEL_EXTENDED )
         DEX_printTypeIdItem(&item, strings, stringsNr, idx + 1, size, gp->file.abs_offset+offset);
@@ -329,12 +346,12 @@ void DEX_fillProtoIdItem(uint32_t offset,
                          uint32_t stringsNr)
 {
     DexProtoIdItem item;
-    unsigned char* ptr = &gp->data.block_main[offset];
+    uint8_t* ptr = &gp->data.block_main[offset];
     (void)strings;
 
-    item.shorty_idx = *((uint32_t*) &ptr[DexProtoIdItemOffsets.shorty_idx]);
-    item.return_type_idx = *((uint32_t*) &ptr[DexProtoIdItemOffsets.return_type_idx]);
-    item.parameters_off = *((uint32_t*) &ptr[DexProtoIdItemOffsets.parameters_off]);
+    item.shorty_idx = GetIntXValueAtOffset(uint32_t, ptr, DexProtoIdItemOffsets.shorty_idx);
+    item.return_type_idx = GetIntXValueAtOffset(uint32_t, ptr, DexProtoIdItemOffsets.return_type_idx);
+    item.parameters_off = GetIntXValueAtOffset(uint32_t, ptr, DexProtoIdItemOffsets.parameters_off);
 
     if ( gp->info_level >= INFO_LEVEL_EXTENDED )
         DEX_printProtoIdItem(&item, idx + 1, size, gp->file.abs_offset+offset);
@@ -348,11 +365,11 @@ void DEX_fillFieldIdItem(uint32_t offset,
                          uint32_t stringsNr)
 {
     DexFieldIdItem item;
-    unsigned char* ptr = &gp->data.block_main[offset];
+    uint8_t* ptr = &gp->data.block_main[offset];
 
-    item.class_idx = *((uint16_t*) &ptr[DexFieldIdItemOffsets.class_idx]);
-    item.type_idx = *((uint16_t*) &ptr[DexFieldIdItemOffsets.type_idx]);
-    item.name_idx = *((uint32_t*) &ptr[DexFieldIdItemOffsets.name_idx]);
+    item.class_idx = GetIntXValueAtOffset(uint16_t, ptr, DexFieldIdItemOffsets.class_idx);
+    item.type_idx = GetIntXValueAtOffset(uint16_t, ptr, DexFieldIdItemOffsets.type_idx);
+    item.name_idx = GetIntXValueAtOffset(uint32_t, ptr, DexFieldIdItemOffsets.name_idx);
 
     if ( gp->info_level >= INFO_LEVEL_EXTENDED )
         DEX_printFieldIdItem(&item, strings, stringsNr, idx + 1, size, gp->file.abs_offset+offset);
@@ -366,11 +383,11 @@ void DEX_fillMethodIdItem(uint32_t offset,
                           uint32_t stringsNr)
 {
     DexMethodIdItem item;
-    unsigned char* ptr = &gp->data.block_main[offset];
+    uint8_t* ptr = &gp->data.block_main[offset];
 
-    item.class_idx = *((uint16_t*) &ptr[DexMethodIdItemOffsets.class_idx]);
-    item.proto_idx = *((uint16_t*) &ptr[DexMethodIdItemOffsets.proto_idx]);
-    item.name_idx = *((uint32_t*) &ptr[DexMethodIdItemOffsets.name_idx]);
+    item.class_idx = GetIntXValueAtOffset(uint16_t, ptr, DexMethodIdItemOffsets.class_idx);
+    item.proto_idx = GetIntXValueAtOffset(uint16_t, ptr, DexMethodIdItemOffsets.proto_idx);
+    item.name_idx = GetIntXValueAtOffset(uint32_t, ptr, DexMethodIdItemOffsets.name_idx);
 
     if ( gp->info_level >= INFO_LEVEL_EXTENDED )
         DEX_printMethodIdItem(&item, strings, stringsNr, idx + 1, size, gp->file.abs_offset+offset);
@@ -384,16 +401,16 @@ void DEX_fillClassDefItem(uint32_t offset,
                           uint32_t stringsNr)
 {
     DexClassDefItem item;
-    unsigned char* ptr = &gp->data.block_main[offset];
+    uint8_t* ptr = &gp->data.block_main[offset];
 
-    item.class_idx = *((uint32_t*) &ptr[DexClassDefItemOffsets.class_idx]);
-    item.access_flags = *((uint32_t*) &ptr[DexClassDefItemOffsets.access_flags]);
-    item.superclass_idx = *((uint32_t*) &ptr[DexClassDefItemOffsets.superclass_idx]);
-    item.interfaces_off = *((uint32_t*) &ptr[DexClassDefItemOffsets.interfaces_off]);
-    item.source_file_idx = *((uint32_t*) &ptr[DexClassDefItemOffsets.source_file_idx]);
-    item.annotations_off = *((uint32_t*) &ptr[DexClassDefItemOffsets.annotations_off]);
-    item.class_data_off = *((uint32_t*) &ptr[DexClassDefItemOffsets.class_data_off]);
-    item.static_values_off = *((uint32_t*) &ptr[DexClassDefItemOffsets.static_values_off]);
+    item.class_idx = GetIntXValueAtOffset(uint32_t, ptr, DexClassDefItemOffsets.class_idx);
+    item.access_flags = GetIntXValueAtOffset(uint32_t, ptr, DexClassDefItemOffsets.access_flags);
+    item.superclass_idx = GetIntXValueAtOffset(uint32_t, ptr, DexClassDefItemOffsets.superclass_idx);
+    item.interfaces_off = GetIntXValueAtOffset(uint32_t, ptr, DexClassDefItemOffsets.interfaces_off);
+    item.source_file_idx = GetIntXValueAtOffset(uint32_t, ptr, DexClassDefItemOffsets.source_file_idx);
+    item.annotations_off = GetIntXValueAtOffset(uint32_t, ptr, DexClassDefItemOffsets.annotations_off);
+    item.class_data_off = GetIntXValueAtOffset(uint32_t, ptr, DexClassDefItemOffsets.class_data_off);
+    item.static_values_off = GetIntXValueAtOffset(uint32_t, ptr, DexClassDefItemOffsets.static_values_off);
 
     // jump to class_data_off, fill class_data_item
 
@@ -401,16 +418,18 @@ void DEX_fillClassDefItem(uint32_t offset,
         DEX_printClassDefItem(&item, strings, stringsNr, idx + 1, size, gp->file.abs_offset+offset);
 }
 
-int DEX_readMap(DEXFileHeader *fh,
-                    unsigned char* block_l,
-                    uint8_t ilevel,
-                    size_t* abs_file_offset,
-                    size_t start_file_offset,
-                    PHeaderData hd,
-                    FILE* fp,
-                    size_t file_size)
+int DEX_readMap(
+    DEXFileHeader *fh,
+    uint8_t* block_l,
+    uint8_t ilevel,
+    size_t* abs_file_offset,
+    size_t start_file_offset,
+    PHeaderData hd,
+    FILE* fp,
+    size_t file_size
+)
 {
-    unsigned char* ptr;
+    uint8_t* ptr;
     size_t i;
     uint32_t item_size = DEX_SIZE_OF_MAP_ITEM;
     size_t offset = fh->map_off;
@@ -432,7 +451,7 @@ int DEX_readMap(DEXFileHeader *fh,
     offset = 0;
     ptr = &block_l[offset];
 
-    l.size = *((uint32_t*) &ptr[DexMapListOffsets.size]);
+    l.size = GetIntXValueAtOffset(uint32_t, ptr, DexMapListOffsets.size);
 
     if ( ilevel >= INFO_LEVEL_EXTENDED )
         DEX_printMapList(&l, *abs_file_offset+offset);
@@ -463,20 +482,20 @@ int DEX_readMap(DEXFileHeader *fh,
 size_t DEX_readMapItem(size_t offset,
                        uint32_t idx,
                        uint32_t ln,
-                       unsigned char* block_l,
+                       uint8_t* block_l,
                        uint8_t ilevel,
                        size_t abs_file_offset,
                        PHeaderData hd)
 {
-    unsigned char* ptr;
+    uint8_t* ptr;
     DexMapItem item;
 
     ptr = &block_l[offset];
 
-    item.type = *((uint16_t*) &ptr[DexMapItemOffsets.type]);
-    item.unused = *((uint16_t*) &ptr[DexMapItemOffsets.unused]);
-    item.size = *((uint32_t*) &ptr[DexMapItemOffsets.size]);
-    item.offset = *((uint32_t*) &ptr[DexMapItemOffsets.offset]);
+    item.type = GetIntXValueAtOffset(uint16_t, ptr, DexMapItemOffsets.type);
+    item.unused = GetIntXValueAtOffset(uint16_t, ptr, DexMapItemOffsets.unused);
+    item.size = GetIntXValueAtOffset(uint32_t, ptr, DexMapItemOffsets.size);
+    item.offset = GetIntXValueAtOffset(uint32_t, ptr, DexMapItemOffsets.offset);
 
     if ( ilevel >= INFO_LEVEL_EXTENDED )
         DEX_printMapItem(&item, idx, ln, abs_file_offset+offset);
