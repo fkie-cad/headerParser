@@ -61,6 +61,10 @@ In a developer cmd you can also type:
 $devcmd> msbuild HeaderParser.vcxproj /p:Configuration=<Release|Debug> /p:Platform=<x64|x86> [/p:PlatformToolset=<v142|v143|WindowsApplicationForDrivers10.0>]
 ```
 
+### Runtime Errors (Windows)
+If a "VCRUNTIMExxx.dll not found Error" occurs on the target system, statically including runtime libs is a solution.  
+This is done by using the `/p:RunTimeLib=Debug|Release` (msbuild) or `[/rtl]` (winBuild) flags.
+
 
 ### Windows Context Menu ###
 It may be convenient to add HeaderParser to the context menu to be able to right-click a file and header parse it.

@@ -18,12 +18,12 @@ set mode=Release
 set /a rtl=0
 set /a dp=0
 set /a pdb=0
+set verbose=0
 
 :: adjust this path, if you're using another version or path.
 set buildTools="C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\"
 set pts=v142
 :: set pts=WindowsApplicationForDrivers10.0
-set verbose=0
 
 
 :: default

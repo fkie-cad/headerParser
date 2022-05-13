@@ -164,6 +164,8 @@ else
         target=testHeaderParserLib
     elif [[ ${target} == "tplib" ]]; then
         target=testHeaderParserLibPE
+    else
+        exit $?
     fi
 
     buildTarget ${target} ${build_dir} ${mode} ${debug_print}
