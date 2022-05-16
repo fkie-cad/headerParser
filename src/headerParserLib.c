@@ -56,11 +56,13 @@ int getBasicInfoA(const char* file, size_t start, uint8_t force, HeaderData* hd)
     int errsv;
     PEParams pep;
     ElfParams elfp;
+    DexParams dexp;
     char file_name[PATH_MAX];
 
     memset(&gp, 0, sizeof(GlobalParams));
     memset(&pep, 0, sizeof(PEParams));
     memset(&elfp, 0, sizeof(ElfParams));
+    memset(&dexp, 0, sizeof(DexParams));
 
     gp.info_level = INFO_LEVEL_BASIC;
     gp.file.abs_offset = start;
@@ -112,7 +114,7 @@ int getBasicInfoA(const char* file, size_t start, uint8_t force, HeaderData* hd)
         goto exit;
     }
 
-    parseHeader(force, hd, &gp, &pep, &elfp);
+    parseHeader(force, hd, &gp, &pep, &elfp, &dexp);
 
 exit:
     if ( gp.file.handle != NULL )

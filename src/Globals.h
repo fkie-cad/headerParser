@@ -58,6 +58,16 @@
 enum InfoLevel { INFO_LEVEL_NONE=0, INFO_LEVEL_BASIC=1, INFO_LEVEL_EXTENDED=2 };
 
 
+// mostly const after init
+typedef struct HPFile
+{
+    //char file_name[PATH_MAX];
+    FILE* handle;
+    size_t size;
+    size_t start_offset;
+    size_t abs_offset; // dynamic
+} HPFile, *PHPFile;
+
 typedef struct GlobalParams
 {
     // dynamic
@@ -70,15 +80,7 @@ typedef struct GlobalParams
         //uint8_t* block_sub_size;
     } data;
 
-    // mostly const after init
-	struct file
-    {
-        //char file_name[PATH_MAX];
-        FILE* handle;
-        size_t size;
-        size_t start_offset;
-        size_t abs_offset; // dynamic
-    } file;
+    HPFile file;
 
     uint8_t info_level; // may be global. TODO: delete this or the global one
     uint8_t info_show_offsets; // may be global. TODO: delete this or the global one
@@ -127,13 +129,14 @@ typedef struct GlobalParams
 #define INFO_LEVEL_ELF_EXTENDED (INFO_LEVEL_ELF_FILE_H | INFO_LEVEL_ELF_PROG_H | INFO_LEVEL_ELF_SEC_H)
 
 
-#define INFO_LEVEL_DEX_FILE_H       (0x01)
-#define INFO_LEVEL_DEX_STRING_IDS   (0x02)
-#define INFO_LEVEL_DEX_TYPE_IDS     (0x04)
-#define INFO_LEVEL_DEX_PROTO_IDS    (0x08)
-#define INFO_LEVEL_DEX_FIELD_IDS    (0x10)
-#define INFO_LEVEL_DEX_METHOD_IDS   (0x20)
-#define INFO_LEVEL_DEX_CLASS_DEFS   (0x40)
+#define INFO_LEVEL_DEX_FILE_H        (0x01)
+#define INFO_LEVEL_DEX_STRING_IDS    (0x02)
+#define INFO_LEVEL_DEX_TYPE_IDS      (0x04)
+#define INFO_LEVEL_DEX_PROTO_IDS     (0x08)
+#define INFO_LEVEL_DEX_FIELD_IDS     (0x10)
+#define INFO_LEVEL_DEX_METHOD_IDS    (0x20)
+#define INFO_LEVEL_DEX_CLASS_DEFS    (0x40)
+#define INFO_LEVEL_DEX_MAP           (0x80)
 
 #define INFO_LEVEL_DEX_EXTENDED (INFO_LEVEL_DEX_FILE_H)
 
@@ -183,6 +186,10 @@ typedef struct PEParams {
 typedef struct ElfParams {
     uint32_t info_level;
 } ElfParams, *PElfParams;
+
+typedef struct DexParams {
+    uint32_t info_level;
+} DexParams, *PDexParams;
 
 //const unsigned char CRAMFS[] = { 0x28,, 0x0xCD, 0x3D, 0x45 };
 //const unsigned char SquashFS[] = { 0x73, 0x71, 0x73, 0x68 };

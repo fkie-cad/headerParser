@@ -216,7 +216,7 @@ void DEX_printMapList(DexMapList* l, size_t offset)
 {
     Dex_Map_List_Offsets offsets = DexMapListOffsets;
 
-    printf("Map List\n");
+    printf("Map List (%u)\n", l->size);
     printf(" - size%s: %u\n", fillOffset(offsets.size, offset, 0), l->size);
 }
 

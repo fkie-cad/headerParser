@@ -24,7 +24,14 @@
 #include "pe/PEHeaderParser.h"
 #include "zip/ZipHeaderParser.h"
 
-static void parseHeader(uint8_t force, PHeaderData hd, PGlobalParams gp, PPEParams pep, PElfParams elfp);
+static void parseHeader(
+    uint8_t force,
+    PHeaderData hd,
+    PGlobalParams gp,
+    PPEParams pep,
+    PElfParams elfp,
+    PDexParams dexp
+);
 
 int isART(unsigned char* block);
 int isELF(unsigned char* block);
@@ -38,7 +45,7 @@ int isZipArchive(unsigned char* block);
 
 
 
-void parseHeader(uint8_t force, PHeaderData hd, PGlobalParams gp, PPEParams pep, PElfParams elfp)
+void parseHeader(uint8_t force, PHeaderData hd, PGlobalParams gp, PPEParams pep, PElfParams elfp, PDexParams dexp)
 {
     info_level = gp->info_level;
     info_show_offsets = gp->info_show_offsets;
@@ -63,7 +70,7 @@ void parseHeader(uint8_t force, PHeaderData hd, PGlobalParams gp, PPEParams pep,
     }
     else if ( isDEX(gp->data.block_main) )
     {
-        parseDexHeader(hd, gp);
+        parseDexHeader(hd, gp, dexp);
     }
     else if ( isMachO(gp->data.block_main) )
     {

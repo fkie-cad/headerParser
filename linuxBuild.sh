@@ -164,6 +164,8 @@ else
         target=testHeaderParserLib
     elif [[ ${target} == "tplib" ]]; then
         target=testHeaderParserLibPE
+    elif [[ ${target} == "dirun" ]]; then
+        target=HPDirectoryRunner
     else
         exit $?
     fi

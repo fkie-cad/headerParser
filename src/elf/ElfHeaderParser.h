@@ -295,28 +295,28 @@ int Elf_readFileHeader(Elf64FileHeader* file_header, uint8_t* block_l, size_t st
 
     if ( file_header->EI_CLASS == ELFCLASS32 )
     {
-        if ( file_header->e_phentsize != ELF_SIZE_OF_PROGRAM_HEADER_32 )
+        if ( file_header->e_phentsize < ELF_SIZE_OF_PROGRAM_HEADER_32 )
         {
-            header_error("ERROR: e_phentsize (0x%x) is too small (0x%x)!", file_header->e_phentsize, ELF_SIZE_OF_PROGRAM_HEADER_32)
+            header_error("ERROR: e_phentsize (0x%x) is too small (0x%x)!\n", file_header->e_phentsize, ELF_SIZE_OF_PROGRAM_HEADER_32)
             s = -1;
         }
-        if ( file_header->e_shentsize != ELF_SIZE_OF_SECTION_HEADER_32 )
+        if ( file_header->e_shentsize < ELF_SIZE_OF_SECTION_HEADER_32 )
         {
-            header_error("ERROR: e_shentsize (0x%x) is too small (0x%x)!", file_header->e_shentsize, ELF_SIZE_OF_SECTION_HEADER_32)
+            header_error("ERROR: e_shentsize (0x%x) is too small (0x%x)!\n", file_header->e_shentsize, ELF_SIZE_OF_SECTION_HEADER_32)
             s = -1;
         }
     }
     else if ( file_header->EI_CLASS == ELFCLASS64 )
     {
-        if ( file_header->e_phentsize != ELF_SIZE_OF_PROGRAM_HEADER_64 )
+        if ( file_header->e_phentsize < ELF_SIZE_OF_PROGRAM_HEADER_64 )
         {
-            header_error("ERROR: e_phentsize (0x%x) is too small (0x%x)!", file_header->e_phentsize, ELF_SIZE_OF_PROGRAM_HEADER_64)
+            header_error("ERROR: e_phentsize (0x%x) is too small (0x%x)!\n", file_header->e_phentsize, ELF_SIZE_OF_PROGRAM_HEADER_64)
             s = -1;
         }
 
-        if ( file_header->e_shentsize != ELF_SIZE_OF_SECTION_HEADER_64 )
+        if ( file_header->e_shentsize < ELF_SIZE_OF_SECTION_HEADER_64 )
         {
-            header_error("ERROR: e_phentsize (0x%x) is too small (0x%x)!", file_header->e_shentsize, ELF_SIZE_OF_SECTION_HEADER_64)
+            header_error("ERROR: e_phentsize (0x%x) is too small (0x%x)!\n", file_header->e_shentsize, ELF_SIZE_OF_SECTION_HEADER_64)
             s = -1;
         }
     }
