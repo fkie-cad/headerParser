@@ -195,7 +195,7 @@ GOTO :ParseParams
     setlocal
         set proj=%1
         set ct=%2
-        cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:PlatformToolset=%pts% /p:Configuration=%mode% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct%  /p:DebugPrint=%dp%  & exit"
+        cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:PlatformToolset=%pts% /p:Configuration=%mode% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct% /p:DebugPrint=%dp%  & exit"
 
     endlocal
     exit /B %errorlevel%

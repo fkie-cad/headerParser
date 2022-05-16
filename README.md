@@ -53,8 +53,7 @@ The correct path to your build tools may be passed  with the `/bt` parameter or 
 
 The PlatformToolset defaults to "v142", but may be changed with the `/pts` option.
 "v142" is used for VS 2019 version, "v143" would be used in VS 2022, 
-or you could also use "WindowsApplicationForDrivers10.0" with WDK10 installed, 
-as this creates the smallest and cleanest builds.
+or you could also use "WindowsApplicationForDrivers10.0" with WDK10 installed.
 
 In a developer cmd you can also type:
 ```bash
