@@ -38,8 +38,8 @@ const char* FORCE_PE_STR = "pe";
 //#define DILLER
 
 #define BIN_NAME "headerParser"
-#define BIN_VS "1.15.6"
-#define BIN_DATE "11.05.2022"
+#define BIN_VS "1.15.7"
+#define BIN_DATE "16.05.2022"
 
 #define LIN_PARAM_IDENTIFIER ('-')
 #define WIN_PARAM_IDENTIFIER ('/')
@@ -52,7 +52,16 @@ const char* FORCE_PE_STR = "pe";
 static void printUsage();
 static void printHelp();
 static bool isCallForHelp(const char* arg1);
-static int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams elfp, uint8_t* force, char* file_name);
+static int parseArgs(
+    int argc,
+    char** argv,
+    PGlobalParams gp,
+    PPEParams pep,
+    PElfParams elfp,
+    PDexParams dexp,
+    uint8_t* force,
+    char* file_name
+    );
 static void sanitizeArgs(PGlobalParams gp);
 static uint8_t isArgOfType(const char* arg, char* type);
 static uint8_t hasValue(char* type, int i, int end_i);
@@ -83,10 +92,12 @@ main(int argc, char** argv)
 
     PEParams pep;
     ElfParams elfp;
+    DexParams dexp;
 
     memset(&gp, 0, sizeof(GlobalParams));
     memset(&pep, 0, sizeof(PEParams));
     memset(&elfp, 0, sizeof(ElfParams));
+    memset(&dexp, 0, sizeof(DexParams));
     memset(file_name, 0, PATH_MAX);
 
     int s = 0;
@@ -104,7 +115,7 @@ main(int argc, char** argv)
         return 1;
     }
 
-    if ( parseArgs(argc, argv, &gp, &pep, &elfp, &force, file_name) != 0 )
+    if ( parseArgs(argc, argv, &gp, &pep, &elfp, &dexp, &force, file_name) != 0 )
         return 0;
 
     errno = 0;
@@ -148,7 +159,7 @@ main(int argc, char** argv)
 
     initHeaderData(hd, DEFAULT_CODE_REGION_CAPACITY);
 
-    parseHeader(force, hd, &gp, &pep, &elfp);
+    parseHeader(force, hd, &gp, &pep, &elfp, &dexp);
     printHeaderData(gp.info_level, hd, gp.data.block_main);
 
 exit:
@@ -218,6 +229,15 @@ void printHelp()
             "   * -symx: Print symbol table with all info.\n"
             "   * -dym: Print dynamic symbol table (names only).\n"
             "   * -dymx: Print dynamic symbol table with all info.\n"
+            " * DEX only options:\n"
+            "   * -fileh: Print file header.\n"
+            "   * -class: Print class defs.\n"
+            "   * -field: Print field ids.\n"
+            "   * -map: Print map.\n"
+            "   * -method: Print method ids.\n"
+            "   * -proto: Print proto ids.\n"
+            "   * -string: Print string ids.\n"
+            "   * -type: Print type ids.\n"
     );
     printf("\n");
     printf("Examples:\n");
@@ -227,7 +247,7 @@ void printHelp()
     printf("$ ./%s path/to/a.file -f pe\n", BIN_NAME);
 }
 
-int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams elfp, uint8_t* force, char* file_name)
+int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams elfp, PDexParams dexp, uint8_t* force, char* file_name)
 {
     int start_i = 1;
     int end_i = argc;
@@ -368,6 +388,7 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
         else if ( isArgOfType(arg, "-fileh") )
         {
             elfp->info_level |= INFO_LEVEL_ELF_FILE_H;
+            dexp->info_level |= INFO_LEVEL_DEX_FILE_H;
         }
         else if ( isArgOfType(arg, "-progh") )
         {
@@ -389,6 +410,34 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
         {
             elfp->info_level |= INFO_LEVEL_ELF_DYN_SYM_TAB | INFO_LEVEL_ELF_DYN_SYM_TAB_EX;
         }
+        else if ( isArgOfType(arg, "-string") )
+        {
+            dexp->info_level |= INFO_LEVEL_DEX_STRING_IDS;
+        }
+        else if ( isArgOfType(arg, "-type") )
+        {
+            dexp->info_level |= INFO_LEVEL_DEX_TYPE_IDS;
+        }
+        else if ( isArgOfType(arg, "-proto") )
+        {
+            dexp->info_level |= INFO_LEVEL_DEX_PROTO_IDS;
+        }
+        else if ( isArgOfType(arg, "-field") )
+        {
+            dexp->info_level |= INFO_LEVEL_DEX_FIELD_IDS;
+        }
+        else if ( isArgOfType(arg, "-method") )
+        {
+            dexp->info_level |= INFO_LEVEL_DEX_METHOD_IDS;
+        }
+        else if ( isArgOfType(arg, "-class") )
+        {
+            dexp->info_level |= INFO_LEVEL_DEX_CLASS_DEFS;
+        }
+        else if ( isArgOfType(arg, "-map") )
+        {
+            dexp->info_level |= INFO_LEVEL_DEX_MAP;
+        }
         else if ( arg[0] != '-' )
         {
             expandFilePath(arg, file_name);
@@ -405,8 +454,9 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
     {
         pep->info_level |= INFO_LEVEL_PE_EXTENDED;
         elfp->info_level |= INFO_LEVEL_ELF_EXTENDED;
+        dexp->info_level |= INFO_LEVEL_DEX_EXTENDED;
     }
-    if ( pep->info_level + elfp->info_level > 0 && gp->info_level < INFO_LEVEL_EXTENDED )
+    if ( pep->info_level + elfp->info_level  + dexp->info_level > 0 && gp->info_level < INFO_LEVEL_EXTENDED )
     {
         gp->info_level = INFO_LEVEL_EXTENDED;
     }
