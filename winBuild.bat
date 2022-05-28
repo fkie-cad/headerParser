@@ -10,6 +10,7 @@ set /a app=0
 set /a lib=0
 set /a tlib=0
 set /a tplib=0
+set /a cln=0
 
 set /a bitness=64
 set platform=x64
@@ -53,6 +54,10 @@ GOTO :ParseParams
     )
     IF /i "%~1"=="/tplib" (
         SET /a tplib=1
+        goto reParseParams
+    )
+    IF /i "%~1"=="/cln" (
+        SET /a cln=1
         goto reParseParams
     )
 
@@ -108,11 +113,11 @@ GOTO :ParseParams
 
     :: set platform
     set /a valid=0
-    if [%bitness%] == [32] (
+    if %bitness% == 32 (
         set platform=x86
         set /a valid=1
     ) else (
-        if [%bitness%] == [64] (
+        if %bitness% == 64 (
             set platform=x64
             set /a valid=1
         )
@@ -122,7 +127,7 @@ GOTO :ParseParams
     )
 
     :: test valid targets
-    set /a "valid=%app%+%lib%+%tlib%+%tplib%"
+    set /a "valid=%app%+%lib%+%tlib%+%tplib%+%cln%"
     if %valid% == 0 (
         set /a app=1
     )
@@ -130,27 +135,27 @@ GOTO :ParseParams
 
     :: set runtime lib
     set rtlib=No
-    set valid=0
+    set /a valid=0
     if /i [%mode%] == [debug] (
-        if [%rtl%] == [1] (
+        if %rtl% == 1 (
             set rtlib=Debug
         )
-        set pdb=1
-        set valid=1
+        set /a pdb=1
+        set /a valid=1
     ) else (
         if /i [%mode%] == [release] (
-            if [%rtl%] == [1] (
+            if %rtl% == 1 (
                 set rtlib=Release
             )
-            set valid=1
+            set /a valid=1
         )
     )
-    if [%valid%] == [0] (
+    if %valid% == 0 (
         goto help
     )
     
     :: verbose print
-    if [%verbose%] == [1] (
+    if %verbose% == 1 (
         echo app=%app%
         echo lib=%lib%
         echo bitness=%bitness%
@@ -159,12 +164,11 @@ GOTO :ParseParams
         echo buildTools=%buildTools%
         echo rtlib=%rtlib%
         echo pts=%pts%
-        echo proj=%proj%
     )
 
-    set vcvars=call :: pseudo nop command to prevent if else bug in :build
-    :: WHERE %msbuild% >nul 2>nul
-    :: IF %ERRORLEVEL% NEQ 0 set vcvars="%buildTools:~1,-1%\VC\Auxiliary\Build\vcvars%bitness%.bat"
+    :: set vcvars, if necessary
+    :: pseudo nop command to prevent if else bug in :build
+    set vcvars=call
     if [%VisualStudioVersion%] EQU [] (
         if not exist %buildTools% (
             echo [e] No build tools found in %buildTools%!
@@ -175,6 +179,9 @@ GOTO :ParseParams
     )
     
     :: build targets
+    if %cln% == 1 (
+        rmdir /s /q build
+    )
     if %app% == 1 (
         call :build HeaderParser.vcxproj Application
     ) 
@@ -195,7 +202,7 @@ GOTO :ParseParams
     setlocal
         set proj=%1
         set ct=%2
-        cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:PlatformToolset=%pts% /p:Configuration=%mode% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct% /p:DebugPrint=%dp%  & exit"
+        cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:PlatformToolset=%pts% /p:Configuration=%mode% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct%  /p:DebugPrint=%dp%  & exit"
 
     endlocal
     exit /B %errorlevel%
