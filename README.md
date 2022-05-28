@@ -52,7 +52,7 @@ This will run in a normal cmd.
 The correct path to your build tools may be passed  with the `/bt` parameter or changed in the script [winBuild.bat](winBuild.bat) itself.  
 
 The PlatformToolset defaults to "v142", but may be changed with the `/pts` option.
-"v142" is used for VS 2019 version, "v143" would be used in VS 2022, 
+"v142" is used for VS 2019, "v143" would be used in VS 2022, 
 or you could also use "WindowsApplicationForDrivers10.0" with WDK10 installed.
 
 In a developer cmd you can also type:
@@ -112,6 +112,15 @@ Options:
    * -symx: Print symbol table with all info.
    * -dym: Print dynamic symbol table (names only).
    * -dymx: Print dynamic symbol table with all info.
+ * DEX only options:
+   * -fileh: Print file header.
+   * -class: Print class defs.
+   * -field: Print field ids.
+   * -map: Print map.
+   * -method: Print method ids.
+   * -proto: Print proto ids.
+   * -string: Print string ids.
+   * -type: Print type ids.
  
 ## EXAMPLE ##
 ```bash
