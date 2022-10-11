@@ -44,7 +44,7 @@ void PE_printImageThunkData(PEImageThunkData64* td, PEImageImportByName* ibn, si
 void PE_printImageExportDirectoryInfo(PE_IMAGE_EXPORT_DIRECTORY* ied);
 void PE_printImageExportDirectoryHeader();
 void PE_printImageExportDirectoryEntry(size_t i, 
-                                       uint32_t n_fun, 
+                                       PE_IMAGE_EXPORT_DIRECTORY *ied,
                                        const char* name, 
                                        size_t name_max, 
                                        uint16_t name_ordinal, 
@@ -458,7 +458,7 @@ void PE_printImageExportDirectoryHeader()
 }
 
 void PE_printImageExportDirectoryEntry(size_t i, 
-                                       uint32_t n_fun, 
+                                       PE_IMAGE_EXPORT_DIRECTORY *ied,
                                        const char* name, 
                                        size_t name_max, 
                                        uint16_t name_ordinal, 
@@ -473,9 +473,12 @@ void PE_printImageExportDirectoryEntry(size_t i,
     if ( nr_of_bytes > bytes_max )
         nr_of_bytes = bytes_max;
 
-    printf("   [%zu/%u] \n", (i+1), n_fun);
-    printf("   - name: %s\n", name);
-    printf("   - ordinal: 0x%x\n", name_ordinal);
+    printf("   [%zu/%u] \n", (i+1), ied->NumberOfFunctions);
+    if ( name[0] != 0 )
+        printf("   - name: %s\n", name);
+    else
+        printf("   - name: %s\n", "(none)");
+    printf("   - ordinal: 0x%x (%u)\n", name_ordinal+ied->Base, name_ordinal+ied->Base);
     if ( is_forwarded )
     {
         printf("   - forwarded:\n");

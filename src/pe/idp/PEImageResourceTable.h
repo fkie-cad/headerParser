@@ -104,7 +104,6 @@ void PE_parseImageResourceTable(PE64OptHeader* oh,
     table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_RESOURCE, nr_of_sections, "Resource", svas);
     if ( table_fo == 0 )
     {
-        header_error("ERROR: File offset of ressource directory not valid!\n");
         return;
     }
 

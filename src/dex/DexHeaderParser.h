@@ -363,7 +363,7 @@ void DEX_fillStringIdItem(uint32_t offset,
 
     if ( idx < stringsNr )
     {
-        string = (char*) malloc((data.utf16_size.val+1)*sizeof(char));
+        string = (char*) malloc((data.utf16_size.val+1));
         if ( string != NULL )
         {
             memcpy(string, ptr, data.utf16_size.val);

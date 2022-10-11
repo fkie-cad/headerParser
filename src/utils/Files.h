@@ -219,6 +219,8 @@ size_t getBaseName(
     const char** base_name
 )
 {
+    if ( base_name == NULL )
+        return 0;
     if ( file_path == 0 || file_path[0] == 0 || file_path_ln == 0 || base_name == NULL )
     {
         *base_name = NULL;

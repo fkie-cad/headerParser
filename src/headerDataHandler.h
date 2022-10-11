@@ -49,7 +49,10 @@ void freeInnerHeaderData(HeaderData* hd)
         return;
 
     for ( i = 0; i < hd->code_regions_size; i++ )
-        free(hd->code_regions[i].name);
+    {
+        if ( hd->code_regions[i].name )
+            free(hd->code_regions[i].name);
+    }
 
     free(hd->code_regions);
     hd->code_regions = NULL;

@@ -35,6 +35,8 @@
 // _o_ offset
 #define GetIntXValueAtOffset(_t_, _p_, _o_) (*((_t_*) &(_p_)[_o_]))
 
+#define memzro(_t_, _s_) memset(_t_, 0, _s_)
+
 
 
 #ifndef __cplusplus

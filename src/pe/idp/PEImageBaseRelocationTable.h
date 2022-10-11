@@ -112,12 +112,12 @@ int PE_parseImageBaseRelocationTable(PE64OptHeader* oh,
         offset += sizeof(PE_BASE_RELOCATION_BLOCK);
         for (e_i = 0; e_i < nr_of_entries; e_i++)
         {
-            if (!checkFileSpace(offset, *abs_file_offset, sizeof(PE_BASE_RELOCATION_ENTRY), file_size))
+            if ( !checkFileSpace(offset, *abs_file_offset, sizeof(PE_BASE_RELOCATION_ENTRY), file_size) )
             {
                 header_error("ERROR: Data beyond end of file!\n");
                 return HP_ERROR_EOF;
             }
-            if (!checkLargeBlockSpace(&offset, abs_file_offset, sizeof(PE_BASE_RELOCATION_ENTRY), block_l, fp))
+            if ( !checkLargeBlockSpace(&offset, abs_file_offset, sizeof(PE_BASE_RELOCATION_ENTRY), block_l, fp) )
             {
                 header_error("ERROR: Block allocation failed\n");
                 return HP_ERROR_BAF;
@@ -138,7 +138,7 @@ int PE_parseImageBaseRelocationTable(PE64OptHeader* oh,
             offset += sizeof(PE_BASE_RELOCATION_ENTRY);
             reloc_o += sizeof(PE_BASE_RELOCATION_ENTRY);
 
-            if ( reloc_o >= reloc->Size )
+            if ( reloc_o > reloc->Size )
             {
                 header_error("ERROR: More reloc entries than directory size!\n");
                 break;

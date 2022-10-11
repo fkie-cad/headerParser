@@ -18,8 +18,8 @@ Compiles and runs under
 
 
 ## Version ##
-1.15.7  
-Last changed: 16.05.2022
+1.15.8  
+Last changed: 11.10.2022
 
 ## REQUIREMENTS ##
 - Linux
@@ -27,12 +27,11 @@ Last changed: 16.05.2022
    - Building with cmake requires cmake.
 - Windows
    - msbuild
-   - [wdk]
 
 ## BUILD ##
 ### Linux (gcc) & cmake ###
 ```bash
-$ ./linuxBuild.sh [-t app] [-m Release|Debug] [-h]  
+$ ./linuxBuild.sh [-t exe] [-m Release|Debug] [-h]  
 ```
 
 ### Linux (gcc) ###
@@ -45,15 +44,14 @@ Use `clang` instead of `gcc` in Termux on Android.
 
 ### Windows (MsBuild) ###
 ```bash
-$ winBuild.bat [/app] [/m <Release|Debug>] [/b <32|64>] [/rtl] [/pdb] [/bt <path>] [/pts <PlatformToolset>] [/h]
+$ winBuild.bat [/exe] [/m <Release|Debug>] [/b <32|64>] [/rtl] [/pdb] [/bt <path>] [/pts <PlatformToolset>] [/h]
 ```
 This will run in a normal cmd.  
 
 The correct path to your build tools may be passed  with the `/bt` parameter or changed in the script [winBuild.bat](winBuild.bat) itself.  
 
 The PlatformToolset defaults to "v142", but may be changed with the `/pts` option.
-"v142" is used for VS 2019, "v143" would be used in VS 2022, 
-or you could also use "WindowsApplicationForDrivers10.0" with WDK10 installed.
+"v142" is used for VS 2019, "v143" would be used in VS 2022.
 
 In a developer cmd you can also type:
 ```bash

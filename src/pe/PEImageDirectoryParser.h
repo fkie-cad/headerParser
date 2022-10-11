@@ -49,7 +49,7 @@ size_t PE_Rva2Foa(
 #include "idp/PEImageDelayImportTable.h"
 #include "idp/PEImageBoundImportTable.h"
 #include "idp/PEImageLoadConfigTable.h"
-#include "idp/PEImageRessourceTable.h"
+#include "idp/PEImageResourceTable.h"
 #include "idp/PEImageTLSTable.h"
 
 

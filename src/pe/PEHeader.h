@@ -395,10 +395,9 @@ typedef struct PE_IMAGE_EXPORT_DIRECTORY
     uint32_t Base;
     // The number of elements in the AddressOfFunctions array.
     // This value is also the number of functions exported by this module.
-    // Theoretically, this value could be different than the NumberOfNames field (next), but actually they're always the same.
+    // This value can be different than the NumberOfNames field (i.e. ntoskrnl.exe). Mostly they're the same, though.
     uint32_t NumberOfFunctions;
     // The number of elements in the AddressOfNames array.
-    // This value seems always to be identical to the NumberOfFunctions field, and so is the number of exported functions.
     uint32_t NumberOfNames;
     // The address of the export address table, relative to the image base.
     // This field is an RVA and points to an array of function addresses.

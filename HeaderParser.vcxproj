@@ -32,8 +32,6 @@
   <PropertyGroup Label="Configuration">
     <TargetVersion>Windows10</TargetVersion>
     <TargetPlatform>Desktop</TargetPlatform>
-    <!--<DriverTargetPlatform>Desktop</DriverTargetPlatform>-->
-    <!-- <PlatformToolset>WindowsApplicationForDrivers10.0</PlatformToolset> smaller build than v142 -->
     <PlatformToolset>v142</PlatformToolset>
     <ConfigurationType>Application</ConfigurationType>
   </PropertyGroup>
@@ -79,6 +77,8 @@
       <AdditionalDependencies>%(AdditionalDependencies);ntdll.lib;</AdditionalDependencies>
     </Link>
     <ClCompile>
+      <EnablePREfast>true</EnablePREfast>
+      <ConformanceMode>true</ConformanceMode>
       <TreatWarningAsError>false</TreatWarningAsError>
       <WarningLevel>Level4</WarningLevel>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);</AdditionalIncludeDirectories>
@@ -133,7 +133,7 @@
   
   <ItemDefinitionGroup Condition="'$(DebugPrint)'!='0' And '$(DebugPrint)'!=''">
     <ClCompile>
-      <PreprocessorDefinitions>DEBUG_PRINT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEBUG_PRINT=$(DebugPrint);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
 
