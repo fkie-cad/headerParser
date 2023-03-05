@@ -144,7 +144,7 @@
     <ClCompile Include="src\headerParserLib.c" />
   </ItemGroup>
   
-  <ItemGroup>
+  <ItemGroup Condition="'$(Icon)'=='1'">
     <ResourceCompile Include="res\headerparser.rc" />
   </ItemGroup>
 

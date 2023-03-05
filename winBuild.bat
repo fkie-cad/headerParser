@@ -20,6 +20,7 @@ set /a release=0
 set /a rtl=0
 set /a dp=0
 set /a pdb=0
+set /a ico=1
 set verbose=0
 
 :: adjust this path, if you're using another version or path.
@@ -68,11 +69,11 @@ GOTO :ParseParams
         goto reParseParams
     )
     IF /i "%~1"=="/d" (
-        SET debug=1
+        SET /a debug=1
         goto reParseParams
     )
     IF /i "%~1"=="/r" (
-        SET release=1
+        SET /a release=1
         goto reParseParams
     )
     IF /i "%~1"=="/bt" (
@@ -97,9 +98,13 @@ GOTO :ParseParams
         SET /a dp=1
         goto reParseParams
     )
+    IF /i "%~1"=="/xi" (
+        SET /a ico=0
+        goto reParseParams
+    )
     
     IF /i "%~1"=="/v" (
-        SET verbose=1
+        SET /a verbose=1
         goto reParseParams
     ) ELSE (
         echo Unknown option : "%~1"
@@ -173,6 +178,7 @@ GOTO :ParseParams
         echo release=%release%
         echo buildTools=%buildTools%
         echo rtlib=%rtlib%
+        echo ico=%ico%
         echo pts=%pts%
     )
 
@@ -219,7 +225,7 @@ GOTO :ParseParams
             if %release% EQU 1 set conf=Release
         )
 
-        cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:PlatformToolset=%pts% /p:Configuration=%conf% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct%  /p:DebugPrint=%dp%  & exit"
+        cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:PlatformToolset=%pts% /p:Configuration=%conf% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct%  /p:DebugPrint=%dp% /p:Icon=%ico% & exit"
 
     endlocal
     exit /B %errorlevel%
