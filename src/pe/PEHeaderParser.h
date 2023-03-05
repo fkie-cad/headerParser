@@ -669,18 +669,27 @@ uint8_t PE_readOptionalHeader(size_t offset,
         if ( !oh->DataDirectory )
         {
             header_info("INFO: allocation of DataDirectory with %u entries failed!\n", nr_of_rva_to_read);
-            header_info("INFO: Fallback to standard size of %u!\n", NUMBER_OF_RVA_AND_SIZES);
 
-            oh->NumberOfRvaAndSizes = NUMBER_OF_RVA_AND_SIZES;
-            oh->DataDirectory = (PEDataDirectory*) malloc(sizeof(PEDataDirectory) * oh->NumberOfRvaAndSizes);
-
-            if ( !oh->DataDirectory )
+            if ( nr_of_rva_to_read > NUMBER_OF_RVA_AND_SIZES )
             {
-                header_error("ERROR: allocation of DataDirectory with %u entries failed!\n", oh->NumberOfRvaAndSizes);
-                oh->NumberOfRvaAndSizes = 0;
-                return 1;
+                header_info("INFO: Fallback to standard size of %u!\n", NUMBER_OF_RVA_AND_SIZES);
+
+                oh->NumberOfRvaAndSizes = NUMBER_OF_RVA_AND_SIZES;
+                oh->DataDirectory = (PEDataDirectory*) malloc(sizeof(PEDataDirectory) * oh->NumberOfRvaAndSizes);
+
+                if ( !oh->DataDirectory )
+                {
+                    header_error("ERROR: allocation of DataDirectory with %u entries failed!\n", oh->NumberOfRvaAndSizes);
+                    oh->NumberOfRvaAndSizes = 0;
+                    return -1;
+                }
+                nr_of_rva_to_read = NUMBER_OF_RVA_AND_SIZES;
             }
-            nr_of_rva_to_read = NUMBER_OF_RVA_AND_SIZES;
+            else
+            {
+                oh->NumberOfRvaAndSizes = 0;
+                return -1;
+            }
         }
 
         for ( i = 0; i < nr_of_rva_to_read; i++ )

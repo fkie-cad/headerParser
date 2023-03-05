@@ -1,5 +1,5 @@
-#ifndef HEADER_PARSER_PE_IMAGE_RESSOURCE_TABLE_H
-#define HEADER_PARSER_PE_IMAGE_RESSOURCE_TABLE_H
+#ifndef HEADER_PARSER_PE_IMAGE_RESOURCE_TABLE_H
+#define HEADER_PARSER_PE_IMAGE_RESOURCE_TABLE_H
 
 
 
@@ -178,7 +178,7 @@ int PE_recurseImageResourceDirectory(
 
     if ( level >= PE_MAX_RES_DIR_LEVEL )
     {
-        header_error("ERROR: Maximum ressource directory level reached!\n");
+        header_error("ERROR: Maximum resource directory level reached!\n");
         return -1;
     }
     debug_info("offset: 0x%zx\n", offset);

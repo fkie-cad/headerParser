@@ -768,7 +768,7 @@ void PE_printImageResourceDirectoryEntry(
         name_offset = table_fo + re->NAME_UNION.NAME_STRUCT.NameOffset;
         if ( !checkFileSpace(name_offset, start_file_offset, 4, file_size) )
         {
-            header_error("ERROR: ressource name offset beyond file bounds!\n");
+            header_error("ERROR: Resource name offset beyond file bounds!\n");
             return;
         }
 
@@ -787,7 +787,7 @@ void PE_printImageResourceDirectoryEntry(
 
         if ( !checkFileSpace(name_offset, start_file_offset, 2+name_offsets->Length, file_size))
         {
-            header_error("ERROR: ressource name beyond file bounds!\n");
+            header_error("ERROR: Resource name beyond file bounds!\n");
             return;
         }
 

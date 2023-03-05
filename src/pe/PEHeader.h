@@ -431,7 +431,7 @@ typedef struct PE_EXPORT_ADDRESS_TABLE_ENTRY
         // This string gives the DLL name and the name of the export (for example, "MYDLL.expfunc") or the DLL name and the ordinal number of the export (for example, "MYDLL.#27").
         uint32_t ForwarderRva;
     } rva;
-}PE_EXPORT_ADDRESS_TABLE_ENTRY, *PPE_EXPORT_ADDRESS_TABLE_ENTRY;
+} PE_EXPORT_ADDRESS_TABLE_ENTRY, *PPE_EXPORT_ADDRESS_TABLE_ENTRY;
 
 
 
