@@ -1,6 +1,7 @@
-@echo off
+echo off
+setlocal
 
-set path=
+set bin_path=
 set label=Open with HeaderParser
 
 set prog_name=%~n0
@@ -16,7 +17,7 @@ GOTO :ParseParams
     if [%1]==[/help] goto help
 
     IF "%~1"=="/p" (
-        SET path=%~2
+        SET bin_path=%~2
         SHIFT
         goto reParseParams
     )
@@ -31,44 +32,48 @@ GOTO :ParseParams
     )
     
     :reParseParams
-    SHIFT
-    if [%1]==[] goto main
+        SHIFT
+        if [%1]==[] goto main
 
 GOTO :ParseParams
 
 
 :main
 
-if ["%path%"] == [] goto usage
-if ["%path%"] == [""] goto usage
-if ["%label%"] == [] goto usage
-if ["%label%"] == [""] goto usage
+    if ["%bin_path%"] == [] goto usage
+    if ["%bin_path%"] == [""] goto usage
+    if ["%label%"] == [] goto usage
+    if ["%label%"] == [""] goto usage
 
-IF not exist "%path%" (
-    echo HeaderParser not found at "%path%"!
-    echo Place it there or adjust the path.
-    exit /b 0
-)
+    IF not exist "%bin_path%" (
+        echo HeaderParser not found at "%bin_path%"!
+        echo Place it there or adjust the bin_path.
+        exit /b 0
+    )
 
-if [%verbose%]==[1] (
-    echo path=%path%
-    echo label=%label%
-)
+    if [%verbose%]==[1] (
+        echo bin_path=%bin_path%
+        echo label=%label%
+    )
 
 :add
-    C:\Windows\System32\reg add "HKEY_CURRENT_USER\SOFTWARE\Classes\*\shell\%label%\Command" /t REG_SZ /d "cmd /k %path% \"%%1\" -i 2"
+    C:\Windows\System32\reg add "HKEY_CURRENT_USER\SOFTWARE\Classes\*\shell\%label%\Command" /t REG_SZ /d "cmd /k %bin_path% \"%%1\" -i 2"
 
-exit /B 0
+    endlocal
+    exit /B 0
 
 
 :usage
-    @echo Usage: %prog_name% /p "c:\bin\HeaderParser.exe" [/l "Open in HeaderParser"] [/v] [/h]
+    echo Usage: %prog_name% /p "c:\bin\HeaderParser.exe" [/l "Open in HeaderParser"] [/v] [/h]
     exit /B 0
 
 :help
     call :usage
-    @echo /p Path to the HeaderParser binary. Must not have spaces at the moment!
-    @echo /l Label to show up in the context menu.
-    @echo /v Verbose mode.
-    @echo /h Print this.
+    echo.
+    echo /p Path to the HeaderParser binary. Must not have spaces at the moment!
+    echo /l Label to show up in the context menu.
+    echo /v Verbose mode.
+    echo /h Print this.
+    
+    endlocal
     exit /B 0
