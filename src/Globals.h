@@ -33,7 +33,7 @@
 // _t_ type
 // _p_ pointer
 // _o_ offset
-#define GetIntXValueAtOffset(_t_, _p_, _o_) (*((_t_*) &(_p_)[_o_]))
+#define GetIntXValueAtOffset(_t_, _p_, _o_) (*((_t_*) &((uint8_t*)_p_)[_o_]))
 
 #define memzro(_t_, _s_) memset(_t_, 0, _s_)
 

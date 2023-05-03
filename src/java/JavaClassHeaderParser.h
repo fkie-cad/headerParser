@@ -74,7 +74,7 @@ uint16_t JavaClass_getJavaVersion(size_t start_file_offset, size_t file_size, un
 
 int JavaClass_getJavaVersionStringV(uint16_t version, char* vs_str)
 {
-    int vs = version - JAVA_MIN_MJ_VS + 2;
+    uint16_t vs =  (version > JAVA_MIN_MJ_VS) ? version - JAVA_MIN_MJ_VS + 2 : 0;
     memset(vs_str, 0, JAVA_VS_STR_MAX_SIZE);
     if (vs < 2)
     {

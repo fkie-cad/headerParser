@@ -234,7 +234,7 @@ int PE_writeCertificatesToFile(PeAttributeCertificateTable* table,
         sprintf(cert_file, "%s%ccert-%u.der", dir, PATH_SEPARATOR, i);
         cert_file[PATH_MAX-1] = 0;
 
-        header_info(" - - file (%u/%u): %s", (i+1), table_size, cert_file);
+        header_info(" - - file (%u/%u): %s", (i+1u), table_size, cert_file);
         s = PE_writeCertificateToFile(table, i, cert_file, file_size, fp, block_s);
         if ( s == 0 )
         {

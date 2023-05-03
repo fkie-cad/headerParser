@@ -12,6 +12,8 @@ CMakeSettings.json
 .vsls.json
 #tests/
 .git.old
+desktop.ini
+issues
 
 *.vcxproj.user
 

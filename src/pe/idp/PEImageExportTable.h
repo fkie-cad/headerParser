@@ -336,17 +336,17 @@ int PE_fillImageExportDirectory(PE_IMAGE_EXPORT_DIRECTORY* ied,
 
     ptr = &block_s[offset];
     memset(ied, 0, PE_EXPORT_DIRECTORY_SIZE);
-    ied->Characteristics = *((uint32_t*) &ptr[offsets.Characteristics]);
-    ied->TimeDateStamp = *((uint32_t*) &ptr[offsets.TimeDateStamp]);
-    ied->MajorVersion = *((uint16_t*) &ptr[offsets.MajorVersion]);
-    ied->MinorVersion = *((uint16_t*) &ptr[offsets.MinorVersion]);
-    ied->Name = *((uint32_t*) &ptr[offsets.Name]);
-    ied->Base = *((uint32_t*) &ptr[offsets.Base]);
-    ied->NumberOfFunctions = *((uint32_t*) &ptr[offsets.NumberOfFunctions]);
-    ied->NumberOfNames = *((uint32_t*) &ptr[offsets.NumberOfNames]);
-    ied->AddressOfFunctions = *((uint32_t*) &ptr[offsets.AddressOfFunctions]);
-    ied->AddressOfNames = *((uint32_t*) &ptr[offsets.AddressOfNames]);
-    ied->AddressOfNameOrdinals = *((uint32_t*) &ptr[offsets.AddressOfNameOrdinals]);
+    ied->Characteristics = GetIntXValueAtOffset(uint32_t, ptr, offsets.Characteristics);
+    ied->TimeDateStamp = GetIntXValueAtOffset(uint32_t, ptr, offsets.TimeDateStamp);
+    ied->MajorVersion = GetIntXValueAtOffset(uint16_t, ptr, offsets.MajorVersion);
+    ied->MinorVersion = GetIntXValueAtOffset(uint16_t, ptr, offsets.MinorVersion);
+    ied->Name = GetIntXValueAtOffset(uint32_t, ptr, offsets.Name);
+    ied->Base = GetIntXValueAtOffset(uint32_t, ptr, offsets.Base);
+    ied->NumberOfFunctions = GetIntXValueAtOffset(uint32_t, ptr, offsets.NumberOfFunctions);
+    ied->NumberOfNames = GetIntXValueAtOffset(uint32_t, ptr, offsets.NumberOfNames);
+    ied->AddressOfFunctions = GetIntXValueAtOffset(uint32_t, ptr, offsets.AddressOfFunctions);
+    ied->AddressOfNames = GetIntXValueAtOffset(uint32_t, ptr, offsets.AddressOfNames);
+    ied->AddressOfNameOrdinals = GetIntXValueAtOffset(uint32_t, ptr, offsets.AddressOfNameOrdinals);
 
     return 0;
 }

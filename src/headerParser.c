@@ -38,8 +38,8 @@ const char* FORCE_PE_STR = "pe";
 //#define DILLER
 
 #define BIN_NAME "headerParser"
-#define BIN_VS "1.15.8"
-#define BIN_DATE "11.10.2022"
+#define BIN_VS "1.15.9"
+#define BIN_DATE "03.05.2023"
 
 #define LIN_PARAM_IDENTIFIER ('-')
 #define WIN_PARAM_IDENTIFIER ('/')
@@ -596,8 +596,8 @@ void printHeaderData1(PHeaderData hd)
         printf(" (%zu) %s: ( 0x%016"PRIx64" - 0x%016"PRIx64" )\n",
                i + 1, hd->code_regions[i].name, hd->code_regions[i].start, hd->code_regions[i].end);
     }
-    printf("headertype: %s (%d)\n", getHeaderDataHeaderType(hd->headertype), hd->h_bitness);
-    printf("bitness: %d-bit\n", hd->i_bitness);
+    printf("headertype: %s (%u)\n", getHeaderDataHeaderType(hd->headertype), hd->h_bitness);
+    printf("bitness: %u-bit\n", hd->i_bitness);
     printf("endian: %s\n", getHeaderDataEndianType(hd->endian));
     printf("CPU_arch: %s\n", getHeaderDataArchitecture(hd->CPU_arch));
     printf("Machine: %s\n", hd->Machine);

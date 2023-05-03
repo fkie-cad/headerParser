@@ -361,7 +361,7 @@ void DEX_fillStringIdItem(uint32_t offset,
         ptr = &gp->data.block_sub[utf16_size_ln];
     }
 
-    if ( idx < stringsNr )
+    if ( idx < stringsNr && data.utf16_size.val )
     {
         string = (char*) malloc((data.utf16_size.val+1));
         if ( string != NULL )

@@ -124,7 +124,7 @@ void Elf_printProgramHeaderTableEntry(Elf64ProgramHeader* ph, uint16_t idx, uint
 {
     ElfProgramHeaderOffsets offsets = ( bitness == 32 ) ? Elf32ProgramHeaderOffsets : Elf64ProgramHeaderOffsets;
 
-    printf("%u / %u\n", (idx+1), e_phnum);
+    printf("%u / %u\n", (idx+1u), e_phnum);
     printf(" - p_type%s: %s (0x%x)\n", fillOffset(offsets.p_type, offset, 0), Elf_getPHTypeString(ph->p_type), ph->p_type);
     if (bitness == 64 ) printf(" - p_flags%s: 0x%x (%u)\n", fillOffset(offsets.p_flags, offset, 0), ph->p_flags, ph->p_flags);
     printf(" - p_offset%s: 0x%"PRIx64"\n", fillOffset(offsets.p_offset, offset, 0), ph->p_offset);
@@ -167,7 +167,7 @@ Elf_printSectionHeaderTableEntry(Elf64SectionHeader* sh, uint16_t idx, uint16_t 
 {
     ElfSectionHeaderOffsets offsets = ( bitness == 32 ) ? Elf32SectionHeaderOffsets : Elf64SectionHeaderOffsets;
 
-    printf("%u / %u\n", (idx+1), e_shnum);
+    printf("%u / %u\n", (idx+1u), e_shnum);
     printf(" - sh_name%s: %s (%u)\n", fillOffset(offsets.sh_name, offset, 0), name, sh->sh_name);
     printf(" - sh_type%s: %s (0x%x)\n", fillOffset(offsets.sh_type, offset, 0), Elf_getSHTypeString(sh->sh_type), sh->sh_type);
     printf(" - sh_addr%s: 0x%"PRIx64"\n", fillOffset(offsets.sh_addr, offset, 0), sh->sh_addr);

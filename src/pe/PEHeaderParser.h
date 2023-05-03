@@ -68,7 +68,7 @@ static void PE_fillHeaderDataWithCoffHeader(PECoffFileHeader* ch,
                                             PHeaderData hd);
 static unsigned char PE_checkCoffHeader(const PECoffFileHeader* ch,
                                         PHeaderData hd);
-static uint8_t PE_readOptionalHeader(size_t offset,
+static int PE_readOptionalHeader(size_t offset,
                                      PE64OptHeader* oh,
                                      size_t start_file_offset,
                                      size_t* abs_file_offset,
@@ -570,7 +570,7 @@ unsigned char PE_checkCoffHeader(const PECoffFileHeader *ch,
  * @param offset
  * @param oh
  */
-uint8_t PE_readOptionalHeader(size_t offset,
+int PE_readOptionalHeader(size_t offset,
                               PE64OptHeader* oh,
                               size_t start_file_offset,
                               size_t* abs_file_offset,
@@ -672,7 +672,7 @@ uint8_t PE_readOptionalHeader(size_t offset,
 
             if ( nr_of_rva_to_read > NUMBER_OF_RVA_AND_SIZES )
             {
-                header_info("INFO: Fallback to standard size of %u!\n", NUMBER_OF_RVA_AND_SIZES);
+                header_info("INFO: Fallback to standard size of %u!\n", (uint32_t)NUMBER_OF_RVA_AND_SIZES);
 
                 oh->NumberOfRvaAndSizes = NUMBER_OF_RVA_AND_SIZES;
                 oh->DataDirectory = (PEDataDirectory*) malloc(sizeof(PEDataDirectory) * oh->NumberOfRvaAndSizes);

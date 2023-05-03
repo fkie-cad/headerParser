@@ -200,16 +200,16 @@ GOTO :ParseParams
     )
     if %exe% == 1 (
         call :build HeaderParser.vcxproj Application
-    ) 
+    )
     if %lib% == 1 (
         call :build HeaderParser.vcxproj DynamicLibrary
-    ) 
+    )
     if %tlib% == 1 (
         call :build tests\Tests.vcxproj Application TestLib
-    ) 
+    )
     if %tplib% == 1 (
         call :build tests\Tests.vcxproj Application TestPELib
-    ) 
+    )
     
     endlocal
     exit /b %errorlevel%
@@ -263,6 +263,7 @@ GOTO :ParseParams
     echo /pdb Include pdb symbols into release build. Default in debug mode. 
     echo /bt Custom path to Microsoft Visual Studio BuildTools.
     echo /pts Platformtoolset. Defaults to "v142".
+    echo /xi No icon for the exe.
     echo.
     echo /v more verbose output
     echo /h print this

@@ -37,7 +37,7 @@ void ARTprintFileHeader009012(ARTFileHeader009012* h, size_t start_file_offset)
     printf(" - oat_data_begin%s: 0x%x (%u)\n", fillOffset(offsets.oat_data_begin, 0, start_file_offset), h->oat_data_begin, h->oat_data_begin);
     printf(" - oat_data_end%s: 0x%x (%u)\n", fillOffset(offsets.oat_data_end, 0, start_file_offset), h->oat_data_end, h->oat_data_end);
     printf(" - oat_end%s: 0x%x (%u)\n", fillOffset(offsets.oat_end, 0, start_file_offset), h->oat_end, h->oat_end);
-    printf(" - patch_delta%s: 0x%x (%u)\n", fillOffset(offsets.patch_delta, 0, start_file_offset), (uint32_t)h->patch_delta, h->patch_delta);
+    printf(" - patch_delta%s: 0x%x (%u)\n", fillOffset(offsets.patch_delta, 0, start_file_offset), (uint32_t)h->patch_delta, (uint32_t)h->patch_delta);
     printf(" - image_roots%s: 0x%x (%u)\n", fillOffset(offsets.image_roots, 0, start_file_offset), h->image_roots, h->image_roots);
     printf(" - compile_pic%s: 0x%x (%u)\n", fillOffset(offsets.compile_pic, 0, start_file_offset), h->compile_pic, h->compile_pic);
     printf("\n");

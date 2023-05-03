@@ -227,8 +227,8 @@ void PE_printOptionalHeader(PE64OptHeader* oh, size_t offset, size_t start_file_
 
     printf("Optional Header:\n");
     printf(" - Magic%s: %s (0x%x)\n", fillOffset(offsets.Magic, offset, start_file_offset), magic_string, oh->Magic);
-    printf(" - MajorLinkerVersion%s: %u\n", fillOffset(offsets.MajorLinkerVersion, offset, start_file_offset), oh->MajorLinkerVersion);
-    printf(" - MinorLinkerVersion%s: %u\n", fillOffset(offsets.MinorLinkerVersion, offset, start_file_offset), oh->MinorLinkerVersion);
+    printf(" - MajorLinkerVersion%s: %u\n", fillOffset(offsets.MajorLinkerVersion, offset, start_file_offset), (uint8_t)oh->MajorLinkerVersion);
+    printf(" - MinorLinkerVersion%s: %u\n", fillOffset(offsets.MinorLinkerVersion, offset, start_file_offset), (uint8_t)oh->MinorLinkerVersion);
     printf(" - SizeOfCode%s: 0x%X (%u)\n", fillOffset(offsets.SizeOfCode, offset, start_file_offset), oh->SizeOfCode, oh->SizeOfCode);
     printf(" - SizeOfInitializedData%s: 0x%X (%u)\n", fillOffset(offsets.SizeOfInitializedData, offset, start_file_offset), oh->SizeOfInitializedData, oh->SizeOfInitializedData);
     printf(" - SizeOfUninitializedData%s: 0x%X (%u)\n", fillOffset(offsets.SizeOfUninitializedData, offset, start_file_offset), oh->SizeOfUninitializedData, oh->SizeOfUninitializedData);
@@ -348,7 +348,7 @@ void PE_printImageSectionHeader(PEImageSectionHeader* sh,
     char* name;
     PE_getRealName(sh->Name, &name, ch, start_file_offset, file_size, fp, block_s, st);
 
-    printf("%u / %u\n", (idx+1), size);
+    printf("%u / %u\n", (idx+1u), size);
 //	printf(" - short name: %c%c%c%c%c%c%c%c\n", sh->Name[0], sh->Name[1], sh->Name[2], sh->Name[3], sh->Name[4], sh->Name[5], sh->Name[6], sh->Name[7]);
     printf(" - Name%s: %s\n", fillOffset(PESectionHeaderOffsets.Name, offset, 0), name);
 //	printf(" - name%s: %.*s\n", IMAGE_SIZEOF_SHORT_NAME, &(sh->Name));
@@ -644,7 +644,7 @@ void PE_printAttributeCertificateTable(PeAttributeCertificateTable* t, uint8_t n
     {
         entry = &t[i];
 
-        printf(" - %u/%u\n", i+1, n);
+        printf(" - %u/%u\n", i+1u, n);
         printf("   - length%s: 0x%x\n", fillOffset(PeAttributeCertificateTableOffsets.dwLength, offset, 0), entry->dwLength);
         printf("   - revision%s: 0x%x\n", fillOffset(PeAttributeCertificateTableOffsets.wRevision, offset, 0), entry->wRevision);
         printf("   - certificateType%s: %s (0x%x)\n", fillOffset(PeAttributeCertificateTableOffsets.wCertificateType, offset, 0), PE_getCertificateTypeString(entry->wCertificateType), entry->wCertificateType);
@@ -761,7 +761,7 @@ void PE_printImageResourceDirectoryEntry(
     char spaces[MAX_SPACES];
     fillSpaces(spaces, MAX_SPACES, level);
     
-    printf("%s  %u/%u%s:\n", spaces, (id+1), n, fillOffset(0, offset, 0));
+    printf("%s  %u/%u%s:\n", spaces, (id+1u), n, fillOffset(0, offset, 0));
     
     if ( re->NAME_UNION.NAME_STRUCT.NameIsString )
     {
@@ -1160,7 +1160,7 @@ void PE_printImageBoundForwarderRef(PE_IMAGE_BOUND_FORWARDER_REF* bfr, size_t of
     if (bfr->TimeDateStamp != (uint32_t)-1)
         formatTimeStampD(bfr->TimeDateStamp, ts, sizeof(ts));
 
-    printf("   - [%d/%d]%s %s (0x%x)\n", i, n, fillOffset(PeImageBoundForwarderRefOffsets.OffsetModuleName, offset, 0), dll_name, bfr->OffsetModuleName);
+    printf("   - [%u/%u]%s %s (0x%x)\n", i, n, fillOffset(PeImageBoundForwarderRefOffsets.OffsetModuleName, offset, 0), dll_name, bfr->OffsetModuleName);
     printf("     - TimeDateStamp%s: %s (0x%x)\n", fillOffset(PeImageBoundForwarderRefOffsets.TimeDateStamp, offset, 0), ts, bfr->TimeDateStamp);
     printf("     - Reserved%s: 0x%x\n", fillOffset(PeImageBoundForwarderRefOffsets.Reserved, offset, 0), bfr->Reserved);
 }

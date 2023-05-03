@@ -24,8 +24,8 @@ void MSI_printStructuredStorageHeader(const MSIStructuredStorageHeader* ssh)
     printf(" - _uMinorVersion: %u\n", ssh->_uMinorVersion);
     printf(" - _uMajorVersion: %u\n", ssh->_uMajorVersion);
     printf(" - _uByteOrder: %s-endian, (0x%x)\n", endian_type_names[endian], ssh->_uByteOrder);
-    printf(" - _uSectorShift: 2^%u: %u (0x%x)\n", ssh->_uSectorShift, (1<<ssh->_uSectorShift), (1<<ssh->_uSectorShift));
-    printf(" - _uMiniSectorShift: 2^%u: %u (0x%x)\n", ssh->_uMiniSectorShift, (1<<ssh->_uMiniSectorShift), (1<<ssh->_uMiniSectorShift));
+    printf(" - _uSectorShift: 2^%u: %u (0x%x)\n", ssh->_uSectorShift, (uint32_t)(1<<ssh->_uSectorShift), (uint32_t)(1<<ssh->_uSectorShift));
+    printf(" - _uMiniSectorShift: 2^%u: %u (0x%x)\n", ssh->_uMiniSectorShift, (uint32_t)(1<<ssh->_uMiniSectorShift), (uint32_t)(1<<ssh->_uMiniSectorShift));
     printf(" - _usReserved: %u\n", ssh->_usReserved);
     printf(" - _ulReserved1: %u\n", ssh->_ulReserved1);
     printf(" - _csectDir: %u\n", ssh->_csectDir);

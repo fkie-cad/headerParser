@@ -297,7 +297,7 @@ ArchitectureMapEntry* getArchitecture(const uint32_t e_machine, ArchitectureMapE
         if ( entry->arch.id == e_machine )
         {
 #ifdef DEBUG_PRINT
-            printf(" - architecture : %u, %s, %u, %d\n", entry->arch.id, entry->arch.name, entry->arch_id, entry->bitness);
+            printf(" - architecture : %u, %s, %u, %u\n", entry->arch.id, entry->arch.name, entry->arch_id, entry->bitness);
 #endif
             return entry;
         }
