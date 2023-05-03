@@ -37,6 +37,9 @@
 
 #define memzro(_t_, _s_) memset(_t_, 0, _s_)
 
+#ifndef ALIGN_UP_BY
+#define ALIGN_UP_BY(__value__, __align__) ( ((size_t)(__value__) + (__align__) - 1) & ~((__align__) - 1) )
+#endif
 
 
 #ifndef __cplusplus

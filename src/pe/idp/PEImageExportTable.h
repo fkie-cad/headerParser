@@ -59,7 +59,8 @@ void PE_parseImageExportTable(
     uint32_t handled_id;
     uint32_t handled_offset;
     uint32_t handled_value;
-    uint8_t handled_block_size = (uint8_t)(sizeof(uint32_t) * 8);
+    uint8_t block_size = (uint8_t)(sizeof(uint32_t));
+    uint8_t bits_per_block = (uint8_t)(block_size * 8);
     uint32_t handled_counter;
     
     if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_EXPORT )
@@ -86,7 +87,7 @@ void PE_parseImageExportTable(
     PE_printImageExportDirectoryInfo(&ied);
 
     // iterate functions
-    // converte rvas: function, name, nameordinal
+    // convert rvas: function, name, nameordinal
     functions_array = PE_Rva2Foa(ied.AddressOfFunctions, svas, nr_of_sections);
     functions_array += start_file_offset;
 
@@ -98,6 +99,8 @@ void PE_parseImageExportTable(
     names_ordinal_array += start_file_offset;
     names_ordinal_offset = names_ordinal_array;
 
+    if ( !ied.NumberOfFunctions )
+        goto clean;
 
     PE_printImageExportDirectoryHeader();
 
@@ -105,8 +108,10 @@ void PE_parseImageExportTable(
     // This would not be neccessary, if its sure, that the named ordinals are ordered.
     if ( ied.NumberOfFunctions > ied.NumberOfNames )
     {
-        handled_size = ied.NumberOfFunctions/sizeof(uint32_t);
-        handled = malloc(handled_size);
+        handled_size = ALIGN_UP_BY(ied.NumberOfFunctions, bits_per_block) / bits_per_block;
+        //printf("bits_per_block: 0x%x\n", bits_per_block);
+        //printf("handled_size: 0x%x\n", handled_size);
+        handled = malloc(handled_size * block_size);
         if ( !handled )
         {
             header_error("ERROR: No memory for handled array!\n");
@@ -169,8 +174,15 @@ void PE_parseImageExportTable(
         if ( handled )
         {
             // get bitmap id and offset and mark as handled
-            handled_id = name_ordinal / handled_block_size;
-            handled_offset = name_ordinal % handled_block_size;
+            handled_id = name_ordinal / bits_per_block;
+            handled_offset = name_ordinal % bits_per_block;
+            if ( handled_id >= handled_size )
+            {
+                header_error("ERROR: Handled id (0x%x) of ordinal 0x%x bigger than handled bitmap array size (0x%x)!\n", handled_id, name_ordinal, handled_size);
+                //goto clean;
+                continue;
+            }
+
             handled[handled_id] = handled[handled_id] | (1<<handled_offset);
         }
 
@@ -233,12 +245,19 @@ void PE_parseImageExportTable(
         {
             handled_value = 0;
             
-            handled_id = i / handled_block_size;
-            handled_offset = i % handled_block_size;
+            handled_id = i / bits_per_block;
+            handled_offset = i % bits_per_block;
+            if ( handled_id >= handled_size )
+            {
+                debug_info("Handled id bigger than handled bitmap array size!\n");
+                continue;
+            }
             handled_value = handled[handled_id] & (1<<handled_offset);
 
             if ( handled_value )
+            {
                 continue;
+            }
 
             name_ordinal = (uint16_t)i;
 
