@@ -785,7 +785,7 @@ void PE_printImageResourceDirectoryEntry(
         ptr[bytes_read-2] = 0;
         ptr[bytes_read-1] = 0;
 
-        if ( !checkFileSpace(name_offset, start_file_offset, 2+name_offsets->Length, file_size))
+        if ( !checkFileSpace(name_offset, start_file_offset, name_offsets->Length+name.Length, file_size) )
         {
             header_error("ERROR: Resource name beyond file bounds!\n");
             return;

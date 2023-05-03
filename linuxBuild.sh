@@ -2,8 +2,8 @@
 
 name=headerParser
 def_target=${name}
-pos_targets="exe|lib|pck|cln"
-target="exe"
+pos_targets="app|lib|pck|cln"
+target="app"
 def_mode=Release
 mode=${def_mode}
 help=0
@@ -90,7 +90,7 @@ function buildPackage()
 
 function printUsage() {
     echo "Usage: $0 [-t ${pos_targets}] [-m Debug|Release] [-h]"
-    echo "Default: $0 [-t exe -m ${def_mode}]"
+    echo "Default: $0 [-t app -m ${def_mode}]"
     return 0;
 }
 
@@ -98,7 +98,7 @@ function printHelp() {
     printUsage
     echo ""
     echo "-t A possible target: ${pos_targets}"
-    echo "  * exe: build headerParser application"
+    echo "  * app: build headerParser application"
     echo "  * lib: build headerParser shared library"
     echo "  * pck: build headerParser application and clean up build dir"
     echo "  * cln: clean up build dir"
@@ -156,7 +156,7 @@ elif [[ ${target} == "pck" ]]; then
 
     exit $?
 else
-    if [[ ${target} == "exe" ]]; then
+    if [[ ${target} == "app" ]]; then
         target=${name}
     elif [[ ${target} == "lib" ]]; then
         target=${name}_so

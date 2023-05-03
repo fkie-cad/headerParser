@@ -21,7 +21,7 @@
 #define CONVERTER_ERROR_STR_IS_NEGATIVE "Value is nagative!"
 #define CONVERTER_ERROR_NOT_A_NUMBER (-2)
 #define CONVERTER_ERROR_STR_NOT_A_NUMBER "Value is not a number!"
-#define CONVERTER_ERROR_OUT_OF_RANGE (-2)
+#define CONVERTER_ERROR_OUT_OF_RANGE (-3)
 #define CONVERTER_ERROR_STR_OUT_OF_RANGE "Value is out of range!"
 
 
