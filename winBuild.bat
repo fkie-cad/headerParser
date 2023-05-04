@@ -3,6 +3,7 @@ setlocal
 
 set my_name=%~n0
 set my_dir="%~dp0"
+set "my_dir=%my_dir:~1,-2%"
 
 set name=headerParser
 
@@ -143,11 +144,7 @@ GOTO :ParseParams
 
     :: set release default
     set /a "valid=%release%+%debug%"
-    if %valid% == 0 (
-        set /a release=1
-    )
-    set /a "valid=%release%+%debug%"
-    if %valid% == 2 (
+    if not %valid% == 1 (
         set /a release=1
         set /a debug=0
     )
@@ -180,6 +177,7 @@ GOTO :ParseParams
         echo rtlib=%rtlib%
         echo ico=%ico%
         echo pts=%pts%
+        echo proj=%proj%
     )
 
     :: set vcvars, if necessary
@@ -196,7 +194,8 @@ GOTO :ParseParams
     
     :: build targets
     if %cln% == 1 (
-        rmdir /s /q build
+        echo removing "%my_dir%\build"
+        rmdir /s /q "%my_dir%\build" >nul 2>&1 
     )
     if %exe% == 1 (
         call :build HeaderParser.vcxproj Application
@@ -244,7 +243,7 @@ GOTO :ParseParams
 
 
 :usage
-    echo Usage: %my_name% [/exe] [/lib] [/b ^<bitness^>] [/r] [/d] [/rtl] [/pdb] [/pts ^<toolset^>] [/bt ^<path^>] [/v] [/h]
+    echo Usage: %my_name% [/exe] [/lib] [/b ^<bitness^>] [/r|/d] [/rtl] [/pdb] [/pts ^<toolset^>] [/bt ^<path^>] [/xi] [/v] [/h]
     echo Default: %my_name% [/exe /b %bitness% /m %mode% /pts %pts% /bt %buildTools%]
     exit /B 0
     
