@@ -897,8 +897,9 @@ void PE_printTLSEntry(PE_IMAGE_TLS_DIRECTORY64* tls,
                     cb = *((uint32_t*)&block_s[bi]);
                 else
                     cb = *((size_t*)&block_s[bi]);
-                printf("       %0.*zx\n", (ptr_size*2), cb);
-                
+                printf("       %.*zx\n", (ptr_size*2), cb);
+//                printf("       %0.*zx\n", (ptr_size*2), cb);
+
                 if ( cb == 0 )
                 {
                     loop = 0;

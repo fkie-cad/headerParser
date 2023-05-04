@@ -15,20 +15,22 @@ debug_print=0
 function clean() {
     local dir=$1
 
+    echo "cleaning build dir: $dir"
+
     if [[ ${dir} == "${ROOT}" ]]; then
         return
     fi
 
     cd ${dir} || return 1
 
-    rm -r ./CMakeFiles
-    rm -r ./CTestTestfile.cmake
-    rm -r ./CMakeCache.txt
-    rm -r ./cmake_install.cmake
-    rm -rf ./tests
-    rm -f ./*.cbp
-    rm -r ./Makefile
-    rm -rf ./debug
+    rm -r ./CMakeFiles 2> /dev/null
+    rm -r ./CTestTestfile.cmake 2> /dev/null
+    rm -r ./CMakeCache.txt 2> /dev/null
+    rm -r ./cmake_install.cmake 2> /dev/null
+    rm -rf ./tests 2> /dev/null
+    rm -f ./*.cbp 2> /dev/null
+    rm -r ./Makefile 2> /dev/null
+    rm -rf ./debug 2> /dev/null
 
     cd - || return 2
 
