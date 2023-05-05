@@ -243,7 +243,7 @@ GOTO :ParseParams
 
 
 :usage
-    echo Usage: %my_name% [/exe] [/lib] [/b ^<bitness^>] [/r|/d] [/rtl] [/pdb] [/pts ^<toolset^>] [/bt ^<path^>] [/xi] [/v] [/h]
+    echo Usage: %my_name% [/exe] [/lib] [/b ^<bitness^>] [/r^|/d] [/rtl] [/pdb] [/pts ^<toolset^>] [/bt ^<path^>] [/xi] [/v] [/h]
     echo Default: %my_name% [/exe /b %bitness% /m %mode% /pts %pts% /bt %buildTools%]
     exit /B 0
     
