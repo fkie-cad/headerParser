@@ -1116,11 +1116,12 @@ typedef struct _StringTable {
     uint32_t size;
 } StringTable, *PStringTable;
 
+// section addresses and sizes used for offset calculation
 typedef struct _SVAS {
     uint32_t VirtualAddress;
     uint32_t VirtualSize;
     uint32_t PointerToRawData;
     uint32_t SizeOfRawData;
-} SVAS, PSVAS;
+} SVAS, *PSVAS;
 
 #endif

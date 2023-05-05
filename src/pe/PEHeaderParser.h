@@ -88,7 +88,7 @@ static void PE_readSectionHeader(size_t header_start,
                                  unsigned char* block_l,
                                  PStringTable st,
                                  int parse_svas,
-                                 SVAS** svas,
+                                 PSVAS* svas,
                                  PHeaderData hd);
 static void PE_fillSectionHeader(const unsigned char* ptr, PEImageSectionHeader* sh);
 static int PE_isNullSectionHeader(const PEImageSectionHeader* sh);
@@ -214,7 +214,7 @@ int parsePEHeader(
         return -1;
     }
 
-    if ( pep->info_level & INFO_LEVEL_PE_SVAS )
+    if ( pep->info_level & ( INFO_LEVEL_PE_SVAS | INFO_LEVEL_PE_LIB ) )
     {
         parse_svas = 1;
     }
@@ -755,7 +755,7 @@ void PE_readSectionHeader(size_t header_start,
                           unsigned char* block_l,
                           PStringTable st,
                           int parse_svas,
-                          SVAS** svas,
+                          PSVAS* svas,
                           PHeaderData hd)
 {
     unsigned char *ptr = NULL;
@@ -769,7 +769,7 @@ void PE_readSectionHeader(size_t header_start,
     if ( parse_svas == 1 )
     {
         errno = 0;
-        *svas = (SVAS*) calloc(nr_of_sections, sizeof(SVAS));
+        *svas = (PSVAS) calloc(nr_of_sections, sizeof(SVAS));
         if ( *svas == NULL )
         {
             header_error("ERROR (0x%x): Alloc failed!\n", errno);
@@ -878,9 +878,7 @@ int PE_checkSectionHeader(const PEImageSectionHeader* sh,
                                     size_t file_size)
 {
 //    debug_info("PE_checkSectionHeader()\n");
-    int valid = 1;
-    char errors[ERRORS_BUFFER_SIZE] = {0};
-    uint16_t offset = 0;
+    uint32_t error_code = 0;
     uint32_t section_size = PE_calculateSectionSize(sh);
 
     if ( !hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_UNINITIALIZED_DATA
@@ -890,39 +888,37 @@ int PE_checkSectionHeader(const PEImageSectionHeader* sh,
 //        debug_info("!(U & R & W): \n");
         if ( sh->PointerToRawData == 0 )
         {
-            snprintf(&errors[offset], ERRORS_BUFFER_SIZE, " - PointerToRawData is 0\n");
-            offset += (uint16_t)strlen(errors);
-            valid = 0;
+            error_code |= 0x1;
         }
         if ( start_file_offset + section_size == 0 )
         {
-            snprintf(&errors[offset], ERRORS_BUFFER_SIZE, " - section_size is 0\n");
-            offset += (uint16_t)strlen(errors);
-            valid = 0;
+            error_code |= 0x2;
         }
         if ( start_file_offset + section_size > file_size )
         {
-            snprintf(&errors[offset], ERRORS_BUFFER_SIZE, " - section_size (%u) is > file_size (%zu)\n",
-                     section_size, file_size);
-            offset += (uint16_t)strlen(errors);
-            valid = 0;
+            error_code |= 0x4;
         }
         if ( start_file_offset + sh->PointerToRawData + section_size > file_size )
         {
-            snprintf(&errors[offset], ERRORS_BUFFER_SIZE, " - PointerToRawData (%u) + section_size (%u) = (%u) is > file_size (%zu)\n",
-                     sh->PointerToRawData,section_size,sh->PointerToRawData+section_size, file_size);
-            offset += (uint16_t)strlen(errors);
-            valid = 0;
+            error_code |= 0x8;
         }
     }
 
-    if ( !valid && strlen(errors) )
+    if ( error_code )
     {
         header_info("INFO: Section header %d (\"%s\") is invalid.\n", idx+1, name);
-        header_info("%s\n", errors);
+        if ( error_code & 0x1 )
+            header_info(" - PointerToRawData is 0\n");
+        if ( error_code & 0x2 )
+            header_info(" - section_size is 0\n");
+        if ( error_code & 0x4 )
+            header_info(" - section_size (%u) is > file_size (%zu)\n", section_size, file_size);
+        if ( error_code & 0x8 )
+            header_info(" - PointerToRawData (%u) + section_size (%u) = (%u) is > file_size (%zu)\n",
+                     sh->PointerToRawData,section_size,sh->PointerToRawData+section_size, file_size);
     }
 
-    return valid;
+    return error_code == 0;
 }
 
 uint8_t PE_isExecutableSectionHeader(const PEImageSectionHeader* sh)
