@@ -845,7 +845,7 @@ void PE_fillSectionHeader(const unsigned char* ptr,
                           PEImageSectionHeader* sh)
 {
     // may not be zero terminated
-    strncpy(sh->Name, (const char*)&ptr[PESectionHeaderOffsets.Name], IMAGE_SIZEOF_SHORT_NAME);
+    memcpy(sh->Name, (const char*)&ptr[PESectionHeaderOffsets.Name], IMAGE_SIZEOF_SHORT_NAME);
     sh->Misc.VirtualSize = *((uint32_t*) &ptr[PESectionHeaderOffsets.VirtualSize]);
     sh->VirtualAddress = *((uint32_t*) &ptr[PESectionHeaderOffsets.VirtualAddress]);
     sh->SizeOfRawData = *((uint32_t*) &ptr[PESectionHeaderOffsets.SizeOfRawData]);

@@ -37,7 +37,7 @@ $ ./linuxBuild.sh [-t exe] [-m Release|Debug] [-h]
 ### Linux (gcc) ###
 ```bash
 $ mkdir build
-$ gcc -o build/headerParser -Wl,-z,relro,-z,now -D_FILE_OFFSET_BITS=64 -Ofast src/headerParser.c  
+$ gcc -o build/headerParser -Wl,-z,relro,-z,now -D_FILE_OFFSET_BITS=64 -Ofast src/headerParser.c src/pe/PEHeader.c  
 ```
 
 Use `clang` instead of `gcc` in Termux on Android.
@@ -188,18 +188,18 @@ HeaderParser may also be build as a shared or static library.
 ### Build ###
 *Linux*
 ```bash
-./linuxBuild.sh -t lib [-m Release|Debug] [-h]
+$ ./linuxBuild.sh -t lib [-m Release|Debug] [-h]
 ```
 or plain:
 ```bash
-mkdir build
-gcc -fPIC -Wl,-z,relro,-z,now -shared -Ofast -D_FILE_OFFSET_BITS=64 -o build/libheaderparser.so src/headerParserLib.c -Wall 
+$ mkdir build
+$ gcc -fPIC -Wl,-z,relro,-z,now -shared -Ofast -D_FILE_OFFSET_BITS=64 -o build/libheaderparser.so src/headerParserLib.c src/pe/PEHeader.c -Wall 
 ```
 *Windows*
 ```bash
-winBuild.bat /dll [/m Release|Debug] [/b 32|64]
+$ winBuild.bat /dll [/m Release|Debug] [/b 32|64]
 // or
-winBuild.bat /lib [/m Release|Debug] [/b 32|64]
+$ winBuild.bat /lib [/m Release|Debug] [/b 32|64]
 ```
 
 ### Usage ###
