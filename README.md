@@ -18,8 +18,8 @@ Compiles and runs under
 
 
 ## Version ##
-1.15.11  
-Last changed: 04.05.2023
+1.15.12  
+Last changed: 05.05.2023
 
 ## REQUIREMENTS ##
 - Linux
@@ -183,7 +183,7 @@ If you think it is a PE file but the MZ or PE00 magic values are broken, try the
 
 
 ## ALTERNATIVE USAGE ##
-HeaderParser may also be build as a shared library.  
+HeaderParser may also be build as a shared or static library.  
 
 ### Build ###
 *Linux*
@@ -197,10 +197,15 @@ gcc -fPIC -Wl,-z,relro,-z,now -shared -Ofast -D_FILE_OFFSET_BITS=64 -o build/lib
 ```
 *Windows*
 ```bash
+winBuild.bat /dll [/m Release|Debug] [/b 32|64]
+// or
 winBuild.bat /lib [/m Release|Debug] [/b 32|64]
 ```
 
 ### Usage ###
+Additionally to the included header files `src\exp.h` is needed in the same directory.
+This may be removed soon.
+
 ```c
 // link library when compiling
 // include
@@ -211,13 +216,17 @@ winBuild.bat /lib [/m Release|Debug] [/b 32|64]
 size_t offset = 0;
 uint8_t force = FORCE_NONE; // or FORCE_PE
 HeaderData* data = getBasicHeaderParserInfo("a/file.path", offset, force);
+if ( data )
+{
 // do stuff handling data
 // ...
+}
 // clean up
 freeHeaderData(data);
 ```
 
 For PE files there is an extended parser available. 
+This one includes the basic data info.
 ```c
 // include
 #include "src/PEHeaderData.h"
@@ -226,8 +235,11 @@ For PE files there is an extended parser available.
 // use library
 size_t offset = 0;
 PEHeaderData* data = getPEHeaderData("a/file.path", offset);
+if ( data )
+{
 // do stuff handling data
 // ...
+}
 // clean up
 freePEHeaderData(data);
 ```

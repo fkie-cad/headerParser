@@ -74,7 +74,7 @@
   
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);ntdll.lib;</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);</AdditionalDependencies>
     </Link>
     <ClCompile>
       <EnablePREfast>true</EnablePREfast>
@@ -136,12 +136,20 @@
       <PreprocessorDefinitions>DEBUG_PRINT=$(DebugPrint);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
+  
+  <ItemDefinitionGroup Condition="'$(ConfigurationType)'=='DynamicLibrary' Or '$(ConfigurationType)'=='StaticLibrary'">
+    <ClCompile>
+      <PreprocessorDefinitions>_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
 
   <ItemGroup Condition="'$(ConfigurationType)'=='Application'">
     <ClCompile Include="src\headerParser.c" />
+    <ClCompile Include="src\pe\PEHeader.c" />
   </ItemGroup>
-  <ItemGroup Condition="'$(ConfigurationType)'=='DynamicLibrary'">
+  <ItemGroup Condition="'$(ConfigurationType)'=='DynamicLibrary' Or '$(ConfigurationType)'=='StaticLibrary'">
     <ClCompile Include="src\headerParserLib.c" />
+    <ClCompile Include="src\pe\PEHeader.c" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(Icon)'=='1'">
@@ -154,7 +162,7 @@
     <Message Text="PlatformToolset = $(PlatformToolset)" />
     <Message Text="Project Name = $(MSBuildProjectName)" />
     <Message Text="Project File Name = $(MSBuildProjectFile)" />
-	  <Message Text="ConfigurationType = $(ConfigurationType)" />
+    <Message Text="ConfigurationType = $(ConfigurationType)" />
     <Message Text="Configuration = $(Configuration)" />
     <Message Text="Platform = $(Platform)" />
     <Message Text="RunTimeLib = $(RunTimeLib)" />

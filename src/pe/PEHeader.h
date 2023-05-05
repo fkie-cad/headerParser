@@ -9,18 +9,32 @@
 #include <wchar.h>
 
 
-const unsigned char MAGIC_PE_ARCHIV_BYTES[] = { 0x21, 0x3C, 0x61, 0x72, 0x63, 0x68, 0x3E };
-#define MAGIC_PE_ARCHIV_BYTES_LN (sizeof(MAGIC_PE_ARCHIV_BYTES))
+#define MAGIC_PE_ARCHIV_BYTES_LN (7)
+extern const uint8_t MAGIC_PE_ARCHIV_BYTES[MAGIC_PE_ARCHIV_BYTES_LN];
 
-const unsigned char MAGIC_PE_BYTES[2] = { 0x4D, 0x5A };
-const unsigned char MAGIC_PE_SIGNATURE[4] = { 0x50, 0x45, 0x00, 0x00 };
-const unsigned char MAGIC_NE_SIGNATURE[2] = { 0x4E, 0x45 };
-const unsigned char MAGIC_LE_SIGNATURE[2] = { 0x4C, 0x45 };
-const unsigned char MAGIC_LX_SIGNATURE[2] = { 0x4C, 0x58 };
-//const unsigned char MAGIC_NE_SIGNATURE[4] = { 0x4E, 0x45, 0x05, 0x3C };
-//const unsigned char MAGIC_NE_SIGNATURE[4] = { 0x4E, 0x45, 0x06, 0x01 };
-const unsigned char MAGIC_DOS_STUB_BEGINNING[] = { 0xB4, 0x09, 0xCD, 0x21, 0xB8, 0x01, 0x4C, 0xCD, 0x21 };
+#define MAGIC_PE_BYTES_LN (2)
+extern const uint8_t MAGIC_PE_BYTES[MAGIC_PE_BYTES_LN];
+
+#define MAGIC_PE_SIGNATURE_LN (4)
+extern const uint8_t MAGIC_PE_SIGNATURE[MAGIC_PE_SIGNATURE_LN];
+
+#define MAGIC_NE_SIGNATURE_LN (2)
+extern const uint8_t MAGIC_NE_SIGNATURE[MAGIC_NE_SIGNATURE_LN];
+
+#define MAGIC_LE_SIGNATURE_LN (2)
+extern const uint8_t MAGIC_LE_SIGNATURE[MAGIC_LE_SIGNATURE_LN];
+
+#define MAGIC_LX_SIGNATURE_LN (2)
+extern const uint8_t MAGIC_LX_SIGNATURE[MAGIC_LX_SIGNATURE_LN];
+
+//#define MAGIC_NE_SIGNATURE_LN (4)
+//extern const uint8_t MAGIC_NE_SIGNATURE[MAGIC_NE_SIGNATURE_LN];
+
+//#define MAGIC_NE_SIGNATURE_LN (4)
+//extern const uint8_t MAGIC_NE_SIGNATURE[MAGIC_NE_SIGNATURE_LN];
+
 #define MAGIC_DOS_STUB_BEGINNING_LN (9)
+extern const uint8_t MAGIC_DOS_STUB_BEGINNING[MAGIC_DOS_STUB_BEGINNING_LN];
 
 #define PE_DOS_STUB_OFFSET (0x45)
 
@@ -32,7 +46,7 @@ const unsigned char MAGIC_DOS_STUB_BEGINNING[] = { 0xB4, 0x09, 0xCD, 0x21, 0xB8,
 #endif
 
 enum PEHeaderSizes {
-    MAGIC_PE_BYTES_LN=2,
+    //MAGIC_PE_BYTES_LN=2,
     SIZE_OF_MAGIC_PE_SIGNATURE=4,
     SIZE_OF_MAGIC_NE_SIGNATURE=2,
     SIZE_OF_MAGIC_LE_SIGNATURE=2,
@@ -139,24 +153,8 @@ enum ImageDirectoryEntries {
     IMAGE_DIRECTORY_ENTRY_RESERVED, // 15
 };
 
-const char* ImageDirectoryEntryNames[] = {
-    "EXPORT",
-    "IMPORT",
-    "RESOURCE",
-    "EXCEPTION",
-    "CERTIFICATE",
-    "BASE_RELOC",
-    "DEBUG",
-    "ARCHITECTURE",
-    "GLOBAL_PTR",
-    "TLS",
-    "LOAD_CONFIG",
-    "BOUND_IMPORT",
-    "IAT",
-    "DELAY_IMPORT",
-    "CLR_RUNTIME_HEADER",
-    "RESERVED",
-};
+#define IMAGE_DIRECTORY_ENTRY_NAMES_LN (0x10)
+extern const char* ImageDirectoryEntryNames[IMAGE_DIRECTORY_ENTRY_NAMES_LN];
 
 /**
  * 64 bit version of the PE Optional Header also known as IMAGE_OPTIONAL_HEADER64
@@ -439,7 +437,7 @@ typedef struct PeAttributeCertificateTable {
     uint32_t dwLength; // Specifies the length of the attribute certificate entry.
     uint16_t wRevision; // Contains the certificate version number. For details, see the following text.
     uint16_t wCertificateType; // Specifies the type of content in bCertificate. For details, see the following text.
-    unsigned char* bCertificate; // Contains a certificate, such as an Authenticode signature. The headerParser uses this as a file offset pointer to the location of the certificate.
+    uint8_t* bCertificate; // Contains a certificate, such as an Authenticode signature. The headerParser uses this as a file offset pointer to the location of the certificate.
 } PeAttributeCertificateTable;
 
 // Subsequent entries are accessed by advancing that entry's dwLength bytes,
@@ -1112,7 +1110,7 @@ typedef struct _PE_NON_PAGED_DEBUG_INFO {
 // custom
 
 typedef struct _StringTable {
-    unsigned char *strings;
+    uint8_t *strings;
     uint32_t size;
 } StringTable, *PStringTable;
 

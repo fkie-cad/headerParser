@@ -8,9 +8,10 @@ set "my_dir=%my_dir:~1,-2%"
 set name=headerParser
 
 set /a exe=0
+set /a dll=0
 set /a lib=0
-set /a tlib=0
-set /a tplib=0
+set /a tdll=0
+set /a tpdll=0
 set /a cln=0
 
 set /a bitness=64
@@ -47,16 +48,20 @@ GOTO :ParseParams
         SET /a exe=1
         goto reParseParams
     )
+    IF /i "%~1"=="/dll" (
+        SET /a dll=1
+        goto reParseParams
+    )
     IF /i "%~1"=="/lib" (
         SET /a lib=1
         goto reParseParams
     )
-    IF /i "%~1"=="/tlib" (
-        SET /a tlib=1
+    IF /i "%~1"=="/tdll" (
+        SET /a tdll=1
         goto reParseParams
     )
-    IF /i "%~1"=="/tplib" (
-        SET /a tplib=1
+    IF /i "%~1"=="/tpdll" (
+        SET /a tpdll=1
         goto reParseParams
     )
     IF /i "%~1"=="/cln" (
@@ -137,9 +142,14 @@ GOTO :ParseParams
     )
 
     :: test valid targets
-    set /a "valid=%exe%+%lib%+%tlib%+%tplib%+%cln%"
+    set /a "valid=%exe%+%dll%+%lib%+%tdll%+%tpdll%+%cln%"
     if %valid% == 0 (
         set /a exe=1
+    )
+    set /a "valid=%dll%+%lib%"
+    if %valid% == 2 (
+        echo [e] You can either build dll or lib, not both!
+        goto clean
     )
 
     :: set release default
@@ -150,7 +160,7 @@ GOTO :ParseParams
     )
 
 
-    :: set runtime lib
+    :: set runtime dll
     set rtlib=No
     if %debug% == 1 (
         if %rtl% == 1 (
@@ -168,6 +178,7 @@ GOTO :ParseParams
     :: verbose print
     if %verbose% == 1 (
         echo exe=%exe%
+        echo dll=%dll%
         echo lib=%lib%
         echo bitness=%bitness%
         echo platform=%platform%
@@ -200,16 +211,20 @@ GOTO :ParseParams
     if %exe% == 1 (
         call :build HeaderParser.vcxproj Application
     )
-    if %lib% == 1 (
+    if %dll% == 1 (
         call :build HeaderParser.vcxproj DynamicLibrary
     )
-    if %tlib% == 1 (
+    if %lib% == 1 (
+        call :build HeaderParser.vcxproj StaticLibrary
+    )
+    if %tdll% == 1 (
         call :build tests\Tests.vcxproj Application TestLib
     )
-    if %tplib% == 1 (
+    if %tpdll% == 1 (
         call :build tests\Tests.vcxproj Application TestPELib
     )
     
+:clean
     endlocal
     exit /b %errorlevel%
 
@@ -243,7 +258,7 @@ GOTO :ParseParams
 
 
 :usage
-    echo Usage: %my_name% [/exe] [/lib] [/b ^<bitness^>] [/r^|/d] [/rtl] [/pdb] [/pts ^<toolset^>] [/bt ^<path^>] [/xi] [/v] [/h]
+    echo Usage: %my_name% [/exe] [/dll] [/lib] [/b ^<bitness^>] [/r^|/d] [/rtl] [/pdb] [/pts ^<toolset^>] [/bt ^<path^>] [/xi] [/v] [/h]
     echo Default: %my_name% [/exe /b %bitness% /m %mode% /pts %pts% /bt %buildTools%]
     exit /B 0
     
@@ -252,7 +267,8 @@ GOTO :ParseParams
     echo.
     echo Targets:
     echo /exe Build HeaderParser.exe application.
-    echo /lib Build HeaderParser.dll library.
+    echo /dll Build HeaderParser.dll dynamic library.
+    echo /lib Build HeaderParser.lib static library.
     echo.
     echo Options:
     echo /b Target bitness: 32^|64. Default: 64.

@@ -170,12 +170,13 @@ int getPEHeaderDataA(const char* file, size_t start, PEHeaderData* pehd)
     char file_name[PATH_MAX];
 
     memset(&gp, 0, sizeof(GlobalParams));
-    memset(&pep, 0, sizeof(PEParams));
-
-    gp.info_level = INFO_LEVEL_PE_EXTENDED | INFO_LEVEL_PE_LIB;
+    gp.info_level = INFO_LEVEL_EXTENDED;
     gp.file.abs_offset = start;
     gp.file.start_offset = start;
     gp.file.size = 0;
+
+    memset(&pep, 0, sizeof(PEParams));
+    pep.info_level = INFO_LEVEL_PE_EXTENDED | INFO_LEVEL_PE_LIB;
 
 //	memset(gp.data.block_main, 0, BLOCKSIZE_LARGE);
 //	memset(gp.data.block_sub, 0, BLOCKSIZE_SMALL);
