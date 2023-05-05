@@ -172,7 +172,7 @@ int getPEHeaderDataA(const char* file, size_t start, PEHeaderData* pehd)
     memset(&gp, 0, sizeof(GlobalParams));
     memset(&pep, 0, sizeof(PEParams));
 
-    gp.info_level = INFO_LEVEL_EXTENDED;
+    gp.info_level = INFO_LEVEL_PE_EXTENDED | INFO_LEVEL_PE_LIB;
     gp.file.abs_offset = start;
     gp.file.start_offset = start;
     gp.file.size = 0;
@@ -256,9 +256,12 @@ void freePEHeaderData(PEHeaderData* pehd)
     PE_cleanUp(pehd);
     freeHeaderData(pehd->hd);
 
-    free(pehd->image_dos_header);
-    free(pehd->coff_header);
-    free(pehd->opt_header);
+    if ( pehd->image_dos_header )
+        free(pehd->image_dos_header);
+    if ( pehd->coff_header )
+        free(pehd->coff_header);
+    if ( pehd->opt_header )
+        free(pehd->opt_header);
 
     free(pehd);
 }
