@@ -31,15 +31,17 @@ set(HEADER_PARSER_SRC
 	src/msi/MsiHeader.h
 	src/msi/MsiHeaderParser.h
 	src/msi/MsiHeaderPrinter.h
-	src/pe/PECharacteristics.h
 	src/pe/PECertificateHandler.h
-	src/pe/PEImageDirectoryParser.h
-	src/pe/PEMachineTypes.h
+	src/pe/PECharacteristics.h
+	src/pe/PEHeader.c
+	src/pe/PEHeader.h
 	src/pe/PEHeaderOffsets.h
-	src/pe/PEOptionalHeaderSignature.h
 	src/pe/PEHeaderParser.h
 	src/pe/PEHeaderPrinter.h
 	src/pe/PEHeaderSectionNameResolution.h
+	src/pe/PEImageDirectoryParser.h
+	src/pe/PEMachineTypes.h
+	src/pe/PEOptionalHeaderSignature.h
 	src/pe/PESectionCharacteristics.h
 	src/pe/PESymbolTable.h
 	src/pe/PEWindowsSubsystem.h
