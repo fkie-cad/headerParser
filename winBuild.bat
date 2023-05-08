@@ -19,14 +19,17 @@ set platform=x64
 set /a debug=0
 set /a release=0
 
+set /a DP_FLAG=1
+set /a EP_FLAG=2
+
 set /a rtl=0
-set /a dp=0
+set /a dp=%EP_FLAG%
 set /a pdb=0
 set /a ico=1
 set verbose=0
 
 :: adjust this path, if you're using another version or path.
-set buildTools="C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\"
+set buildTools="C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools"
 set pts=v142
 :: set pts=WindowsApplicationForDrivers10.0
 
@@ -70,7 +73,7 @@ GOTO :ParseParams
     )
 
     IF /i "%~1"=="/b" (
-        SET /a bitness=%~2
+        SET /a bitness="%~2"
         SHIFT
         goto reParseParams
     )
@@ -83,12 +86,12 @@ GOTO :ParseParams
         goto reParseParams
     )
     IF /i "%~1"=="/bt" (
-        SET buildTools=%~2
+        SET buildTools="%~2"
         SHIFT
         goto reParseParams
     )
     IF /i "%~1"=="/pts" (
-        SET pts=%~2
+        SET pts="%~2"
         SHIFT
         goto reParseParams
     )
@@ -101,7 +104,8 @@ GOTO :ParseParams
         goto reParseParams
     )
     IF /i "%~1"=="/dp" (
-        SET /a dp=1
+        SET /a dp="%~2"
+        SHIFT
         goto reParseParams
     )
     IF /i "%~1"=="/xi" (
@@ -188,6 +192,7 @@ GOTO :ParseParams
         echo rtlib=%rtlib%
         echo ico=%ico%
         echo pts=%pts%
+        echo dp=%dp%
         echo proj=%proj%
     )
 
@@ -238,8 +243,13 @@ GOTO :ParseParams
         ) else (
             if %release% EQU 1 set conf=Release
         )
+        set /a "ep=%dp%&EP_FLAG"
+        if not %ep% EQU 0 (
+            set /a ep=1
+        )
+        set /a "dp=%dp%&~EP_FLAG"
 
-        cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:PlatformToolset=%pts% /p:Configuration=%conf% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct% /p:DebugPrint=%dp% /p:Icon=%ico% & exit"
+        cmd /k "%vcvars% & msbuild %proj% /p:Platform=%platform% /p:PlatformToolset=%pts% /p:Configuration=%conf% /p:RuntimeLib=%rtlib% /p:PDB=%pdb% /p:ConfigurationType=%ct% /p:DebugPrint=%dp% /p:ErrorPrint=%ep% /p:Icon=%ico% & exit"
 
     endlocal
     exit /B %errorlevel%
