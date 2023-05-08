@@ -208,7 +208,7 @@ void PE_printCoffFileHeader(PECoffFileHeader* ch, size_t offset, size_t start_fi
 
 void PE_printOptionalHeader(PE64OptHeader* oh, size_t offset, size_t start_file_offset, uint8_t bitness)
 {
-    PEOptionalHeaderOffsets offsets = (bitness == 32) ? PEOptional32HeaderOffsets : PEOptional64HeaderOffsets;
+    struct _PE_Optional_Header_Offsets offsets = (bitness == 32) ? PEOptional32HeaderOffsets : PEOptional64HeaderOffsets;
     const char* magic_string;
     const char* dll_c_pre = "   - ";
     const char dll_c_post = '\n';
@@ -312,7 +312,7 @@ void PE_printDataDirectory(PE64OptHeader* oh,
                            size_t offset, 
                            uint8_t bitness)
 {
-    PEOptionalHeaderOffsets offsets = (bitness == 32 ) ? PEOptional32HeaderOffsets : PEOptional64HeaderOffsets;
+    struct _PE_Optional_Header_Offsets offsets = (bitness == 32 ) ? PEOptional32HeaderOffsets : PEOptional64HeaderOffsets;
     size_t dir_offset = offsets.DataDirectories;
     uint8_t size_of_data_entry = sizeof(PEDataDirectory);
 

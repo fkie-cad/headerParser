@@ -18,7 +18,7 @@
 //// Returns actual size in bytes.
 //static size_t getSize(const char* finame);
 
-static size_t getSizeFP(FILE* fi);
+size_t getSizeFP(FILE* fi);
 
 //// Uses MALLOC.
 //// Caller is responsible for freeing this!
@@ -33,7 +33,7 @@ static size_t getSizeFP(FILE* fi);
  * @param data
  * @return
  */
-static size_t readFile(FILE* fi, size_t begin, size_t size, uint8_t* data);
+size_t readFile(FILE* fi, size_t begin, size_t size, uint8_t* data);
 
 /**
  * Read from fi at begin size bytes into data**

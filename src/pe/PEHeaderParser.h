@@ -578,7 +578,7 @@ int PE_readOptionalHeader(size_t offset,
                               FILE* fp,
                               unsigned char* block_l)
 {
-    PEOptionalHeaderOffsets offsets = PEOptional64HeaderOffsets;
+    struct _PE_Optional_Header_Offsets offsets = PEOptional64HeaderOffsets;
     unsigned char *ptr;
     size_t size;
     uint32_t i;

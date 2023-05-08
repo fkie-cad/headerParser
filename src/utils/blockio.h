@@ -21,7 +21,7 @@
  * @param file_size size_t
  * @return uint8_t bool success value
  */
-static uint8_t checkFileSpace(size_t rel_offset,
+uint8_t checkFileSpace(size_t rel_offset,
                               size_t abs_offset,
                               size_t needed,
                               size_t file_size);

@@ -143,13 +143,17 @@
     </ClCompile>
   </ItemDefinitionGroup>
 
+  <ItemGroup>
+    <ClCompile Include="src\pe\PEHeader.c" />
+    <ClCompile Include="src\pe\PEHeaderOffsets.c" />
+  </ItemGroup>
+  
   <ItemGroup Condition="'$(ConfigurationType)'=='Application'">
     <ClCompile Include="src\headerParser.c" />
-    <ClCompile Include="src\pe\PEHeader.c" />
   </ItemGroup>
+  
   <ItemGroup Condition="'$(ConfigurationType)'=='DynamicLibrary' Or '$(ConfigurationType)'=='StaticLibrary'">
     <ClCompile Include="src\headerParserLib.c" />
-    <ClCompile Include="src\pe\PEHeader.c" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(Icon)'=='1'">
