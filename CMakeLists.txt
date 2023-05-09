@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(HeaderParser VERSION 1.15.5 DESCRIPTION "A PE, ELF and other types header parser" LANGUAGES C)
+project(HeaderParser VERSION 1.15.12 DESCRIPTION "A PE, ELF and other types header parser" LANGUAGES C)
 
 if (WIN32)
     message("No cmake support on Windows. Use msbuild and winBuild.bat.")

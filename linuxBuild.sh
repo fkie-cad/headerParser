@@ -2,10 +2,10 @@
 
 name=headerParser
 def_target=${name}
-pos_targets="app|lib|pck|cln"
+pos_targets="app|sh|st|pck|cln|del"
 target="app"
-def_mode=Release
-mode=${def_mode}
+debug=0
+release=0
 help=0
 debug_print=0
 
@@ -15,13 +15,13 @@ debug_print=0
 function clean() {
     local dir=$1
 
-    echo "cleaning build dir: $dir"
+    echo "cleaning dir: $dir"
 
     if [[ ${dir} == "${ROOT}" ]]; then
-        return
+        return 0
     fi
 
-    cd ${dir} || return 1
+    cd ${dir} || return -1
 
     rm -r ./CMakeFiles 2> /dev/null
     rm -r ./CTestTestfile.cmake 2> /dev/null
@@ -31,8 +31,26 @@ function clean() {
     rm -f ./*.cbp 2> /dev/null
     rm -r ./Makefile 2> /dev/null
     rm -rf ./debug 2> /dev/null
+    rm -rf ./.cmake 2> /dev/null
 
-    cd - || return 2
+    cd - || return -2
+
+    return 0
+}
+
+# Delete build directory and all files in it
+#
+# @param $1 build directory
+function delete() {
+    local dir=$1
+
+    echo "deleting dir: $dir"
+
+    if [[ ${dir} == "${ROOT}" ]]; then
+        return 0
+    fi
+
+    rm -rf ${dir} 2> /dev/null
 
     return 0
 }
@@ -101,16 +119,22 @@ function printHelp() {
     echo ""
     echo "-t A possible target: ${pos_targets}"
     echo "  * app: build headerParser application"
-    echo "  * lib: build headerParser shared library"
+    echo "  * sh: build headerParser shared library"
+    echo "  * st: build headerParser static library"
     echo "  * pck: build headerParser application and clean up build dir"
-    echo "  * cln: clean up build dir"
-    echo "-m A compile mode: Release|Debug"
+    echo "  * cln: clean build dir, remove cmake files"
+    echo "  * del: delete build dir, i.e. delete all build targets"
+    echo "-d Build in debug mode"
+    echo "-r Build in release mode"
     echo "-h Print this."
     return 0;
 }
 
-while getopts ":m:p:t:h" opt; do
+while getopts ":m:p:t:hdr" opt; do
     case $opt in
+    d)
+        debug=1
+        ;;
     h)
         help=1
         ;;
@@ -119,6 +143,9 @@ while getopts ":m:p:t:h" opt; do
         ;;
     p)
         debug_print="$OPTARG"
+        ;;
+    r)
+        release=1
         ;;
     t)
         target="$OPTARG"
@@ -138,18 +165,23 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 release_build_dir="${ROOT}/build"
 debug_build_dir="${ROOT}/build/debug"
-if [[ ${mode} == "Debug" || ${mode} == "debug" ]]; then
-    build_dir=${debug_build_dir}
-else
+if [[ ${release} == 1 || ${debug} == 0 ]]; then
+    release=1
     build_dir=${release_build_dir}
+else
+    build_dir=${debug_build_dir}
 fi
 
 echo "target: "${target}
-echo "mode: "${mode}
+echo "debug: "${debug}
+echo "release: "${release}
 echo "build_dir: "${build_dir}
 
 if [[ ${target} == "cln" || ${target} == "clean" ]]; then
     clean ${build_dir}
+    exit $?
+elif [[ ${target} == "del" || ${target} == "delete" ]]; then
+    delete ${build_dir}
     exit $?
 elif [[ ${target} == "pck" ]]; then
     target=${name}_pck
@@ -160,15 +192,18 @@ elif [[ ${target} == "pck" ]]; then
 else
     if [[ ${target} == "app" ]]; then
         target=${name}
-    elif [[ ${target} == "lib" ]]; then
-        target=${name}_so
-    elif [[ ${target} == "tlib" ]]; then
+    elif [[ ${target} == "sh" || ${target} == "shared" ]]; then
+        target=${name}_sh
+    elif [[ ${target} == "st" || ${target} == "static" ]]; then
+        target=${name}_st
+    elif [[ ${target} == "tso" ]]; then
         target=testHeaderParserLib
-    elif [[ ${target} == "tplib" ]]; then
+    elif [[ ${target} == "tpso" ]]; then
         target=testHeaderParserLibPE
     elif [[ ${target} == "dirun" ]]; then
         target=HPDirectoryRunner
     else
+        echo "Unknown target: ${target}"
         exit $?
     fi
 

@@ -25,7 +25,7 @@ if ( ${GTEST_FOUND} )
 		${HEADER_PARSER_TEST_FILES}
 	)
 	add_dependencies(${UNIT_TEST_SUITE} ${HEADER_PARSER})
-	add_dependencies(${UNIT_TEST_SUITE} ${HEADER_PARSER_SO})
+	add_dependencies(${UNIT_TEST_SUITE} ${HEADER_PARSER_SH})
 
 	set_target_properties(${UNIT_TEST_SUITE} PROPERTIES
 		CXX_STANDARD 17
@@ -40,8 +40,8 @@ if ( ${GTEST_FOUND} )
 
 	target_link_libraries(${UNIT_TEST_SUITE} PRIVATE
 		${GTEST_BOTH_LIBRARIES}
-		optimized ${HEADER_PARSER_LIB}
-		debug ${HEADER_PARSER_DEBUG_LIB}
+		optimized ${HEADER_PARSER_SH}
+		debug ${HEADER_PARSER_DEBUG_SH}
 		)
 
 	add_test(
@@ -55,18 +55,18 @@ endif()
 
 add_executable(testHeaderParserLib tests/testHeaderParserLib.c )
 target_link_libraries(testHeaderParserLib PRIVATE
-	optimized ${HEADER_PARSER_LIB}
-	debug ${HEADER_PARSER_DEBUG_LIB}
+	optimized ${HEADER_PARSER_SH}
+	debug ${HEADER_PARSER_DEBUG_SH}
 	)
-add_dependencies(testHeaderParserLib ${HEADER_PARSER_SO})
+add_dependencies(testHeaderParserLib ${HEADER_PARSER_SH})
 
 
 add_executable(testHeaderParserLibPE tests/testHeaderParserLibPE.c)
 target_link_libraries(testHeaderParserLibPE PRIVATE
-	optimized ${HEADER_PARSER_LIB}
-	debug ${HEADER_PARSER_DEBUG_LIB}
+	optimized ${HEADER_PARSER_SH}
+	debug ${HEADER_PARSER_DEBUG_SH}
 	)
-add_dependencies(testHeaderParserLibPE ${HEADER_PARSER_SO})
+add_dependencies(testHeaderParserLibPE ${HEADER_PARSER_SH})
 
 
 add_executable(
@@ -89,8 +89,8 @@ set_target_properties(HPDirectoryRunner PROPERTIES
 	)
 target_link_libraries(HPDirectoryRunner PRIVATE
 	stdc++fs
-	optimized ${HEADER_PARSER_LIB}
-	debug ${HEADER_PARSER_DEBUG_LIB}
-	${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/misc/libutils_full.so
+	optimized ${HEADER_PARSER_SH}
+	debug ${HEADER_PARSER_DEBUG_f}
+	${CMAKE_CURRENT_SOURCE_DIR}/${G_TESTS_DIR}/misc/libutils_full${CMAKE_SHARED_LIBRARY_SUFFIX}
 	)
-add_dependencies(HPDirectoryRunner ${HEADER_PARSER} ${HEADER_PARSER_SO})
+add_dependencies(HPDirectoryRunner ${HEADER_PARSER} ${HEADER_PARSER_SH})
