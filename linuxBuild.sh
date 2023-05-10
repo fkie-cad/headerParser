@@ -1,13 +1,16 @@
 #!/bin/bash
 
+DP_FLAG=1
+EP_FLAG=2
+
 name=headerParser
 def_target=${name}
 pos_targets="app|sh|st|pck|cln|del"
 target="app"
-debug=0
-release=0
+build_mode=2
+mode="Release"
 help=0
-debug_print=0
+debug_print=$EP_FLAG
 
 # Clean build directory from meta files
 #
@@ -65,13 +68,19 @@ function buildTarget() {
     local dir=$2
     local mode=$3
     local dp=$4
+    local ep=0
 
     if ! mkdir -p ${dir}; then
         return 1
     fi
 
+    if [[ $((dp & $EP_FLAG)) == $EP_FLAG ]]; then
+        ep=1
+    fi
+    dp=$((dp & ~$EP_FLAG))
+
     # if no space at -B..., older cmake (ubuntu 18) will not build
-    if ! cmake -S ${ROOT} -B${dir} -DCMAKE_BUILD_TYPE=${mode} -DDEBUG_PRINT=${dp}; then
+    if ! cmake -S ${ROOT} -B${dir} -DCMAKE_BUILD_TYPE=${mode} -DDEBUG_PRINT=${dp} -DERROR_PRINT=${ep}; then
         return 2
     fi
 
@@ -96,6 +105,7 @@ function buildPackage()
     local target=$1
     local dir=$2
     local mode=$3
+    local dp=$4
 
     if ! buildTarget ${target} ${dir} ${mode} 0; then
         return 1
@@ -110,7 +120,7 @@ function buildPackage()
 
 function printUsage() {
     echo "Usage: $0 [-t ${pos_targets}] [-m Debug|Release] [-h]"
-    echo "Default: $0 [-t app -m ${def_mode}]"
+    echo "Default: $0 [-t app -r]"
     return 0;
 }
 
@@ -130,22 +140,19 @@ function printHelp() {
     return 0;
 }
 
-while getopts ":m:p:t:hdr" opt; do
+while getopts ":p:t:hdr" opt; do
     case $opt in
     d)
-        debug=1
+        build_mode=1
         ;;
     h)
         help=1
-        ;;
-    m)
-        mode="$OPTARG"
         ;;
     p)
         debug_print="$OPTARG"
         ;;
     r)
-        release=1
+        build_mode=2
         ;;
     t)
         target="$OPTARG"
@@ -165,16 +172,15 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 release_build_dir="${ROOT}/build"
 debug_build_dir="${ROOT}/build/debug"
-if [[ ${release} == 1 || ${debug} == 0 ]]; then
-    release=1
+if [[ $((build_mode & 2)) == 2 ]]; then
+    mode="Release"
     build_dir=${release_build_dir}
 else
+    mode="Debug"
     build_dir=${debug_build_dir}
 fi
-
 echo "target: "${target}
-echo "debug: "${debug}
-echo "release: "${release}
+echo "mode: "${mode}
 echo "build_dir: "${build_dir}
 
 if [[ ${target} == "cln" || ${target} == "clean" ]]; then
