@@ -183,6 +183,7 @@ void printUsage()
     printf("\n");
     printf("Version: %s\n", BIN_VS);
     printf("Last changed: %s\n", BIN_DATE);
+    printf("Build date: %s %s\n", __DATE__, __TIME__);
 }
 
 bool isCallForHelp(const char* arg1)

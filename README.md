@@ -31,13 +31,13 @@ Last changed: 05.05.2023
 ## BUILD ##
 ### Linux (gcc) & cmake ###
 ```bash
-$ ./linuxBuild.sh [-t exe] [-m Release|Debug] [-h]  
+$ ./linuxBuild.sh [-t app] [-m Release|Debug] [-h]
 ```
 
 ### Linux (gcc) ###
 ```bash
 $ mkdir build
-$ gcc -o build/headerParser -Wl,-z,relro,-z,now -D_FILE_OFFSET_BITS=64 -Ofast src/headerParser.c src/pe/PEHeader.c  
+$ gcc -o build/headerParser -Wl,-z,relro,-z,now -D_FILE_OFFSET_BITS=64 -Ofast src/headerParser.c src/pe/PEHeader.c src/pe/PEHeaderOffsets.c
 ```
 
 Use `clang` instead of `gcc` in Termux on Android.
@@ -57,6 +57,14 @@ In a developer cmd you can also type:
 ```bash
 $devcmd> msbuild HeaderParser.vcxproj /p:Configuration=<Release|Debug> /p:Platform=<x64|x86> [/p:PlatformToolset=<v142|v143|WindowsApplicationForDrivers10.0>]
 ```
+
+**Warnings**  
+MSBuild issues some serious warnings:
+- warning C6001: Using uninitialized memory
+- warning C6386: Buffer overrun
+
+But so far I could not figure out, how to fix them, or put another way, what's the problem.
+If someone knows, feel free to drop me a line.
 
 ### Runtime Errors (Windows)
 If a "VCRUNTIMExxx.dll not found Error" occurs on the target system, statically including runtime libs is a solution.  
@@ -188,12 +196,14 @@ HeaderParser may also be build as a shared or static library.
 ### Build ###
 *Linux*
 ```bash
-$ ./linuxBuild.sh -t lib [-m Release|Debug] [-h]
+$ ./linuxBuild.sh -t sh [-m Release|Debug] [-h]
+or
+$ ./linuxBuild.sh -t st [-m Release|Debug] [-h]
 ```
 or plain:
 ```bash
 $ mkdir build
-$ gcc -fPIC -Wl,-z,relro,-z,now -shared -Ofast -D_FILE_OFFSET_BITS=64 -o build/libheaderparser.so src/headerParserLib.c src/pe/PEHeader.c -Wall 
+$ gcc -fPIC -Wl,-z,relro,-z,now -shared -Ofast -D_FILE_OFFSET_BITS=64 -o build/libheaderparser.so src/headerParserLib.c src/pe/PEHeader.c src/pe/PEHeaderOffsets.c -Wall 
 ```
 *Windows*
 ```bash

@@ -366,6 +366,7 @@ void DEX_fillStringIdItem(uint32_t offset,
         string = (char*) malloc((data.utf16_size.val+1));
         if ( string != NULL )
         {
+            // memzro(string, (data.utf16_size.val+1)); // no build warning
             memcpy(string, ptr, data.utf16_size.val);
             string[data.utf16_size.val] = 0;
         }
