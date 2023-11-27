@@ -70,7 +70,7 @@ void PE_parseImageBoundImportTable(
     PE_IMAGE_BOUND_IMPORT_DESCRIPTOR bid; // 32 + 64
     PE_IMAGE_BOUND_FORWARDER_REF bfr; // 32 + 64
 
-    if (vaddr == 0 || vsize == 0)
+    if ( vaddr == 0 || vsize == 0 )
     {
         printf("No Bound Import Table!\n\n");
         return;

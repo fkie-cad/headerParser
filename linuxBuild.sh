@@ -3,6 +3,11 @@
 DP_FLAG=1
 EP_FLAG=2
 
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+
+release_build_dir="${ROOT}/build"
+debug_build_dir="${ROOT}/build/debug"
+
 name=headerParser
 def_target=${name}
 pos_targets="app|sh|st|pck|cln|del"
@@ -160,6 +165,9 @@ while getopts ":p:t:hdr" opt; do
     \?)
         echo "Invalid option -$OPTARG" >&2
         ;;
+    : )
+        echo "ERROR: option $OPTARG requires an argument" 1>&2
+        exit $?
     esac
 done
 
@@ -168,10 +176,6 @@ if [[ ${help} == 1 ]]; then
     exit $?
 fi
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-
-release_build_dir="${ROOT}/build"
-debug_build_dir="${ROOT}/build/debug"
 if [[ $((build_mode & 2)) == 2 ]]; then
     mode="Release"
     build_dir=${release_build_dir}

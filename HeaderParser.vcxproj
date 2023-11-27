@@ -74,6 +74,7 @@
   
   <ItemDefinitionGroup>
     <Link>
+      <AdditionalOptions>/GUARD:cf %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>%(AdditionalDependencies);</AdditionalDependencies>
     </Link>
     <ClCompile>
@@ -85,11 +86,13 @@
       <ExceptionHandling></ExceptionHandling>
       <PrecompiledHeader></PrecompiledHeader>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks> <!-- /RTC -->
+      <BufferSecurityCheck>true</BufferSecurityCheck> <!-- /GS- -->
       <StringPooling>true</StringPooling>
       <!--<FunctionLevelLinking>true</FunctionLevelLinking>-->
       <!--<IntrinsicFunctions>true</IntrinsicFunctions>-->
       <!--<PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>-->
       <!--<LanguageStandard>c99</LanguageStandard>-->
+      <AdditionalOptions>/GS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);</AdditionalIncludeDirectories>

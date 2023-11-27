@@ -883,7 +883,7 @@ typedef struct _PPE_SCOPE_TABLE {
 
 typedef struct _PE_DEBUG_TABLE_ENTRY {
     uint32_t Characteristics; // 0 4 Characteristics Reserved, must be zero.
-     uint32_t TimeDateStamp; // 4 4  The time and date that the debug data was created. The value of field TimeDateStamp in COFF File Header of a deterministic PE/COFF file does not indicate the date and time when the file was produced and should not be interpreted that way. Instead the value of the field is derived from a hash of the file content. The algorithm used to calculate this value is an implementation detail of the tool that produced the file.
+    uint32_t TimeDateStamp; // 4 4  The time and date that the debug data was created. The value of field TimeDateStamp in COFF File Header of a deterministic PE/COFF file does not indicate the date and time when the file was produced and should not be interpreted that way. Instead the value of the field is derived from a hash of the file content. The algorithm used to calculate this value is an implementation detail of the tool that produced the file.
     uint16_t MajorVersion; // 8 2  The major version number of the debug data format.
     uint16_t MinorVersion; // 10 2  The minor version number of the debug data format.
     uint32_t Type; // 12 4  The format of debugging information. This field enables support of multiple debuggers. For more information, see Debug Type.

@@ -53,8 +53,7 @@ int PE_parseImageBaseRelocationTable(PE64OptHeader* oh,
     uint32_t nr_of_entries;
 
     file_offset = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_BASE_RELOC, nr_of_sections, "Base Relocation", svas);
-
-    if (file_offset == 0)
+    if ( file_offset == RVA_2_FOA_NOT_FOUND )
         return -3;
 
     offset = file_offset;

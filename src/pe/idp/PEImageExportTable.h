@@ -77,7 +77,7 @@ void PE_parseImageExportTable(
     int s;
 
     table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_EXPORT, nr_of_sections, "Export", svas);
-    if ( table_fo == 0 )
+    if ( table_fo == RVA_2_FOA_NOT_FOUND )
         return;
 
     // fill PE_IMAGE_EXPORT_DIRECTORY info

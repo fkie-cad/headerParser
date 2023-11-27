@@ -68,7 +68,7 @@ void PE_parseImageDelayImportTable(
     size_t r_size = 0;
 
     table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT, nr_of_sections, "Delay Import", svas);
-    if ( table_fo == 0 )
+    if ( table_fo == RVA_2_FOA_NOT_FOUND )
         return;
 
     offset = table_fo;

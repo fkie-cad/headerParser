@@ -7,6 +7,7 @@
 #include <string.h>
 
 
+#define RVA_2_FOA_NOT_FOUND ((size_t)-1)
 
 
 typedef struct LoadConfigTableOffsets {
@@ -68,15 +69,17 @@ size_t PE_getDataDirectoryEntryFileOffset(PEDataDirectory* data_directory,
 
     if ( vsize == 0 || vaddr == 0 )
     {
-        printf("No %s Table!\n\n", label);
+        prog_error("No %s Table!\n\n", label);
         return 0;
     }
     // end get table entry
 
     // get table rva offset
     table_fo = PE_Rva2Foa(vaddr, svas, nr_of_sections);
-    if ( table_fo == (size_t)-1 )
-        return 0;
+    if ( table_fo == RVA_2_FOA_NOT_FOUND )
+    {
+        prog_error("FileOffset of rva 0x%x not found!\n\n", vaddr);
+    }
 
     return table_fo;
 }
@@ -108,7 +111,7 @@ size_t PE_Rva2Foa(uint32_t va, SVAS* svas, uint16_t svas_size)
             return (size_t)va + sh_vas->PointerToRawData - sh_vas->VirtualAddress;
         }
     }
-    return 0;
+    return RVA_2_FOA_NOT_FOUND;
 }
 
 #endif

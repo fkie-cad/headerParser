@@ -1,4 +1,8 @@
-# Header Parser #
+<p align="center">
+    <img src="logo.png" alt="HeaderParser Logo" width="50%"/>
+</p>
+
+# Header Parser
 Parses header information of a binary (executable) file.  
 PE, ELF, DEX, MachO, ZIP (JAR, DocX) are parsed in depth.  
 Java.class, ART, .NET, NE, MS-DOS are recognized.  
@@ -16,25 +20,47 @@ Compiles and runs under
 - Android in Termux
 
 
+## CONTENTS
+- [VERSION](#version)
+- [REQUIREMENTS](#requirements)
+- [BUILD](#build)
+    - [Linux (gcc) & cmake](#linux-(gcc)-&-cmake)
+    - [Linux (gcc)](#linux-(gcc))
+    - [Windows (MsBuild)](#windows-(msbuild))
+    - [Runtime Errors (Windows)](#runtime-errors-(windows))
+- [USAGE](#usage)
+    - [Windows Context Menu](#windows-context-menu)
+- [EXAMPLE](#example)
+    - [Offsets](#offsets)
+    - [Forcing](#forcing)
+- [LIBRARY USAGE](#library-usage)
+    - [Build](#build)
+    - [Usage](#usage)
+    - [Python](#python)
+- [COPYRIGHT, CREDITS & CONTACT](#copyright,-credits-&-contact)
+    - [Author](#author)
+    - [Co-Author, Icon Art](#co-author,-icon-art)
 
-## Version ##
+
+## VERSION
 1.15.12  
 Last changed: 05.05.2023
 
-## REQUIREMENTS ##
+## REQUIREMENTS
 - Linux
    - Gcc
    - Building with cmake requires cmake.
 - Windows
    - msbuild
 
-## BUILD ##
-### Linux (gcc) & cmake ###
+
+## BUILD
+### Linux (gcc) & cmake 
 ```bash
 $ ./linuxBuild.sh [-t app] [-m Release|Debug] [-h]
 ```
 
-### Linux (gcc) ###
+### Linux (gcc)
 ```bash
 $ mkdir build
 $ gcc -o build/headerParser -Wl,-z,relro,-z,now -D_FILE_OFFSET_BITS=64 -Ofast src/headerParser.c src/pe/PEHeader.c src/pe/PEHeaderOffsets.c
@@ -42,7 +68,7 @@ $ gcc -o build/headerParser -Wl,-z,relro,-z,now -D_FILE_OFFSET_BITS=64 -Ofast sr
 
 Use `clang` instead of `gcc` in Termux on Android.
 
-### Windows (MsBuild) ###
+### Windows (MsBuild)
 ```bash
 $ winBuild.bat [/exe] [/m <Release|Debug>] [/b <32|64>] [/rtl] [/pdb] [/bt <path>] [/pts <PlatformToolset>] [/h]
 ```
@@ -60,8 +86,8 @@ $devcmd> msbuild HeaderParser.vcxproj /p:Configuration=<Release|Debug> /p:Platfo
 
 **Warnings**  
 MSBuild issues some serious warnings:
-- warning C6001: Using uninitialized memory
-- warning C6386: Buffer overrun
+- `headerParser\src\headerDataHandler.h(54): warning C6001: Using uninitialized memory`
+- `headerParser\src\dex\DexHeaderParser.h(371): warning C6386: Buffer overrun`
 
 But so far I could not figure out, how to fix them, or put another way, what's the problem.
 If someone knows, feel free to drop me a line.
@@ -70,17 +96,9 @@ If someone knows, feel free to drop me a line.
 If a "VCRUNTIMExxx.dll not found Error" occurs on the target system, statically including runtime libs is a solution.  
 This is done by using the `/p:RunTimeLib=Debug|Release` (msbuild) or `[/rtl]` (winBuild) flags.
 
-
-### Windows Context Menu ###
-It may be convenient to add HeaderParser to the context menu to be able to right-click a file and header parse it.
-In this scenario, you may use
-```bash
-$ addHeaderParserToShellCtxtMenu.bat /p "c:\HeaderParser.exe" [/l "Open in HeaderParser"]
-```
-
  
 
-## USAGE ##
+## USAGE
 ```bash
 $ ./headerParser a/file/name [options]
 $ ./headerParser [options] a/file/name
@@ -127,8 +145,17 @@ Options:
    * -proto: Print proto ids.
    * -string: Print string ids.
    * -type: Print type ids.
- 
-## EXAMPLE ##
+
+### Windows Context Menu
+It may be convenient to add HeaderParser to the context menu to be able to right-click a file and header parse it.
+In this scenario, you may use
+```bash
+$ addHeaderParserToShellCtxtMenu.bat /p "c:\HeaderParser.exe" [/l "Open in HeaderParser"]
+```
+
+
+
+## EXAMPLE
 ```bash
 $ ./headerParser a/file/name [-i 1]
 
@@ -183,17 +210,17 @@ Section Header Table:
 
 A more fine-grained and/or extended printout is available with the PE or ELF only options.
 
-### Offsets ###
+### Offsets
 If you think, the header starts somewhere in the file, you may pass an offset to it using the "-s" option.
 
-### Forcing ###
+### Forcing
 If you think it is a PE file but the MZ or PE00 magic values are broken, try the "-f pe" option.
 
 
-## ALTERNATIVE USAGE ##
+## LIBRARY USAGE
 HeaderParser may also be build as a shared or static library.  
 
-### Build ###
+### Build
 *Linux*
 ```bash
 $ ./linuxBuild.sh -t sh [-m Release|Debug] [-h]
@@ -212,7 +239,7 @@ $ winBuild.bat /dll [/m Release|Debug] [/b 32|64]
 $ winBuild.bat /lib [/m Release|Debug] [/b 32|64]
 ```
 
-### Usage ###
+### Usage
 Additionally to the included header files `src\exp.h` is needed in the same directory.
 This may be removed soon.
 
@@ -254,11 +281,10 @@ if ( data )
 freePEHeaderData(data);
 ```
 
-### Python ###
+### Python
 Using the library is the preferred usage in python.  
 On the python side, use [header_parser.py](src/header_parser.py).
 ```python
-
 from src import header_parser
 
 # initialization
@@ -274,12 +300,12 @@ cpu = header_parser.lib_header_parser.getHeaderDataHeaderType(data['cpu'])
 header_type = header_parser.lib_header_parser.getHeaderDataArchitecture(data['headertype'])
 ```
 
-## COPYRIGHT, CREDITS & CONTACT ## 
+## COPYRIGHT, CREDITS & CONTACT
 Published under [GNU GENERAL PUBLIC LICENSE](LICENSE).
 
-#### Author ####
-- Henning Braun ([henning.braun@fkie.fraunhofer.de](henning.braun@fkie.fraunhofer.de)) 
+### Author
+- Henning Braun ([henning.braun@fkie.fraunhofer.de](mailto:henning.braun@fkie.fraunhofer.de)) 
 
-#### Co-Author, Icon Art ####
+### Co-Author, Icon Art
 common_codeio.h, Icon.ico
-- Viviane Zwanger ([viviane.zwanger@fkie.fraunhofer.de](viviane.zwanger@fkie.fraunhofer.de))
+- Viviane Zwanger ([viviane.zwanger@fkie.fraunhofer.de](mailto:viviane.zwanger@fkie.fraunhofer.de))

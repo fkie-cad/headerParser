@@ -69,8 +69,7 @@ int PE_parseImageDebugTable(
     uint32_t nr_of_entries;
 
     table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_DEBUG, nr_of_sections, "Debug", svas);
-
-    if (table_fo == 0)
+    if ( table_fo == RVA_2_FOA_NOT_FOUND )
         return -3;
 
     offset = table_fo;

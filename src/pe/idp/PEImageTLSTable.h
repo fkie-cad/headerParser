@@ -60,7 +60,7 @@ void PE_parseImageTLSTable(PE64OptHeader* oh,
     uint32_t tls_table_size = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].Size;
 
     table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_TLS, nr_of_sections, "TLS", svas);
-    if (table_fo == 0)
+    if ( table_fo == RVA_2_FOA_NOT_FOUND )
         return;
     debug_info("PE_parseImageTLSTable\n");
     debug_info("table_fo: 0x%zx\n", table_fo);

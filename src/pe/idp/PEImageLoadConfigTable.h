@@ -58,7 +58,7 @@ void PE_parseImageLoadConfigTable(PE64OptHeader* oh,
     }
 
     table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG, nr_of_sections, "Load Config", svas);
-    if (table_fo == 0)
+    if ( table_fo == RVA_2_FOA_NOT_FOUND )
         return;
 
     size_t e_size = (bitness == 32) ? PE_IMAGE_LOAD_CONFIG_DIRECTORY32_SIZE : PE_IMAGE_LOAD_CONFIG_DIRECTORY64_SIZE;

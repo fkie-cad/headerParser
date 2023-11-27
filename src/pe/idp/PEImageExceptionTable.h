@@ -61,8 +61,7 @@ int PE_parseImageExceptionTable(
     uint32_t nr_of_entries;
 
     table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_EXCEPTION, nr_of_sections, "Exception", svas);
-
-    if (table_fo == 0)
+    if ( table_fo == RVA_2_FOA_NOT_FOUND )
         return -3;
 
     offset = table_fo;
