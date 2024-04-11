@@ -38,8 +38,8 @@ const char* FORCE_PE_STR = "pe";
 //#define DILLER
 
 #define BIN_NAME "headerParser"
-#define BIN_VS "1.15.12"
-#define BIN_DATE "05.05.2023"
+#define BIN_VS "1.15.14"
+#define BIN_DATE "11.04.2024"
 
 #define LIN_PARAM_IDENTIFIER ('-')
 #define WIN_PARAM_IDENTIFIER ('/')
@@ -441,7 +441,9 @@ int parseArgs(int argc, char** argv, PGlobalParams gp, PPEParams pep, PElfParams
         }
         else if ( arg[0] != '-' )
         {
-            expandFilePath(arg, file_name);
+            s = expandFilePath(arg, file_name);
+            if ( s != 0 )
+                return s;
         }
         else
         {

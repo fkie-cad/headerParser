@@ -12,7 +12,11 @@
 
 #include "../Globals.h"
 
-void expandFilePath(const char* src, char* dest);
+#ifdef _WIN32
+uint32_t GetFullPathNameA(char* lpFileName,uint32_t nBufferLength,char* lpBuffer,char** lpFilePart);
+#endif
+
+int expandFilePath(const char* src, char* dest);
 uint8_t blockIsTooSmall(size_t);
 int checkBytes(const unsigned char* bytes, const uint8_t size, const unsigned char* block);
 uint8_t countHexWidth64(uint64_t value);
@@ -30,57 +34,37 @@ char offset_buffer[256];
 
 /**
  * Expand the file path:
- * 	on linux: if it starts with a '~'. If the src is passed as cmd line param, this is done automatically.
- * 	on windows: not implemented yet
  *
  * @param src char* the source string
  * @param dest char* the preallocated destination buffer
  */
-void expandFilePath(const char* src, char* dest)
+int expandFilePath(const char* src, char* dest)
 {
     const char* env_home;
 
     if ( !src || src[0] == 0 )
-        return;
+        return -1;
     size_t cch = strlen(src);
     if ( cch >= PATH_MAX )
-        return;
+        return -1;
 
 #if defined(__linux__) || defined(__linux) || defined(linux) || defined(__APPLE__)
-    if ( src[0] == '~' && src[1] == '/' && src[2] != 0 )
+    dest = realpath(src, dest);
+    if ( dest == NULL )
+        return -1;
+#elif defined(_WIN32)
+    int fpl = GetFullPathNameA((char*)src, PATH_MAX, dest, NULL);
+    if ( !fpl || fpl >= PATH_MAX )
     {
-        env_home = getenv("HOME");
-        if ( env_home != NULL )
-        {
-            cch = snprintf(dest, PATH_MAX, "%s/%s", env_home, &src[2]);
-            if ( cch >= PATH_MAX )
-                snprintf(dest, PATH_MAX, "%s", src);
-        }
-        else
-        {
-            snprintf(dest, PATH_MAX, "%s", src);
-        }
+        return -1;
     }
-    else if ( src[0] != '/' )
-    {
-        char cwd[PATH_MAX] = {0};
-        if ( getcwd(cwd, PATH_MAX) != NULL )
-        {
-            cch = snprintf(dest, PATH_MAX, "%s/%s", cwd, src);
-            if ( cch >= PATH_MAX )
-                snprintf(dest, PATH_MAX, "%s", src);
-        }
-        else
-        {
-            snprintf(dest, PATH_MAX, "%s", src);
-        }
-    }
-    else
+#else
+    snprintf(dest, PATH_MAX, "%s", src);
 #endif
-    {
-        snprintf(dest, PATH_MAX, "%s", src);
-    }
+
     dest[PATH_MAX-1] = 0;
+    
+    return 0;
 }
 
 uint8_t blockIsTooSmall(const size_t header_end)

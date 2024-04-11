@@ -78,7 +78,9 @@ int getBasicInfoA(const char* file, size_t start, uint8_t force, HeaderData* hd)
     {
         return -5;
     }
-    expandFilePath(file, file_name);
+    s = expandFilePath(file, file_name);
+    if ( s != 0 )
+        return s;
 
     //debug_info("abs_file_offset: 0x%zx\n", gp.file.abs_offset);
     //debug_info("start_file_offset: 0x%zx\n", gp.file.start_offset);
@@ -190,7 +192,9 @@ int getPEHeaderDataA(const char* file, size_t start, PEHeaderData* pehd)
     pehd->hd = hd;
 
 //	initExtendedPEHeaderData(HD, DEFAULT_CODE_REGION_CAPACITY);
-    expandFilePath(file, file_name);
+    s = expandFilePath(file, file_name);
+    if ( s != 0 )
+        return s;
 
     //debug_info("abs_file_offset: 0x%lx\n", gp.file.abs_offset);
     //debug_info("start_file_offset: 0x%lx\n", gp.file.start_offset);
