@@ -65,10 +65,10 @@ typedef enum PEDllCharacteristics
     Reserved2 = 0x0002, // must be zero.
     Reserved4 = 0x0004, // must be zero.
     Reserved8 = 0x0008, // must be zero.
-    IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA = 0x0020, // Image can handle a high entropy 64-bit virtual address space.
+    IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA = 0x0020, // Image can handle a high entropy 64-bit virtual address space. aka 64 Bit ASLR.
     IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE = 0x0040, // DLL can be relocated at load time.
     IMAGE_DLLCHARACTERISTICS_FORCE_INTEGRITY = 0x0080, // Code Integrity checks are enforced.
-    IMAGE_DLLCHARACTERISTICS_NX_COMPAT = 0x0100, // Image is NX compatible.
+    IMAGE_DLLCHARACTERISTICS_NX_COMPAT = 0x0100, // Image is NX compatible. aka DEP
     IMAGE_DLLCHARACTERISTICS_NO_ISOLATION = 0x0200, // Isolation aware, but do not isolate the image.
     IMAGE_DLLCHARACTERISTICS_NO_SEH = 0x0400, // Does not use structured exception (SE) handling. No SE handler may be called in this image.
     IMAGE_DLLCHARACTERISTICS_NO_BIND = 0x0800, // Do not bind the image.

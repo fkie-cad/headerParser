@@ -90,22 +90,22 @@ uint16_t swapUint16(uint16_t value)
 
 uint32_t swapUint32(uint32_t value)
 {
-    return (((value & 0x000000FFu) << 24u) |
+    return (((value & 0x000000FFu) << 0x18u) |
     ((value & 0x0000FF00u) <<  8u) |
     ((value & 0x00FF0000u) >>  8u) |
-    ((value & 0xFF000000u) >> 24u));
+    ((value & 0xFF000000u) >> 0x18u));
 }
 
 uint64_t swapUint64(uint64_t value)
 {
-    return (((value & 0x00000000000000FF) << 56) |
-    ((value & 0x000000000000FF00) << 40) |
-    ((value & 0x0000000000FF0000) << 24) |
+    return (((value & 0x00000000000000FF) << 0x38) |
+    ((value & 0x000000000000FF00) << 0x28) |
+    ((value & 0x0000000000FF0000) << 0x18) |
     ((value & 0x00000000FF000000) <<  8) |
     ((value & 0x000000FF00000000) >>  8) |
-    ((value & 0x0000FF0000000000) >> 24) |
-    ((value & 0x00FF000000000000) >> 40) |
-    ((value & 0xFF00000000000000) >> 56));
+    ((value & 0x0000FF0000000000) >> 0x18) |
+    ((value & 0x00FF000000000000) >> 0x28) |
+    ((value & 0xFF00000000000000) >> 0x38));
 }
 
 void printBinUint8(uint8_t n)

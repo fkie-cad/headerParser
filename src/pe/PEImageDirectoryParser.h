@@ -70,11 +70,9 @@ size_t PE_getDataDirectoryEntryFileOffset(PEDataDirectory* data_directory,
     if ( vsize == 0 || vaddr == 0 )
     {
         prog_error("No %s Table!\n\n", label);
-        return 0;
+        return RVA_2_FOA_NOT_FOUND;
     }
-    // end get table entry
 
-    // get table rva offset
     table_fo = PE_Rva2Foa(vaddr, svas, nr_of_sections);
     if ( table_fo == RVA_2_FOA_NOT_FOUND )
     {

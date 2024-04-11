@@ -49,7 +49,7 @@ int PE_parseImageExceptionTable(
     if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_EXCEPTION )
     {
         header_error("ERROR: Data Directory too small for EXCEPTION entry!\n");
-        return false;
+        return -1;
     }
 
     PEDataDirectory* dte = &oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_EXCEPTION];
@@ -77,11 +77,9 @@ int PE_parseImageExceptionTable(
     offset = 0;
     dte_offset = 0;
     
-#ifdef DEBUG_PRINT
-    printf("offset: 0x%zx\n", offset);
-    printf("abs_file_offset: 0x%zx\n", *abs_file_offset);
-    printf("dte->Size: 0x%x\n", dte->Size);
-#endif
+    debug_info("offset: 0x%zx\n", offset);
+    debug_info("abs_file_offset: 0x%zx\n", *abs_file_offset);
+    debug_info("dte->Size: 0x%x\n", dte->Size);
 
 //    PE_printImageBaseRelocationTable();
 //

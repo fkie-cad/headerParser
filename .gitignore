@@ -1,5 +1,4 @@
 /build/**
-!/build/**/
 venv/
 .idea
 .cproject
@@ -23,13 +22,5 @@ updateBin.bat
 
 tests/__pycache__/
 
-#!build/headerParser
-#!build/headerParser.sha256
-
-#!build/64/headerParser.exe
-#!build/64/headerParser.sha256
-#!build/32/headerParser.exe
-#!build/32/headerParser.sha256
-
-
+.gitignore
 TODO.txt
