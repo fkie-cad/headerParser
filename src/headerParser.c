@@ -38,8 +38,8 @@ const char* FORCE_PE_STR = "pe";
 //#define DILLER
 
 #define BIN_NAME "headerParser"
-#define BIN_VS "1.15.14"
-#define BIN_DATE "11.04.2024"
+#define BIN_VS "1.15.15"
+#define BIN_DATE "23.09.2024"
 
 #define LIN_PARAM_IDENTIFIER ('-')
 #define WIN_PARAM_IDENTIFIER ('/')

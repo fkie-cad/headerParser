@@ -97,7 +97,7 @@ void PE_printImageBaseRelocationTable();
 void PE_printImageBaseRelocationBlockHeader(PE_BASE_RELOCATION_BLOCK* b, 
                                             uint32_t i,
                                             size_t start_file_offset);
-void PE_printImageBaseRelocationBlockEntry(PE_BASE_RELOCATION_ENTRY* e);
+void PE_printImageBaseRelocationBlockEntry(PE_BASE_RELOCATION_ENTRY* e, uint64_t value);
 
 void PE_printImageDelayImportTableHeader(PeImageDelayLoadDescriptor* did);
 void PE_printImageDelayImportDescriptor(PeImageDelayLoadDescriptor* did,
@@ -169,9 +169,9 @@ void PE_printCoffFileHeader(PECoffFileHeader* ch, size_t offset, size_t start_fi
 //	printf(" - Machine%s: %s (0x%X)\n", fillOffset(PECoffFileHeaderOffsets.Machine, offset), PE_getMachineName(ch->Machine), ch->Machine);
     printf(" - NumberOfSections%s: %u\n", fillOffset(PECoffFileHeaderOffsets.NumberOfSections, offset, start_file_offset), ch->NumberOfSections);
     printf(" - TimeDateStamp%s: %s (0x%x)\n", fillOffset(PECoffFileHeaderOffsets.TimeDateStamp, offset, start_file_offset), date, ch->TimeDateStamp);
-    printf(" - PointerToSymbolTable%s: 0x%X (%u)\n", fillOffset(PECoffFileHeaderOffsets.PointerToSymbolTable, offset, 0), ch->PointerToSymbolTable, ch->PointerToSymbolTable);
+    printf(" - PointerToSymbolTable%s: 0x%X\n", fillOffset(PECoffFileHeaderOffsets.PointerToSymbolTable, offset, 0), ch->PointerToSymbolTable);
     printf(" - NumberOfSymbols%s: %u\n", fillOffset(PECoffFileHeaderOffsets.NumberOfSymbols, offset, start_file_offset), ch->NumberOfSymbols);
-    printf(" - SizeOfOptionalHeader%s: %u\n", fillOffset(PECoffFileHeaderOffsets.SizeOfOptionalHeader, offset, start_file_offset), ch->SizeOfOptionalHeader);
+    printf(" - SizeOfOptionalHeader%s: 0x%x (%u)\n", fillOffset(PECoffFileHeaderOffsets.SizeOfOptionalHeader, offset, start_file_offset), ch->SizeOfOptionalHeader, ch->SizeOfOptionalHeader);
     printf(" - Characteristics%s: 0x%X (b%s)\n", fillOffset(PECoffFileHeaderOffsets.Characteristics, offset, start_file_offset), ch->Characteristics, ch_bin);
     printFlag32F(ch->Characteristics, PECoffCharacteristics.IMAGE_FILE_RELOCS_STRIPPED,
             "IMAGE_FILE_RELOCS_STRIPPED: Relocation information was stripped from the file. The file must be loaded at its preferred base address. If the base address is not available, the loader reports an error.", dll_c_pre, dll_c_post);
@@ -232,15 +232,15 @@ void PE_printOptionalHeader(PE64OptHeader* oh, size_t offset, size_t start_file_
     printf(" - SizeOfCode%s: 0x%X (%u)\n", fillOffset(offsets.SizeOfCode, offset, start_file_offset), oh->SizeOfCode, oh->SizeOfCode);
     printf(" - SizeOfInitializedData%s: 0x%X (%u)\n", fillOffset(offsets.SizeOfInitializedData, offset, start_file_offset), oh->SizeOfInitializedData, oh->SizeOfInitializedData);
     printf(" - SizeOfUninitializedData%s: 0x%X (%u)\n", fillOffset(offsets.SizeOfUninitializedData, offset, start_file_offset), oh->SizeOfUninitializedData, oh->SizeOfUninitializedData);
-    printf(" - AddressOfEntryPoint%s: 0x%X (%u)\n", fillOffset(offsets.AddressOfEntryPoint, offset, start_file_offset), oh->AddressOfEntryPoint, oh->AddressOfEntryPoint);
-    printf(" - BaseOfCode%s: 0x%X (%u)\n", fillOffset(offsets.BaseOfCode, offset, start_file_offset), oh->BaseOfCode, oh->BaseOfCode);
-    if (bitness == 32) printf(" - BaseOfData%s: 0x%X (%u)\n", fillOffset(offsets.BaseOfData, offset, start_file_offset), oh->BaseOfData, oh->BaseOfData);
+    printf(" - AddressOfEntryPoint%s: 0x%X\n", fillOffset(offsets.AddressOfEntryPoint, offset, start_file_offset), oh->AddressOfEntryPoint);
+    printf(" - BaseOfCode%s: 0x%X\n", fillOffset(offsets.BaseOfCode, offset, start_file_offset), oh->BaseOfCode);
+    if (bitness == 32) printf(" - BaseOfData%s: 0x%X\n", fillOffset(offsets.BaseOfData, offset, start_file_offset), oh->BaseOfData);
 //#if defined(_WIN32)
 //    printf(" - ImageBase%s: 0x%llX (%llu)\n", fillOffset(offsets.ImageBase, offset, start_file_offset), oh->ImageBase, oh->ImageBase);
 //#else
 //    printf(" - ImageBase%s: 0x%lX (%lu)\n", fillOffset(offsets.ImageBase, offset, start_file_offset), oh->ImageBase, oh->ImageBase);
 //#endif
-    printf(" - ImageBase%s: 0x%"PRIx64" (%"PRIu64")\n", fillOffset(offsets.ImageBase, offset, start_file_offset), oh->ImageBase, oh->ImageBase);
+    printf(" - ImageBase%s: 0x%"PRIx64"\n", fillOffset(offsets.ImageBase, offset, start_file_offset), oh->ImageBase);
     printf(" - SectionAlignment%s: 0x%X (%u)\n", fillOffset(offsets.SectionAlignment, offset, start_file_offset), oh->SectionAlignment, oh->SectionAlignment);
     printf(" - FileAlignment%s: 0x%X (%u)\n", fillOffset(offsets.FileAlignment, offset, start_file_offset), oh->FileAlignment, oh->FileAlignment);
     printf(" - MajorOSVersion%s: 0x%X (%u)\n", fillOffset(offsets.MajorOperatingSystemVersion, offset, start_file_offset), oh->MajorOSVersion, oh->MajorOSVersion);
@@ -353,11 +353,11 @@ void PE_printImageSectionHeader(PEImageSectionHeader* sh,
     printf(" - Name%s: %s\n", fillOffset(PESectionHeaderOffsets.Name, offset, 0), name);
 //	printf(" - name%s: %.*s\n", IMAGE_SIZEOF_SHORT_NAME, &(sh->Name));
     printf(" - Misc.VirtualSize%s: 0x%X (%u)\n", fillOffset(PESectionHeaderOffsets.VirtualSize, offset, 0), sh->Misc.VirtualSize, sh->Misc.VirtualSize);
-    printf(" - VirtualAddress%s: 0x%X (%u)\n", fillOffset(PESectionHeaderOffsets.VirtualAddress, offset, 0), sh->VirtualAddress, sh->VirtualAddress);
+    printf(" - VirtualAddress%s: 0x%X\n", fillOffset(PESectionHeaderOffsets.VirtualAddress, offset, 0), sh->VirtualAddress);
     printf(" - SizeOfRawData%s: 0x%X (%u)\n", fillOffset(PESectionHeaderOffsets.SizeOfRawData, offset, 0), sh->SizeOfRawData, sh->SizeOfRawData);
-    printf(" - PointerToRawData%s: 0x%X (%u)\n", fillOffset(PESectionHeaderOffsets.PointerToRawData, offset, 0), sh->PointerToRawData, sh->PointerToRawData);
-    printf(" - PointerToRelocations%s: 0x%X (%u)\n", fillOffset(PESectionHeaderOffsets.PointerToRelocations, offset, 0), sh->PointerToRelocations, sh->PointerToRelocations);
-    printf(" - PointerToLinenumbers%s: 0x%X (%u)\n", fillOffset(PESectionHeaderOffsets.PointerToLinenumbers, offset, 0), sh->PointerToLinenumbers, sh->PointerToLinenumbers);
+    printf(" - PointerToRawData%s: 0x%X\n", fillOffset(PESectionHeaderOffsets.PointerToRawData, offset, 0), sh->PointerToRawData);
+    printf(" - PointerToRelocations%s: 0x%X\n", fillOffset(PESectionHeaderOffsets.PointerToRelocations, offset, 0), sh->PointerToRelocations);
+    printf(" - PointerToLinenumbers%s: 0x%X\n", fillOffset(PESectionHeaderOffsets.PointerToLinenumbers, offset, 0), sh->PointerToLinenumbers);
     printf(" - NumberOfRelocations%s: 0x%X (%u)\n", fillOffset(PESectionHeaderOffsets.NumberOfRelocations, offset, 0), sh->NumberOfRelocations, sh->NumberOfRelocations);
     printf(" - NumberOfLinenumbers%s: 0x%X (%u)\n", fillOffset(PESectionHeaderOffsets.NumberOfLinenumbers, offset, 0), sh->NumberOfLinenumbers, sh->NumberOfLinenumbers);
     uint32ToBin(sh->Characteristics, characteristics_bin);
@@ -970,30 +970,33 @@ void PE_printImageBaseRelocationBlockHeader(PE_BASE_RELOCATION_BLOCK* b, uint32_
     printf(" - Block %u:\n", i);
     printf("   - Virtual Address%s: 0x%x:\n", fillOffset(PeBaseRelocationBlockOffsets.VirtualAddress, 0, start_file_offset), b->VirtualAddress);
     printf("   - SizeOfBlock%s: 0x%x:\n", fillOffset(PeBaseRelocationBlockOffsets.SizeOfBlock, 0, start_file_offset), b->SizeOfBlock);
+    printf("       offset | type       | value\n");
 }
 
 const char* PeBaseRelocationTypeStrings[] = {
-    "IMAGE_REL_BASED_ABSOLUTE",
-    "IMAGE_REL_BASED_HIGH",
-    "IMAGE_REL_BASED_LOW",
-    "IMAGE_REL_BASED_HIGHLOW",
-    "IMAGE_REL_BASED_HIGHADJ",
-    "IMAGE_REL_BASED_MIPS_JMPADDR | IMAGE_REL_BASED_ARM_MOV32 | IMAGE_REL_BASED_RISCV_HIGH20",
-    "IMAGE_REL_BASED_RESERVED",
-    "IMAGE_REL_BASED_THUMB_MOV32 | IMAGE_REL_BASED_RISCV_LOW12I",
-    "IMAGE_REL_BASED_RISCV_LOW12S",
-    "IMAGE_REL_BASED_MIPS_JMPADDR16",
-    "IMAGE_REL_BASED_DIR64",
+    "ABSOLUTE",
+    "HIGH",
+    "LOW",
+    "HIGHLOW",
+    "HIGHADJ",
+    "MIPS_JMPADDR | ARM_MOV32 | RISCV_HIGH20",
+    "RESERVED",
+    "THUMB_MOV32 | RISCV_LOW12I",
+    "RISCV_LOW12S",
+    "MIPS_JMPADDR16",
+    "DIR64",
 };
 #define PeBaseRelocationTypeStrings_SIZE (sizeof(PeBaseRelocationTypeStrings)/sizeof(char*))
 
-void PE_printImageBaseRelocationBlockEntry(PE_BASE_RELOCATION_ENTRY* e)
+void PE_printImageBaseRelocationBlockEntry(PE_BASE_RELOCATION_ENTRY* e, uint64_t value)
 {
-    uint16_t type = e->Data >> 12;
-    uint16_t offset = e->Data & 0x0FFF;
+    //uint16_t type = e->Data.Value >> 12;
+    //uint16_t offset = e->Data.Value & 0x0FFF;
+    uint16_t type = e->Data.Type;
+    uint16_t offset = e->Data.Offset;
     const char* type_str = (type < PeBaseRelocationTypeStrings_SIZE) ? PeBaseRelocationTypeStrings[type] : "NONE";
 
-    printf("     - 0x%04x | %s (%u)\n", offset, type_str, type);
+    printf("     - 0x%04x | %s (%u) | 0x%"PRIx64"\n", offset, type_str, type, value);
 }
 
 

@@ -43,8 +43,8 @@ Compiles and runs under
 
 
 ## VERSION
-1.15.14  
-Last changed: 11.04.2024  
+1.15.15  
+Last changed: 23.09.2024  
 
 ## REQUIREMENTS
 - Linux

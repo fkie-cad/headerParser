@@ -249,7 +249,7 @@ typedef struct PEImageSectionHeader
     // For longer names, this field contains a slash (/) that is followed by an ASCII representation of a decimal number that is an offset into the string table.
     // Executable images do not use a string table and do not support section names longer than 8 characters.
     // Long names in object files are truncated if they are emitted to an executable file.
-    char Name[IMAGE_SIZEOF_SHORT_NAME];
+    char Name[IMAGE_SIZEOF_SHORT_NAME]; // 00
     // The total size of the section when loaded into memory.
     // If this value is greater than SizeOfRawData, the section is zero-padded.
     // This field is valid only for executable images and should be set to zero for object files.
@@ -258,39 +258,39 @@ typedef struct PEImageSectionHeader
 //		To find the physical address in an OBJ file of the next section, add the SizeOfRawData value to the physical address of the current section.
         uint32_t PhysicalAddress;
         uint32_t VirtualSize;
-    } Misc;
+    } Misc; // 08
     // For executable images, the address of the first byte of the section relative to the image base when the section is loaded into memory.
     // For object files, this field is the address of the first byte before relocation is applied;
     // for simplicity, compilers should set this to zero.
     // Otherwise, it is an arbitrary value that is subtracted from offsets during relocation.
-    uint32_t VirtualAddress;
+    uint32_t VirtualAddress; // 0C
     // The size of the section (for object files) or the size of the initialized data on disk (for image files).
     // For executable images, this must be a multiple of FileAlignment from the optional header.
     // If this is less than VirtualSize, the remainder of the section is zero-filled.
     // Because the SizeOfRawData field is rounded but the VirtualSize field is not, it is possible for SizeOfRawData to be greater than VirtualSize as well.
     // When a section contains only uninitialized data, this field should be zero.
-    uint32_t SizeOfRawData;
+    uint32_t SizeOfRawData; // 10
     // The file pointer to the first page of the section within the COFF file.
     // For executable images, this must be a multiple of FileAlignment from the optional header.
     // For object files, the value should be aligned on a 4-byte boundary for best performance.
     // When a section contains only uninitialized data, this field should be zero.
-    uint32_t PointerToRawData;
+    uint32_t PointerToRawData; // 14
     // The file pointer to the beginning of relocation entries for the section.
     // This is set to zero for executable images or if there are no relocations.
-    uint32_t PointerToRelocations;
+    uint32_t PointerToRelocations; // 18
     // The file pointer to the beginning of line-number entries for the section.
     // This is set to zero if there are no COFF line numbers.
     // This value should be zero for an image because COFF debugging information is deprecated.
-    uint32_t PointerToLinenumbers;
+    uint32_t PointerToLinenumbers; // 1c
     // The number of relocation entries for the section.
     // This is set to zero for executable images.
-    uint16_t NumberOfRelocations;
+    uint16_t NumberOfRelocations; // 20
     // The number of line-number entries for the section.
     // This value should be zero for an image because COFF debugging information is deprecated.
-    uint16_t NumberOfLinenumbers;
+    uint16_t NumberOfLinenumbers; // 22
     // The flags that describe the characteristics of the section. For more information, see Section Characteristics Flags.
-    uint32_t Characteristics;
-} PEImageSectionHeader;
+    uint32_t Characteristics; // 24
+} PEImageSectionHeader; // 28
 
 
 
@@ -559,14 +559,14 @@ typedef struct PE_BASE_RELOCATION_BLOCK {
 
 typedef struct PE_BASE_RELOCATION_ENTRY {
     union {
-        //union {
-        //	uint16_t AllData;
-        //	struct {
-        //		uint16_t Offset : 12;
-        //		uint16_t Type : 4;
-        //	} DATA_STRUCT;
-        //} Data;
-        uint16_t Data;
+        union {
+            uint16_t Value;
+            struct {
+                uint16_t Offset : 12;
+                uint16_t Type : 4;
+            }; 
+        } Data;
+        //uint16_t Data;
     };
 } PE_BASE_RELOCATION_ENTRY;
 
