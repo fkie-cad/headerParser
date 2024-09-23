@@ -124,16 +124,15 @@ uint8_t checkLargeBlockSpace(size_t* rel_offset,
     size_t r_size = 0;
     if ( needed > BLOCKSIZE_LARGE )
     {
+        header_error("ERROR: more bytes needed (0x%zx) than BLOCKSIZE_LARGE (0x%x)!\n", needed, BLOCKSIZE_LARGE);
         return false;
     }
     if ( *rel_offset + needed > BLOCKSIZE_LARGE )
     {
         *abs_offset += *rel_offset;
-//		r_size = readCustomBlock(file_name, *abs_offset, BLOCKSIZE_LARGE, block_l);
         r_size = readFile(fp, *abs_offset, BLOCKSIZE_LARGE, block_l);
         if ( r_size == 0 )
         {
-//			prog_error("ERROR: 1 reading block failed.\n");
             return false;
         }
         if ( needed > r_size )

@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 const unsigned char MAGIC_ELF_BYTES[4] = { 0x7F, 0x45, 0x4C, 0x46 };
-enum ElfHeaderSizes { MAGIC_ELF_BYTES_LN = 4 };
+#define MAGIC_ELF_BYTES_LN (4)
 typedef enum EiClass { ELFCLASSNONE, ELFCLASS32, ELFCLASS64 } EiClass;
 typedef enum EiData { ELFDATANONE, ELFDATA2LSB, ELFDATA2MSB } EiData;
 

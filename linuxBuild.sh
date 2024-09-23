@@ -145,29 +145,35 @@ function printHelp() {
     return 0;
 }
 
-while getopts ":p:t:hdr" opt; do
-    case $opt in
-    d)
-        build_mode=1
-        ;;
-    h)
-        help=1
-        ;;
-    p)
-        debug_print="$OPTARG"
-        ;;
-    r)
-        build_mode=2
-        ;;
-    t)
-        target="$OPTARG"
-        ;;
-    \?)
-        echo "Invalid option -$OPTARG" >&2
-        ;;
-    : )
-        echo "ERROR: option $OPTARG requires an argument" 1>&2
-        exit $?
+while (("$#")); do
+    case "$1" in
+        -d | --debug)
+            build_mode=1
+            shift 1
+            ;;
+        -r | --release)
+            build_mode=2
+            shift 1
+            ;;
+        -p | --debug-print)
+            debug_print=$2
+            shift 2
+            ;;
+        -t | --target)
+            target=$2
+            shift 2
+            ;;
+        -h | --help)
+            help=1
+            break
+            ;;
+        -* | --usage)
+            usage=1
+            break
+            ;;
+        *) # No more options
+            break
+            ;;
     esac
 done
 

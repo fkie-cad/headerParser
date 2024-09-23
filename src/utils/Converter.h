@@ -251,7 +251,7 @@ int formatTimeStamp(time_t t, char* res, size_t res_size, const char* format)
     struct tm* ts;
     ts = localtime(&t);
 
-    if (t == 0)
+    if ( t == 0 || ts == NULL )
     {
         res[0] = '0';
         res[1] = 0;
@@ -260,8 +260,6 @@ int formatTimeStamp(time_t t, char* res, size_t res_size, const char* format)
 
     if ( strftime(res, res_size, format, ts) == 0 )
     {
-        //		prog_error( "strftime(3): cannot format supplied date/time into buffer of size %lu using: '%s'\n",
-        //					   res_size, format);
         return -1;
     }
     return 0;
