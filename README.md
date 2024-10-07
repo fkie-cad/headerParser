@@ -227,11 +227,22 @@ $ ./linuxBuild.sh -t sh [-m Release|Debug] [-h]
 or
 $ ./linuxBuild.sh -t st [-m Release|Debug] [-h]
 ```
-or plain:
+or plain:  
+shared  
 ```bash
 $ mkdir build
-$ gcc -fPIC -Wl,-z,relro,-z,now -shared -Ofast -D_FILE_OFFSET_BITS=64 -o build/libheaderparser.so src/headerParserLib.c src/pe/PEHeader.c src/pe/PEHeaderOffsets.c -Wall 
+$ gcc -fPIC -Wl,-z,relro,-z,now -shared -Ofast -D_FILE_OFFSET_BITS=64 -Wall -o build/libheaderparser.so src/headerParserLib.c src/pe/PEHeader.c src/pe/PEHeaderOffsets.c
 ```
+
+static  
+```bash
+$ mkdir build
+$ gcc -fPIC -Wl,-z,relro,-z,now -Ofast -D_FILE_OFFSET_BITS=64 -c -Wall -o build/headerParserLib.o src/headerParserLib.c 
+$ gcc -fPIC -Wl,-z,relro,-z,now -Ofast -D_FILE_OFFSET_BITS=64 -c -Wall -o build/PEHeader.o src/pe/PEHeader.c
+$ gcc -fPIC -Wl,-z,relro,-z,now -Ofast -D_FILE_OFFSET_BITS=64 -c -Wall -o build/PEHeaderOffsets.o src/pe/PEHeaderOffsets.c
+$ ar rcs build/headerParser.a build/*.o
+```
+
 *Windows*
 ```bash
 $ winBuild.bat /dll [/m Release|Debug] [/b 32|64]
