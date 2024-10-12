@@ -49,18 +49,18 @@ Last changed: 23.09.2024
 ## REQUIREMENTS
 - Linux
    - Gcc
-   - Building with cmake requires cmake.
 - Windows
    - msbuild
 
 
 ## BUILD
-### Linux (gcc) & cmake 
+### Linux (gcc)
+script
 ```bash
 $ ./linuxBuild.sh [-t app] [-m Release|Debug] [-h]
 ```
 
-### Linux (gcc)
+manual
 ```bash
 $ mkdir build
 $ gcc -o build/headerParser -Wl,-z,relro,-z,now -D_FILE_OFFSET_BITS=64 -Ofast src/headerParser.c src/pe/PEHeader.c src/pe/PEHeaderOffsets.c
