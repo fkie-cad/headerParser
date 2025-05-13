@@ -1,6 +1,12 @@
 #ifdef _WIN32
 #define _CRT_SECURE_NO_WARNINGS
-#pragma warning( disable : 4100 4101 )
+// warning C4100: unreferenced formal parameter
+#define WARNING_UNREFERENCED_PARAM 4100
+// warning C4101: unreferenced local variable
+#define WARNING_UNREFERENCED_LOCAL_VAR 4100
+// warning C28719: Banned API Usage:  strcpy is a Banned
+#define WARNING_BANNED_API_USAGE 28719
+#pragma warning( disable : WARNING_UNREFERENCED_LOCAL_VAR WARNING_UNREFERENCED_PARAM WARNING_BANNED_API_USAGE )
 #endif
 
 #include <stdio.h>
@@ -38,8 +44,8 @@ const char* FORCE_PE_STR = "pe";
 //#define DILLER
 
 #define BIN_NAME "headerParser"
-#define BIN_VS "1.15.15"
-#define BIN_DATE "23.09.2024"
+#define BIN_VS "1.15.16"
+#define BIN_DATE "13.05.2025"
 
 #define LIN_PARAM_IDENTIFIER ('-')
 #define WIN_PARAM_IDENTIFIER ('/')

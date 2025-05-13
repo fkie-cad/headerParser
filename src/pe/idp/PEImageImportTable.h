@@ -85,17 +85,17 @@ void PE_parseImageImportTable(PE64OptHeader* oh,
 
     char* dll_name = NULL;
 
-    if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_IMPORT )
+    if ( oh->NumberOfRvaAndSizes <= IMG_DIR_ENTRY_IMPORT )
     {
         header_error("ERROR: Data Directory too small for IMPORT entry!\n");
         return;
     }
 
     PEImageImportDescriptor id; // 32 + 64
-    uint32_t vsize = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].Size;
+    uint32_t vsize = oh->DataDirectory[IMG_DIR_ENTRY_IMPORT].Size;
     size_t r_size = 0;
 
-    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_IMPORT, nr_of_sections, "Import", svas);
+    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMG_DIR_ENTRY_IMPORT, nr_of_sections, "Import", svas);
     if ( table_fo == RVA_2_FOA_NOT_FOUND )
         return;
 

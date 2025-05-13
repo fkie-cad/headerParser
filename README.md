@@ -43,8 +43,8 @@ Compiles and runs under
 
 
 ## VERSION
-1.15.15  
-Last changed: 23.09.2024  
+1.15.16  
+Last changed: 13.05.2025  
 
 ## REQUIREMENTS
 - Linux
@@ -76,7 +76,7 @@ This will run in a normal cmd.
 
 The correct path to your build tools may be passed  with the `/bt` parameter or changed in the script [winBuild.bat](winBuild.bat) itself.  
 
-The PlatformToolset defaults to "v142", but may be changed with the `/pts` option.
+The PlatformToolset defaults to "v143", but may be changed with the `/pts` option.
 "v142" is used for VS 2019, "v143" would be used in VS 2022.
 
 In a developer cmd you can also type:
@@ -218,7 +218,7 @@ If you think it is a PE file but the MZ or PE00 magic values are broken, try the
 
 
 ## LIBRARY USAGE
-HeaderParser may also be build as a shared or static library.  
+HeaderParser may also be built as a shared or static library.  
 
 ### Build
 *Linux*
@@ -275,8 +275,19 @@ freeHeaderData(data);
 
 For PE files there is an extended parser available. 
 This one includes the basic data info.
+
+layout
+```
+src/
+    HeaderData.h
+    PEHeaderData.h
+    headerParserLibPE.h
+    pe/PEHeader.h
+```
+
 ```c
 // include
+#include "src/HeaderData.h"
 #include "src/PEHeaderData.h"
 #include "src/headerParserLibPE.h"
 ...

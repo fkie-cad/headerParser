@@ -51,15 +51,15 @@ void PE_parseImageTLSTable(PE64OptHeader* oh,
     size_t e_offset;
     size_t cb_offset;
 
-    if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_TLS )
+    if ( oh->NumberOfRvaAndSizes <= IMG_DIR_ENTRY_TLS )
     {
         header_error("ERROR: Data Directory too small for TLS entry!\n");
         return;
     }
     
-    uint32_t tls_table_size = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].Size;
+    uint32_t tls_table_size = oh->DataDirectory[IMG_DIR_ENTRY_TLS].Size;
 
-    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_TLS, nr_of_sections, "TLS", svas);
+    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMG_DIR_ENTRY_TLS, nr_of_sections, "TLS", svas);
     if ( table_fo == RVA_2_FOA_NOT_FOUND )
         return;
     debug_info("PE_parseImageTLSTable\n");

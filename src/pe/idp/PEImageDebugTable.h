@@ -56,19 +56,19 @@ int PE_parseImageDebugTable(
     uint32_t entry_id = 0;
     int s = 0;
     
-    if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_DEBUG )
+    if ( oh->NumberOfRvaAndSizes <= IMG_DIR_ENTRY_DEBUG )
     {
         header_error("ERROR: Data Directory too small for DEBUG entry!\n");
         return -5;
     }
 
-    PEDataDirectory* dte = &oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG];
+    PEDataDirectory* dte = &oh->DataDirectory[IMG_DIR_ENTRY_DEBUG];
 
     PE_DEBUG_TABLE_ENTRY entry;
     size_t entry_size = PE_DEBUG_TABLE_ENTRY_SIZE;
     uint32_t nr_of_entries;
 
-    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_DEBUG, nr_of_sections, "Debug", svas);
+    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMG_DIR_ENTRY_DEBUG, nr_of_sections, "Debug", svas);
     if ( table_fo == RVA_2_FOA_NOT_FOUND )
         return -3;
 

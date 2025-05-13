@@ -42,14 +42,14 @@ int PE_parseImageBaseRelocationTable(PE64OptHeader* oh,
     uint32_t e_i;
     uint32_t b_i = 0;
     
-    if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_BASE_RELOC )
+    if ( oh->NumberOfRvaAndSizes <= IMG_DIR_ENTRY_BASE_RELOC )
     {
         header_error("ERROR: Data Directory too small for BASE_RELOC entry!\n");
         s = ERROR_DATA_DIR_TOO_SMALL;
         goto clean;
     }
 
-    PEDataDirectory* reloc = &oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_BASE_RELOC];
+    PEDataDirectory* reloc = &oh->DataDirectory[IMG_DIR_ENTRY_BASE_RELOC];
 
     PE_BASE_RELOCATION_BLOCK block;
     PE_BASE_RELOCATION_ENTRY entry;
@@ -58,7 +58,7 @@ int PE_parseImageBaseRelocationTable(PE64OptHeader* oh,
     uint64_t entry_ptr_value;
     uint64_t entry_ptr_size;
 
-    file_offset = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_BASE_RELOC, nr_of_sections, "Base Relocation", svas);
+    file_offset = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMG_DIR_ENTRY_BASE_RELOC, nr_of_sections, "Base Relocation", svas);
     if ( file_offset == RVA_2_FOA_NOT_FOUND )
     {
         s = -3;

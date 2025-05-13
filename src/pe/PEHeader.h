@@ -45,27 +45,25 @@ extern const uint8_t MAGIC_DOS_STUB_BEGINNING[MAGIC_DOS_STUB_BEGINNING_LN];
 #define IMAGE_ORDINAL_FLAG32 0x80000000
 #endif
 
-enum PEHeaderSizes {
-    //MAGIC_PE_BYTES_LN=2,
-    SIZE_OF_MAGIC_PE_SIGNATURE=4,
-    SIZE_OF_MAGIC_NE_SIGNATURE=2,
-    SIZE_OF_MAGIC_LE_SIGNATURE=2,
-    SIZE_OF_MAGIC_LX_SIGNATURE=2,
-    IMAGE_SIZEOF_SHORT_NAME=8,
-    PE_RESOURCE_ENTRY_SIZE=8,
-    PE_THUNK_DATA_32_SIZE=4,
-    PE_THUNK_DATA_64_SIZE=8,
-    NUMBER_OF_RVA_AND_SIZES=16,
-    SIZE_OF_SYM_ENT=18,
-    PE_IMPORT_DESCRIPTOR_SIZE = 20,
-    PE_RESOURCE_DIRECTORY_SIZE = 16,
-    PE_RESOURCE_DATA_ENTRY_SIZE = 16,
-    PE_DELAY_IMPORT_DESCRIPTOR_SIZE = 32,
-    PE_BOUND_IMPORT_DESCRIPTOR_SIZE = 8,
-    PE_BOUND_FORWARDER_REF_SIZE = 8,
-    PE_EXPORT_DIRECTORY_SIZE = 40,
-    PE_SECTION_HEADER_SIZE=40
-};
+//MAGIC_PE_BYTES_LN=2,
+#define SIZE_OF_MAGIC_PE_SIGNATURE (4)
+#define SIZE_OF_MAGIC_NE_SIGNATURE (2)
+#define SIZE_OF_MAGIC_LE_SIGNATURE (2)
+#define SIZE_OF_MAGIC_LX_SIGNATURE (2)
+#define IMG_SIZEOF_SHORT_NAME (8)
+#define PE_RESOURCE_ENTRY_SIZE (8)
+#define PE_THUNK_DATA_32_SIZE (4)
+#define PE_THUNK_DATA_64_SIZE (8)
+#define NUMBER_OF_RVA_AND_SIZES (16)
+#define SIZE_OF_SYM_ENT (18)
+#define PE_IMPORT_DESCRIPTOR_SIZE (20)
+#define PE_RESOURCE_DIRECTORY_SIZE (16)
+#define PE_RESOURCE_DATA_ENTRY_SIZE (16)
+#define PE_DELAY_IMPORT_DESCRIPTOR_SIZE ( 32)
+#define PE_BOUND_IMPORT_DESCRIPTOR_SIZE (8)
+#define PE_BOUND_FORWARDER_REF_SIZE (8)
+#define PE_EXPORT_DIRECTORY_SIZE (40)
+#define PE_SECTION_HEADER_SIZE (40)
 
 typedef struct PEImageDosHeader
 {
@@ -135,22 +133,22 @@ typedef struct pe_data_directory
 } PEDataDirectory;
 
 enum ImageDirectoryEntries {
-    IMAGE_DIRECTORY_ENTRY_EXPORT, // 0
-    IMAGE_DIRECTORY_ENTRY_IMPORT, // 1
-    IMAGE_DIRECTORY_ENTRY_RESOURCE, // 2
-    IMAGE_DIRECTORY_ENTRY_EXCEPTION, // 3
-    IMAGE_DIRECTORY_ENTRY_CERTIFICATE, // 4
-    IMAGE_DIRECTORY_ENTRY_BASE_RELOC, // 5
-    IMAGE_DIRECTORY_ENTRY_DEBUG, // 6
-    IMAGE_DIRECTORY_ENTRY_ARCHITECTURE, // 7
-    IMAGE_DIRECTORY_ENTRY_GLOBAL_PTR, // 8
-    IMAGE_DIRECTORY_ENTRY_TLS, // 9
-    IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG, // 10
-    IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT, // 11
-    IMAGE_DIRECTORY_ENTRY_IAT, // 12
-    IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT, // 13
-    IMAGE_DIRECTORY_ENTRY_CLR_RUNTIME_HEADER, // 14
-    IMAGE_DIRECTORY_ENTRY_RESERVED, // 15
+    IMG_DIR_ENTRY_EXPORT, // 0
+    IMG_DIR_ENTRY_IMPORT, // 1
+    IMG_DIR_ENTRY_RESOURCE, // 2
+    IMG_DIR_ENTRY_EXCEPTION, // 3
+    IMG_DIR_ENTRY_CERTIFICATE, // 4
+    IMG_DIR_ENTRY_BASE_RELOC, // 5
+    IMG_DIR_ENTRY_DEBUG, // 6
+    IMG_DIR_ENTRY_ARCHITECTURE, // 7
+    IMG_DIR_ENTRY_GLOBAL_PTR, // 8
+    IMG_DIR_ENTRY_TLS, // 9
+    IMG_DIR_ENTRY_LOAD_CONFIG, // 10
+    IMG_DIR_ENTRY_BOUND_IMPORT, // 11
+    IMG_DIR_ENTRY_IAT, // 12
+    IMG_DIR_ENTRY_DELAY_IMPORT, // 13
+    IMG_DIR_ENTRY_CLR_RUNTIME_HEADER, // 14
+    IMG_DIR_ENTRY_RESERVED, // 15
 };
 
 #define IMAGE_DIRECTORY_ENTRY_NAMES_LN (0x10)
@@ -203,9 +201,9 @@ typedef struct PE64OptHeader
     PEDataDirectory* DataDirectory;
 } PE64OptHeader;
 
-/*
+/**
  * 32 bit version of the PE Optional Header also known as IMAGE_OPTIONAL_HEADER
-*/
+ */
 typedef struct PE32OptHeader
 {
     uint16_t Magic; //decimal number 267 => 32 bit, 523 => 64 bit, and 263 =>ROM image.
@@ -249,7 +247,7 @@ typedef struct PEImageSectionHeader
     // For longer names, this field contains a slash (/) that is followed by an ASCII representation of a decimal number that is an offset into the string table.
     // Executable images do not use a string table and do not support section names longer than 8 characters.
     // Long names in object files are truncated if they are emitted to an executable file.
-    char Name[IMAGE_SIZEOF_SHORT_NAME]; // 00
+    char Name[IMG_SIZEOF_SHORT_NAME]; // 00
     // The total size of the section when loaded into memory.
     // If this value is greater than SizeOfRawData, the section is zero-padded.
     // This field is valid only for executable images and should be set to zero for object files.

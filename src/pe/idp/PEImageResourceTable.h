@@ -95,13 +95,13 @@ void PE_parseImageResourceTable(PE64OptHeader* oh,
     size_t table_fo;
     int s;
     
-    if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_RESOURCE )
+    if ( oh->NumberOfRvaAndSizes <= IMG_DIR_ENTRY_RESOURCE )
     {
         header_error("ERROR: Data Directory too small for RESOURCE entry!\n");
         return;
     }
 
-    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_RESOURCE, nr_of_sections, "Resource", svas);
+    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMG_DIR_ENTRY_RESOURCE, nr_of_sections, "Resource", svas);
     if ( table_fo == RVA_2_FOA_NOT_FOUND )
     {
         return;

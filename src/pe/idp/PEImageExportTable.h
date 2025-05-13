@@ -63,20 +63,20 @@ void PE_parseImageExportTable(
     uint8_t bits_per_block = (uint8_t)(block_size * 8);
     uint32_t handled_counter;
     
-    if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_EXPORT )
+    if ( oh->NumberOfRvaAndSizes <= IMG_DIR_ENTRY_EXPORT )
     {
         header_error("ERROR: Data Directory too small for EXPORT entry!\n");
         return;
     }
 
-    uint32_t table_start_rva = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
-    uint32_t table_end_rva = table_start_rva + oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size;
+    uint32_t table_start_rva = oh->DataDirectory[IMG_DIR_ENTRY_EXPORT].VirtualAddress;
+    uint32_t table_end_rva = table_start_rva + oh->DataDirectory[IMG_DIR_ENTRY_EXPORT].Size;
     int is_forwarded;
     size_t size, name_size, bytes_size;
     uint32_t i;
     int s;
 
-    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_EXPORT, nr_of_sections, "Export", svas);
+    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMG_DIR_ENTRY_EXPORT, nr_of_sections, "Export", svas);
     if ( table_fo == RVA_2_FOA_NOT_FOUND )
         return;
 

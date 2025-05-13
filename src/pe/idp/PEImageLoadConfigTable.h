@@ -51,26 +51,26 @@ void PE_parseImageLoadConfigTable(PE64OptHeader* oh,
 
     LoadConfigTableOffsets to;
 
-    if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG )
+    if ( oh->NumberOfRvaAndSizes <= IMG_DIR_ENTRY_LOAD_CONFIG )
     {
         header_error("ERROR: Data Directory too small for LOAD_CONFIG entry!\n");
         return;
     }
 
-    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG, nr_of_sections, "Load Config", svas);
+    table_fo = PE_getDataDirectoryEntryFileOffset(oh->DataDirectory, IMG_DIR_ENTRY_LOAD_CONFIG, nr_of_sections, "Load Config", svas);
     if ( table_fo == RVA_2_FOA_NOT_FOUND )
         return;
 
     size_t e_size = (bitness == 32) ? PE_IMAGE_LOAD_CONFIG_DIRECTORY32_SIZE : PE_IMAGE_LOAD_CONFIG_DIRECTORY64_SIZE;
     
-    if ( oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].Size < e_size )
+    if ( oh->DataDirectory[IMG_DIR_ENTRY_LOAD_CONFIG].Size < e_size )
     {
-        header_error("ERROR: LOAD_CONFIG size (0x%"PRIx32") smaller than expected (0x%zx)!\n", oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].Size, e_size);
+        header_error("ERROR: LOAD_CONFIG size (0x%"PRIx32") smaller than expected (0x%zx)!\n", oh->DataDirectory[IMG_DIR_ENTRY_LOAD_CONFIG].Size, e_size);
         return;
     }
-    if ( oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].Size != e_size )
+    if ( oh->DataDirectory[IMG_DIR_ENTRY_LOAD_CONFIG].Size != e_size )
     {
-        header_info("INFO: LOAD_CONFIG size missmatch: expected 0x%zx but got 0x%"PRIx32"\n", e_size, oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG].Size);
+        header_info("INFO: LOAD_CONFIG size missmatch: expected 0x%zx but got 0x%"PRIx32"\n", e_size, oh->DataDirectory[IMG_DIR_ENTRY_LOAD_CONFIG].Size);
     }
 
     // fill PE_IMAGE_EXPORT_DIRECTORY info

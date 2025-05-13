@@ -69,12 +69,12 @@ void PE_getRealName(const char* short_name,
     debug_info(" - raw name: %.*s\n", 8, short_name);
     if ( PE_isStringTableOffset(short_name) )
     {
-        ((char*)short_name)[IMAGE_SIZEOF_SHORT_NAME-1] = 0;
+        ((char*)short_name)[IMG_SIZEOF_SHORT_NAME-1] = 0;
         s = PE_getNameOfStringTable(short_name, real_name, coff_header, start_file_offset, file_size, fp, block_s, st);
         if ( s == 0 ) return;
     }
 
-    s_name_size = strnlen(short_name, IMAGE_SIZEOF_SHORT_NAME);
+    s_name_size = strnlen(short_name, IMG_SIZEOF_SHORT_NAME);
     name_size = s_name_size+1;
 
     *real_name = (char*) calloc(name_size, sizeof(char));
@@ -93,7 +93,7 @@ uint8_t PE_isStringTableOffset(const char* short_name)
     if ( short_name[0] != '/' )
         return 0;
 
-    for ( i = 1; i < IMAGE_SIZEOF_SHORT_NAME; i++ )
+    for ( i = 1; i < IMG_SIZEOF_SHORT_NAME; i++ )
     {
         if ( short_name[i] == 0 )
             break;

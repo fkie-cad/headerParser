@@ -52,13 +52,13 @@ void PE_parseImageBoundImportTable(
     size_t offset;
     size_t name_offset;
     
-    if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT )
+    if ( oh->NumberOfRvaAndSizes <= IMG_DIR_ENTRY_BOUND_IMPORT )
     {
         header_error("ERROR: Data Directory too small for BOUND_IMPORT entry!\n");
         return;
     }
 
-    PEDataDirectory* table = &oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT]; // 32 + 64
+    PEDataDirectory* table = &oh->DataDirectory[IMG_DIR_ENTRY_BOUND_IMPORT]; // 32 + 64
     uint32_t vaddr = table->VirtualAddress;
     uint32_t vsize = table->Size;
     size_t r_size = 0;

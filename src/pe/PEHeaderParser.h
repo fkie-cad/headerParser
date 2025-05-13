@@ -728,8 +728,8 @@ void PE_fillHeaderDataWithOptHeader(PE64OptHeader* oh,
         header_info("INFO: Unknown PeOptionalHeaderSignature (Magic) of %u.\n", oh->Magic);
     }
 
-    if ( oh->NumberOfRvaAndSizes > IMAGE_DIRECTORY_ENTRY_CLR_RUNTIME_HEADER &&
-        oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_CLR_RUNTIME_HEADER].VirtualAddress != 0 )
+    if ( oh->NumberOfRvaAndSizes > IMG_DIR_ENTRY_CLR_RUNTIME_HEADER &&
+        oh->DataDirectory[IMG_DIR_ENTRY_CLR_RUNTIME_HEADER].VirtualAddress != 0 )
     {
         hd->CPU_arch = ARCH_DOT_NET;
         // TODO: check imports for mscoree.dll as well
@@ -845,7 +845,7 @@ void PE_fillSectionHeader(const unsigned char* ptr,
                           PEImageSectionHeader* sh)
 {
     // may not be zero terminated
-    memcpy(sh->Name, (const char*)&ptr[PESectionHeaderOffsets.Name], IMAGE_SIZEOF_SHORT_NAME);
+    memcpy(sh->Name, (const char*)&ptr[PESectionHeaderOffsets.Name], IMG_SIZEOF_SHORT_NAME);
     sh->Misc.VirtualSize = *((uint32_t*) &ptr[PESectionHeaderOffsets.VirtualSize]);
     sh->VirtualAddress = *((uint32_t*) &ptr[PESectionHeaderOffsets.VirtualAddress]);
     sh->SizeOfRawData = *((uint32_t*) &ptr[PESectionHeaderOffsets.SizeOfRawData]);
@@ -1058,7 +1058,7 @@ void PE_parseCertificates(PE64OptHeader* oh,
     uint8_t table_size;
     PeAttributeCertificateTable table[MAX_CERT_TABLE_SIZE];
 
-    if ( oh->NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_CERTIFICATE )
+    if ( oh->NumberOfRvaAndSizes <= IMG_DIR_ENTRY_CERTIFICATE )
     {
         header_error("ERROR: Data Directory too small for CERTIFICATE entry!\n");
         return;
@@ -1069,7 +1069,7 @@ void PE_parseCertificates(PE64OptHeader* oh,
 //	printf("number of certificates: %d\n", table_size);
     table_size = PE_fillCertificateTable(oh, start_file_offset, file_size, fp, block_s, table, MAX_CERT_TABLE_SIZE);
 
-    PE_printAttributeCertificateTable(table, table_size, start_file_offset+oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_CERTIFICATE].VirtualAddress);
+    PE_printAttributeCertificateTable(table, table_size, start_file_offset+oh->DataDirectory[IMG_DIR_ENTRY_CERTIFICATE].VirtualAddress);
 
     if ( certificate_directory != NULL )
         PE_writeCertificatesToFile(table, table_size, certificate_directory, file_size, fp, block_s);

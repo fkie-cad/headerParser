@@ -29,8 +29,9 @@ set /a ico=1
 set verbose=0
 
 :: adjust this path, if you're using another version or path.
-set buildTools="C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools"
-set pts=v142
+set /a vs_year=2022
+set buildTools="C:\Program Files (x86)\Microsoft Visual Studio\%vs_year%\BuildTools"
+set pts=v143
 :: set pts=WindowsApplicationForDrivers10.0
 
 

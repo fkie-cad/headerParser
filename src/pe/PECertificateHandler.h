@@ -82,14 +82,14 @@ uint8_t PE_hasCertificate(PE64OptHeader* oh)
     uint32_t address;
     uint32_t size;
 
-    if ( IMAGE_DIRECTORY_ENTRY_CERTIFICATE >= oh->NumberOfRvaAndSizes )
+    if ( IMG_DIR_ENTRY_CERTIFICATE >= oh->NumberOfRvaAndSizes )
     {
         header_error("ERROR: Data Directory too small for CERTIFICATE entry!\n");
         return false;
     }
 
-    address = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_CERTIFICATE].VirtualAddress;
-    size = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_CERTIFICATE].Size;
+    address = oh->DataDirectory[IMG_DIR_ENTRY_CERTIFICATE].VirtualAddress;
+    size = oh->DataDirectory[IMG_DIR_ENTRY_CERTIFICATE].Size;
 
     if ( address == 0 || size < sizeof(PeAttributeCertificateTable) )
         return false;
@@ -165,14 +165,14 @@ uint8_t PE_iterateCertificates(PE64OptHeader* oh,
     if ( max_size == 0 )
         max_size = UINT8_MAX;
 
-    if ( IMAGE_DIRECTORY_ENTRY_CERTIFICATE >= oh->NumberOfRvaAndSizes )
+    if ( IMG_DIR_ENTRY_CERTIFICATE >= oh->NumberOfRvaAndSizes )
     {
         header_error("ERROR: Data Directory too small for CERTIFICATE entry!\n");
         return 0;
     }
 
-    address = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_CERTIFICATE].VirtualAddress;
-    size = oh->DataDirectory[IMAGE_DIRECTORY_ENTRY_CERTIFICATE].Size;
+    address = oh->DataDirectory[IMG_DIR_ENTRY_CERTIFICATE].VirtualAddress;
+    size = oh->DataDirectory[IMG_DIR_ENTRY_CERTIFICATE].Size;
 
     if ( address == 0 || size <= sizeof(PeAttributeCertificateTable) )
         return 0;

@@ -32,7 +32,7 @@
   <PropertyGroup Label="Configuration">
     <TargetVersion>Windows10</TargetVersion>
     <TargetPlatform>Desktop</TargetPlatform>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <ConfigurationType>Application</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)'=='Release'">
