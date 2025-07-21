@@ -252,8 +252,8 @@ typedef struct PEImageSectionHeader
     // If this value is greater than SizeOfRawData, the section is zero-padded.
     // This field is valid only for executable images and should be set to zero for object files.
     union {
-//		For OBJ files, this field indicates the physical address of the section.
-//		To find the physical address in an OBJ file of the next section, add the SizeOfRawData value to the physical address of the current section.
+//      For OBJ files, this field indicates the physical address of the section.
+//      To find the physical address in an OBJ file of the next section, add the SizeOfRawData value to the physical address of the current section.
         uint32_t PhysicalAddress;
         uint32_t VirtualSize;
     } Misc; // 08
@@ -297,15 +297,15 @@ typedef struct PEImageImportDescriptor {
     union {
         uint32_t Characteristics;            // 0 for terminating null import descriptor
         uint32_t OriginalFirstThunk;         // RVA to original unbound INT (Import Name Table) (an Array of PIMAGE_THUNK_DATA)
-    };                  
+    }; // 00
     // 0 if not bound,
     // -1 if bound, and real date\time stamp is found in IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT (new BIND)
     // O.W. date/time stamp of DLL bound to (Old BIND)
-    uint32_t TimeDateStamp;
-    uint32_t ForwarderChain;                // -1 if no forwarders
-    uint32_t Name;							// RVA to the name of the module. I.e  xxx.dll
-    uint32_t FirstThunk;                    // RVA to IAT (if bound this IAT has actual addresses)
-} PEImageImportDescriptor;
+    uint32_t TimeDateStamp; // 04
+    uint32_t ForwarderChain; // 08 -1 if no forwarders
+    uint32_t Name; // 0C RVA to the name of the module. I.e  xxx.dll
+    uint32_t FirstThunk; // 10 RVA to IAT (if bound this IAT has actual addresses)
+} PEImageImportDescriptor; // 14
 
 typedef struct PEImageThunkData32 {
     union {
@@ -322,14 +322,14 @@ typedef struct PEImageThunkData64 {
         uint64_t Function;         // Puint64_t
         uint64_t Ordinal;          // uint16_t number
         uint64_t AddressOfData;    // RVA to PIMAGE_IMPORT_BY_NAME
-    };
-} PEImageThunkData64;
+    }; // 00
+} PEImageThunkData64; // 08
 
 typedef struct PEImageImportByName {
-    uint16_t Hint;
-    char* Name; // NULL terminated ASCII string following the Hint.
+    uint16_t Hint; // 00 Ordinal hint
+    char* Name; // 02 NULL terminated ASCII string following the Hint.
 //	char Name[1];
-} PEImageImportByName;
+} PEImageImportByName; // > 02
 
 
 
@@ -1099,8 +1099,8 @@ typedef struct _PE_NON_PAGED_DEBUG_INFO {
 #endif
 
 #define PE_IMAGE_SEPARATE_DEBUG_FLAGS_MASK 0x8000
-#define PE_IMAGE_SEPARATE_DEBUG_MISMATCH   0x8000  // when DBG was updated, the
-                                                // old checksum didn't match.
+#define PE_IMAGE_SEPARATE_DEBUG_MISMATCH   0x8000 // when DBG was updated, the
+                                                  // old checksum didn't match.
 
 
 

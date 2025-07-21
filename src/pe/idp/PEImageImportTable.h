@@ -116,7 +116,7 @@ void PE_parseImageImportTable(PE64OptHeader* oh,
     PE_printImageImportTableHeader(&id);
 
     // terminated by zero filled PEImageImportDescriptor
-    while ( !isMemZero(&id, sizeof(id)) && r_size < vsize)
+    while ( !isMemZero(&id, sizeof(id)) && r_size < vsize )
     {
         dll_name = NULL;
         name_offset = PE_Rva2Foa(id.Name, svas, nr_of_sections);
@@ -132,14 +132,12 @@ void PE_parseImageImportTable(PE64OptHeader* oh,
             dll_name = (char*)block_s;
             dll_name[size-1] = 0;
         }
-//		else
-//			break;
 
         PE_printImageImportDescriptor(&id, *abs_file_offset+offset, dll_name);
 
         if ( extended )
         {
-            if ( id.OriginalFirstThunk != 0)
+            if ( id.OriginalFirstThunk != 0 )
                 thunk_data_offset = PE_Rva2Foa(id.OriginalFirstThunk, svas, nr_of_sections);
             else
                 thunk_data_offset = PE_Rva2Foa(id.FirstThunk, svas, nr_of_sections);

@@ -436,10 +436,7 @@ uint8_t PE_checkPESignature(const uint32_t e_lfanew,
                             unsigned char* block_l)
 {
     unsigned char *ptr;
-    unsigned char is_pe = 0;
-    unsigned char is_ne = 0;
-    unsigned char is_le = 0;
-    unsigned char is_lx = 0;
+    unsigned char res = 0;
     size_t size;
 
     if ( !checkFileSpace(e_lfanew, file_offset, SIZE_OF_MAGIC_PE_SIGNATURE , file_size) )
@@ -462,27 +459,23 @@ uint8_t PE_checkPESignature(const uint32_t e_lfanew,
     }
 
     if ( checkBytes(MAGIC_PE_SIGNATURE, SIZE_OF_MAGIC_PE_SIGNATURE, ptr) )
-        is_pe = 1;
+        res = 1;
 
-    if ( checkBytes(MAGIC_NE_SIGNATURE, SIZE_OF_MAGIC_NE_SIGNATURE, ptr) )
-        is_ne = 1;
+    else if ( checkBytes(MAGIC_NE_SIGNATURE, SIZE_OF_MAGIC_NE_SIGNATURE, ptr) )
+        res = 2;
 
-    if ( checkBytes(MAGIC_LE_SIGNATURE, SIZE_OF_MAGIC_LE_SIGNATURE, ptr) )
-        is_le = 1;
+    else if ( checkBytes(MAGIC_LE_SIGNATURE, SIZE_OF_MAGIC_LE_SIGNATURE, ptr) )
+        res = 3;
 
-    if ( checkBytes(MAGIC_LX_SIGNATURE, SIZE_OF_MAGIC_LX_SIGNATURE, ptr) )
-        is_lx = 1;
+    else if ( checkBytes(MAGIC_LX_SIGNATURE, SIZE_OF_MAGIC_LX_SIGNATURE, ptr) )
+        res = 4;
     
 //    debug_info("checkPESignature()\n");
 //    debug_info(" - pe_signature: %2X %2X %2X %2X\n", ptr[0], ptr[1], ptr[2], ptr[3]);
 //    debug_info(" - is_pe: %d\n", is_pe);
 //    debug_info(" - is_ne: %d\n", is_ne);
 
-    if ( is_pe == 1 ) return 1;
-    if ( is_ne == 1 ) return 2;
-    if ( is_le == 1 ) return 3;
-    if ( is_lx == 1 ) return 4;
-    return 0;
+    return res;
 }
 
 uint8_t PE_readCoffHeader(size_t offset,
@@ -571,12 +564,12 @@ unsigned char PE_checkCoffHeader(const PECoffFileHeader *ch,
  * @param oh
  */
 int PE_readOptionalHeader(size_t offset,
-                              PE64OptHeader* oh,
-                              size_t start_file_offset,
-                              size_t* abs_file_offset,
-                              size_t file_size,
-                              FILE* fp,
-                              unsigned char* block_l)
+                          PE64OptHeader* oh,
+                          size_t start_file_offset,
+                          size_t* abs_file_offset,
+                          size_t file_size,
+                          FILE* fp,
+                          unsigned char* block_l)
 {
     struct _PE_Optional_Header_Offsets offsets = PEOptional64HeaderOffsets;
     unsigned char *ptr;
@@ -729,7 +722,7 @@ void PE_fillHeaderDataWithOptHeader(PE64OptHeader* oh,
     }
 
     if ( oh->NumberOfRvaAndSizes > IMG_DIR_ENTRY_CLR_RUNTIME_HEADER &&
-        oh->DataDirectory[IMG_DIR_ENTRY_CLR_RUNTIME_HEADER].VirtualAddress != 0 )
+         oh->DataDirectory[IMG_DIR_ENTRY_CLR_RUNTIME_HEADER].VirtualAddress != 0 )
     {
         hd->CPU_arch = ARCH_DOT_NET;
         // TODO: check imports for mscoree.dll as well
@@ -971,7 +964,7 @@ uint32_t PE_calculateSectionSize(const PEImageSectionHeader* sh)
 
     if ( sh->SizeOfRawData == 0
         && ( ( hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_CODE)
-                && !hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_UNINITIALIZED_DATA)
+           && !hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_UNINITIALIZED_DATA)
                 )
             || hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_INITIALIZED_DATA)
             //|| ( hasFlag32(sh->Characteristics, PESectionCharacteristics.IMAGE_SCN_CNT_CODE
