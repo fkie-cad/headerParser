@@ -92,25 +92,25 @@ typedef struct PEImageDosHeader
 
 typedef struct PECoffFileHeader
 {
-    uint16_t Machine; // The number that identifies the type of target machine. For more information, see Machine Types.
-    uint16_t NumberOfSections; // The number of sections. This indicates the size of the section table, which immediately follows the headers.
-    uint32_t TimeDateStamp; // The low 32 bits of the number of seconds since 00:00 January 1, 1970 (a C run-time time_t value), that indicates when the file was created.
+    uint16_t Machine; // 00 The number that identifies the type of target machine. For more information, see Machine Types.
+    uint16_t NumberOfSections; // 02 The number of sections. This indicates the size of the section table, which immediately follows the headers.
+    uint32_t TimeDateStamp; // 04 The low 32 bits of the number of seconds since 00:00 January 1, 1970 (a C run-time time_t value), that indicates when the file was created.
     // The file offset of the COFF symbol table, or zero if no COFF symbol table is present.
     // This value should be zero for an image because COFF debugging information is deprecated.
-    uint32_t PointerToSymbolTable;
+    uint32_t PointerToSymbolTable; // 08
     // The number of entries in the symbol table.
     // This data can be used to locate the string table, which immediately follows the symbol table.
     // This value should be zero for an image because COFF debugging information is deprecated.
     // sizeof(Symbol) = 18
-    uint32_t NumberOfSymbols;
+    uint32_t NumberOfSymbols; // 0c
     // The size of the optional header, which is required for executable files but not for object files.
     // This value should be zero for an object file.
     // For a description of the header format, see Optional Header (Image Only).
-    uint16_t SizeOfOptionalHeader;
+    uint16_t SizeOfOptionalHeader; // 10
     // The flags that indicate the attributes of the file.
     // For specific flag values, see Characteristics.
-    uint16_t Characteristics;
-} PECoffFileHeader;
+    uint16_t Characteristics; // 12
+} PECoffFileHeader; // 14
 
 // COFF String Table
 //

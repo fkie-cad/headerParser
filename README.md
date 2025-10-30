@@ -148,9 +148,9 @@ Options:
 
 ### Windows Context Menu
 It may be convenient to add HeaderParser to the context menu to be able to right-click a file and header parse it.
-In this scenario, you may use
+In this scenario, you may use [addBinShellCtxtMenuEntry.bat](https://github.com/fkie-cad/windowsScripts/blob/master/addBinShellCtxtMenuEntry.bat)
 ```bash
-$ addHeaderParserToShellCtxtMenu.bat /p "c:\HeaderParser.exe" [/l "Open in HeaderParser"]
+$ addBinShellCtxtMenuEntry.bat /p "c:\HeaderParser.exe" /l "Open in HeaderParser"
 ```
 
 

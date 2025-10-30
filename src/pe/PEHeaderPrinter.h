@@ -139,7 +139,7 @@ void PE_printImageDosHeader(PEImageDosHeader* idh, size_t start_file_offset)
     printf(" - maxalloc%s: 0x%x\n", fillOffset(PEImageDosHeaderOffsets.maxalloc, 0, start_file_offset), idh->maxalloc);
     printf(" - ss: 0x%x\n", idh->ss);
     printf(" - sp: 0x%x\n", idh->sp);
-    printf(" - checksum%s: %u\n", fillOffset(PEImageDosHeaderOffsets.checksum, 0, start_file_offset), idh->checksum);
+    printf(" - checksum%s: 0x%04x (%u)\n", fillOffset(PEImageDosHeaderOffsets.checksum, 0, start_file_offset), idh->checksum, idh->checksum);
     printf(" - ip: 0x%x\n", idh->ip);
     printf(" - cs: 0x%x\n", idh->cs);
     printf(" - relocpos%s: 0x%x\n", fillOffset(PEImageDosHeaderOffsets.relocpos, 0, start_file_offset), idh->relocpos);
@@ -234,7 +234,7 @@ void PE_printOptionalHeader(PE64OptHeader* oh, size_t offset, size_t start_file_
     printf(" - SizeOfUninitializedData%s: 0x%X (%u)\n", fillOffset(offsets.SizeOfUninitializedData, offset, start_file_offset), oh->SizeOfUninitializedData, oh->SizeOfUninitializedData);
     printf(" - AddressOfEntryPoint%s: 0x%X\n", fillOffset(offsets.AddressOfEntryPoint, offset, start_file_offset), oh->AddressOfEntryPoint);
     printf(" - BaseOfCode%s: 0x%X\n", fillOffset(offsets.BaseOfCode, offset, start_file_offset), oh->BaseOfCode);
-    if (bitness == 32) printf(" - BaseOfData%s: 0x%X\n", fillOffset(offsets.BaseOfData, offset, start_file_offset), oh->BaseOfData);
+    if ( bitness == 32 ) printf(" - BaseOfData%s: 0x%X\n", fillOffset(offsets.BaseOfData, offset, start_file_offset), oh->BaseOfData);
 //#if defined(_WIN32)
 //    printf(" - ImageBase%s: 0x%llX (%llu)\n", fillOffset(offsets.ImageBase, offset, start_file_offset), oh->ImageBase, oh->ImageBase);
 //#else
@@ -252,7 +252,7 @@ void PE_printOptionalHeader(PE64OptHeader* oh, size_t offset, size_t start_file_
     printf(" - Win32VersionValue%s: 0x%X (%u)\n", fillOffset(offsets.Win32VersionValue, offset, start_file_offset), oh->Win32VersionValue, oh->Win32VersionValue);
     printf(" - SizeOfImage%s: 0x%X (%u)\n", fillOffset(offsets.SizeOfImage, offset, start_file_offset), oh->SizeOfImage, oh->SizeOfImage);
     printf(" - SizeOfHeaders%s: 0x%X (%u)\n", fillOffset(offsets.SizeOfHeaders, offset, start_file_offset), oh->SizeOfHeaders, oh->SizeOfHeaders);
-    printf(" - Checksum%s: 0x%X (%u)\n", fillOffset(offsets.CheckSum, offset, start_file_offset), oh->Checksum, oh->Checksum);
+    printf(" - Checksum%s: 0x%08X (%u)\n", fillOffset(offsets.CheckSum, offset, start_file_offset), oh->Checksum, oh->Checksum);
     printf(" - Subsystem%s: %s (0x%x)\n", fillOffset(offsets.Subsystem, offset, start_file_offset), PE_getSubsystemName((enum PEWinudowsSubsystem)oh->Subsystem), oh->Subsystem);
     printf(" - DllCharacteristics%s: 0x%X (b%s)\n", fillOffset(offsets.DllCharacteristics, offset, start_file_offset), oh->DLLCharacteristics, ch_bin);
     printFlag32F(oh->DLLCharacteristics, IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA,
