@@ -129,7 +129,13 @@ void PE_parseImageExportTable(
         name_ordinal = 0;
         memset(name, 0, BLOCKSIZE_SMALL);
 
-        fseek(fp, names_offset, SEEK_SET);
+        s = fseek(fp, names_offset, SEEK_SET);
+        if ( s != 0)
+        {
+            s = errno;
+            goto clean;
+        }
+
         size = fread(&name_rva, 1, 4, fp);
         s = errno;
         if ( size != 4 )
@@ -139,7 +145,13 @@ void PE_parseImageExportTable(
             debug_info("errno: 0x%x!\n", s);
             break;
         }
-        fseek(fp, names_ordinal_offset, SEEK_SET);
+        s = fseek(fp, names_ordinal_offset, SEEK_SET);
+        if ( s != 0)
+        {
+            s = errno;
+            goto clean;
+        }
+
         size = fread(&name_ordinal, 1, 2, fp);
         s = errno;
         if ( size != 2 )
@@ -189,7 +201,13 @@ void PE_parseImageExportTable(
         // get function rva
         functions_offset = functions_array + name_ordinal*4;
         function_rva = 0;
-        fseek(fp, functions_offset, SEEK_SET);
+        s = fseek(fp, functions_offset, SEEK_SET);
+        if ( s != 0)
+        {
+            s = errno;
+            goto clean;
+        }
+
         size = fread(&function_rva, 1, 4, fp);
         s = errno;
         if ( size != 4 )
@@ -264,7 +282,13 @@ void PE_parseImageExportTable(
             // get function rva
             functions_offset = functions_array + name_ordinal*4;
             function_rva = 0;
-            fseek(fp, functions_offset, SEEK_SET);
+            s = fseek(fp, functions_offset, SEEK_SET);
+            if ( s != 0)
+            {
+                s = errno;
+                goto clean;
+            }
+
             size = fread(&function_rva, 1, 4, fp);
             s = errno;
             if ( size != 4 )

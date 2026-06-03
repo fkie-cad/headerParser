@@ -119,17 +119,23 @@ int PE_getNameOfStringTable(const char* short_name,
     int s = 0;
     uint32_t name_offset = 0;
     uint32_t max_name_ln = 0;
+    
 
-    if ( st->strings == NULL )
+    if ( st->data == NULL )
     {
         s = PE_loadStringTable(coff_header, start_file_offset, file_size, fp, block_s, st);
-        if ( s != 0  || st->strings == NULL )
+        if ( s != 0  || st->data == NULL )
             return 1;
+    }
+    if ( st->size == 0 )
+    {
+        header_info("INFO: String table size is 0!\n");
+        return 3;
     }
     name_offset = strtoul((&short_name[1]), NULL, 10);
     debug_info(" - - name_offset: %u\n", name_offset);
     debug_info(" - - size_of_string_table: %u\n", st->size);
-    debug_info(" - - long name: %s\n", &st->strings[name_offset]);
+    debug_info(" - - long name: %s\n", &st->data[name_offset]);
 
     if ( name_offset >= st->size - 1 )
     {
@@ -141,11 +147,11 @@ int PE_getNameOfStringTable(const char* short_name,
     if ( max_name_ln > MAX_SIZE_OF_SECTION_NAME )
         max_name_ln = MAX_SIZE_OF_SECTION_NAME;
 
-    s_name_size = strnlen((const char*)(&st->strings[name_offset]), max_name_ln);
+    s_name_size = strnlen((const char*)(&st->data[name_offset]), max_name_ln);
     name_buf_size = s_name_size+1;
 
     *real_name = (char*) calloc(name_buf_size, sizeof(char));
-    strncpy(*real_name, (const char*)(&st->strings[name_offset]), s_name_size);
+    strncpy(*real_name, (const char*)(&st->data[name_offset]), s_name_size);
 
     return 0;
 }
@@ -158,12 +164,12 @@ int PE_loadStringTable(PECoffFileHeader* coff_header,
                        PStringTable st)
 {
     size_t size = 0;
-    size_t ptr_to_string_table = (size_t)coff_header->PointerToSymbolTable + (coff_header->NumberOfSymbols * SIZE_OF_SYM_ENT);
-    size_t end_of_string_table = 0;
+    size_t ptr_to_string_table = (size_t)coff_header->PointerToSymbolTable + ((size_t)coff_header->NumberOfSymbols * SIZE_OF_SYM_ENT);
+    //size_t end_of_string_table = 0;
 
-    debug_info(" - - ptr to symbol table: 0x%X\n", coff_header->PointerToSymbolTable);
-    debug_info(" - - number of symbols: %u\n", coff_header->NumberOfSymbols);
-    debug_info(" - - pointer to string table: 0x%zx\n", ptr_to_string_table);
+    debug_info("   - PointerToSymbolTable: 0x%X\n", coff_header->PointerToSymbolTable);
+    debug_info("   - NumberOfSymbols: %u\n", coff_header->NumberOfSymbols);
+    debug_info("   - ptr_to_string_table: 0x%zx\n", ptr_to_string_table);
 
     if ( coff_header->PointerToSymbolTable == 0 || coff_header->NumberOfSymbols == 0 || ptr_to_string_table == 0 )
         return 3;
@@ -172,17 +178,14 @@ int PE_loadStringTable(PECoffFileHeader* coff_header,
     if ( st->size == 0 )
         return 4;
 
-    end_of_string_table = ptr_to_string_table + st->size;
-    debug_info(" - - size of string table: %u\n", st->size);
-    debug_info(" - - end_of_string_table: 0x%zx\n", end_of_string_table);
-    if ( st->size == 0 )
-        return 1;
+    //end_of_string_table = ptr_to_string_table + st->size;
+    debug_info("   - st->size: %u\n", st->size);
+    //debug_info("   - end_of_string_table: 0x%zx\n", end_of_string_table);
 
     ptr_to_string_table += start_file_offset;
-    end_of_string_table += start_file_offset;
+    //end_of_string_table += start_file_offset;
 
-//	size = readCharArrayFile(fp, &st->strings, ptr_to_string_table, end_of_string_table);
-    size = readFileA(fp, (size_t)ptr_to_string_table, (size_t)end_of_string_table, &st->strings);
+    size = readFileA(fp, ptr_to_string_table, st->size, &st->data);
     if ( !size )
     {
         prog_error("Read String Table failed.\n");

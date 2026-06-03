@@ -35,6 +35,8 @@
 // _o_ offset
 #define GetIntXValueAtOffset(_t_, _p_, _o_) (*((_t_*) &((uint8_t*)_p_)[_o_]))
 
+#define AlignUpBy(_addr_, _align_) ( ((size_t)(_addr_) + (_align_) - 1) & ~((_align_) - 1) )
+
 #define memzro(_t_, _s_) memset(_t_, 0, _s_)
 
 #ifndef ALIGN_UP_BY

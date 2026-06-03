@@ -331,7 +331,7 @@ int parseUint32(const char* arg, uint32_t* value)
     uint64_t result;
     int s = parseUint64(arg, &result);
     if ( s != 0 ) return s;
-    if ( s > UINT32_MAX )
+    if ( result > UINT32_MAX )
     {
         fprintf(stderr, "Error: %s could not be converted to a 4 byte int: Out of range!\n", arg);
         return 5;

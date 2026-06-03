@@ -1108,7 +1108,7 @@ typedef struct _PE_NON_PAGED_DEBUG_INFO {
 // custom
 
 typedef struct _StringTable {
-    uint8_t *strings;
+    uint8_t *data;
     uint32_t size;
 } StringTable, *PStringTable;
 

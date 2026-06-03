@@ -60,24 +60,23 @@ static uint8_t checkStandardBlockSpace(size_t* rel_offset,
                                        unsigned char* block_s,
                                        FILE* fp);
 
-/**
- * Check space left in large block, depending on offset and needed size.
- * If data.block_main is too small, read in new bytes into data.block_sub.
- * abs_file_offset is not adjusted.
- *
- * @param rel_offset size_t*
- * @param abs_offset size_t*
- * @param needed  uint16_t
- * @param block_s unsigned char[BLOCKSIZE_SMALL]
- * @param file_name const char*
- * @return uint8_t 0: failed, 1: nothing happend (enough space), 2: data.block_sub filled.
- */
-static size_t readStandardBlockIfLargeBlockIsExceeded(size_t rel_offset,
-                                                       size_t abs_offset,
-                                                       size_t needed,
-                                                       unsigned char* block_s,
-                                                       FILE* fp);
-
+///**
+// * Check space left in large block, depending on offset and needed size.
+// * If data.block_main is too small, read in new bytes into data.block_sub.
+// * abs_file_offset is not adjusted.
+// *
+// * @param rel_offset size_t*
+// * @param abs_offset size_t*
+// * @param needed  uint16_t
+// * @param block_s unsigned char[BLOCKSIZE_SMALL]
+// * @param file_name const char*
+// * @return uint8_t 0: failed, 1: nothing happend (enough space), 2: data.block_sub filled.
+// */
+//static size_t readStandardBlockIfLargeBlockIsExceeded(size_t rel_offset,
+//                                                       size_t abs_offset,
+//                                                       size_t needed,
+//                                                       unsigned char* block_s,
+//                                                       FILE* fp);
 
 
 
@@ -137,8 +136,8 @@ uint8_t checkLargeBlockSpace(size_t* rel_offset,
         }
         if ( needed > r_size )
         {
-//			debug_info("INFO: needed more than may be read.\n");
-//			return 0;
+//          debug_info("INFO: needed more than may be read.\n");
+//          return 0;
         }
         *rel_offset = 0;
     }
@@ -166,16 +165,16 @@ uint8_t checkStandardBlockSpace(size_t* rel_offset,
     if ( *rel_offset + needed > BLOCKSIZE_SMALL )
     {
         *abs_offset += *rel_offset;
-//		r_size = readCustomBlock(file_name, *abs_offset, BLOCKSIZE_SMALL, block_s);
+//      r_size = readCustomBlock(file_name, *abs_offset, BLOCKSIZE_SMALL, block_s);
         r_size = readFile(fp, *abs_offset, BLOCKSIZE_SMALL, block_s);
         if ( r_size == 0 )
         {
-//			prog_error("ERROR: 1 reading block failed.\n");
+//          prog_error("ERROR: 1 reading block failed.\n");
             return 0;
         }
         if ( needed > r_size )
         {
-//			prog_error("ERROR: needed bounds out of file size.\n");
+//          prog_error("ERROR: needed bounds out of file size.\n");
             return 0;
         }
         *rel_offset = 0;

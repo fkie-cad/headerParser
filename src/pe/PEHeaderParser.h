@@ -351,13 +351,13 @@ void PE_cleanUp(PEHeaderData* pehd)
     if ( pehd == NULL )
         return;
 
-    if ( pehd->st.strings != NULL )
+    if ( pehd->st.data != NULL )
     {
-        free(pehd->st.strings);
-        pehd->st.strings = NULL;
+        free(pehd->st.data);
+        pehd->st.data = NULL;
     }
 
-    if ( pehd->opt_header->NumberOfRvaAndSizes > 0 )
+    if ( pehd->opt_header->DataDirectory )
     {
         free(pehd->opt_header->DataDirectory);
         pehd->opt_header->DataDirectory = NULL;

@@ -844,7 +844,7 @@ uint8_t Elf_sectionHeaderOffsetsAreValid(
                 fh->e_shoff, file_size);
         return 0;
     }
-    table_end = (size_t)fh->e_shoff + (fh->e_shnum * fh->e_shentsize);
+    table_end = (size_t)fh->e_shoff + ( (size_t)fh->e_shnum *  (size_t)fh->e_shentsize);
     if ( start_file_offset + table_end > file_size )
     {
         header_error("ERROR: end of section header table (0x%zx) > file_size (0x%zx)!\n",

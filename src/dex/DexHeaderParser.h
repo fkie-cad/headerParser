@@ -38,7 +38,7 @@ static int DEX_readItemIds(
     size_t offset,
     uint32_t size,
     uint32_t item_size,
-    char* item_label,
+    const char* item_label,
     DEX_fillXXXIdItem filler,
     PGlobalParams gp,
     PDexParams dexp,
@@ -95,13 +95,19 @@ void parseDexHeader(PHeaderData hd, PGlobalParams gp, PDexParams dexp)
 
     if ( dexp->info_level & INFO_LEVEL_DEX_FILE_H )
         DEX_printFileHeader(&file_header, hd->endian, gp->file.start_offset);
+    
+    if ( file_header.string_ids_size > ((size_t)-1)/8 )
+    {
+        header_error("ERROR: string_ids_size too big!\n");
+        return;
+    }
 
     if ( gp->info_level >= INFO_LEVEL_EXTENDED )
     {
         if ( file_header.string_ids_size > 0 )
         {
             stringsNr = file_header.string_ids_size;
-            stringsCb = file_header.string_ids_size*sizeof(char*);
+            stringsCb = (size_t)file_header.string_ids_size * sizeof(char*);
             strings = (char**) malloc(stringsCb);
             if ( strings == NULL )
             {
@@ -249,7 +255,7 @@ void DEX_readFileHeader(DEXFileHeader *fh,
 int DEX_readItemIds(size_t offset,
                         uint32_t size,
                         uint32_t item_size,
-                        char* item_label,
+                        const char* item_label,
                         DEX_fillXXXIdItem filler,
                         PGlobalParams gp,
                         PDexParams dexp,
@@ -342,7 +348,7 @@ void DEX_fillStringIdItem(uint32_t offset,
 
     if ( data.utf16_size.val >= BLOCKSIZE_SMALL )
     {
-        header_error("ERROR: string size too big!\n")
+        header_error("ERROR: string size too big!\n");
         return;
     }
     if ( utf16_size_ln + data.utf16_size.val >= BLOCKSIZE_SMALL )

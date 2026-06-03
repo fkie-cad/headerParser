@@ -188,7 +188,8 @@ uint8_t PE_iterateCertificates(PE64OptHeader* oh,
             break;
 
         // add qword-aligned dwLength to get next entry
-        address += entry.dwLength + ((8u - (entry.dwLength & 7u)) & 7u);
+        address += entry.dwLength + ( (8u - (entry.dwLength & 7u)) & 7u);
+        //address += AlignUpBy(entry.dwLength, 8);
 
         if ( table != NULL )
             table[i] = entry;
@@ -223,16 +224,33 @@ int PE_writeCertificatesToFile(PeAttributeCertificateTable* table,
 {
     uint8_t i;
     int s;
-    char cert_file[PATH_MAX];
+    char* cert_file = NULL;
+    int cb;
 
     if ( !dirExists(dir) )
         return -1;
 
+    size_t dir_cb = strlen(dir);
+    size_t cert_file_cb = dir_cb + 1 + 5 + 3 + 4 + 1; // dir \ cert- <id> .der \0, id \in [0,255]
+
+    cert_file = (char*)malloc(cert_file_cb);
+    if ( !cert_file )
+    {
+        s = errno;
+        header_error("[e] No memory for cert_file buffer! (0x%x)\n", s);
+        goto clean;
+    }
+
     header_info(" - saving\n");
     for ( i = 0; i < table_size; i++ )
     {
-        sprintf(cert_file, "%s%ccert-%u.der", dir, PATH_SEPARATOR, i);
-        cert_file[PATH_MAX-1] = 0;
+        cb = sprintf(cert_file, "%s%ccert-%u.der", dir, PATH_SEPARATOR, i);
+        if ( cb == -1 )
+        {
+            s = errno;
+            header_error("[e] sprintf failed! (0x%x)\n", s);
+            break;
+        }
 
         header_info(" - - file (%u/%u): %s", (i+1u), table_size, cert_file);
         s = PE_writeCertificateToFile(table, i, cert_file, file_size, fp, block_s);
@@ -243,9 +261,13 @@ int PE_writeCertificatesToFile(PeAttributeCertificateTable* table,
         else
         {
             header_info(" (failed (0x%x))\n", s);
-            return s;
+            break;
         }
     }
+
+clean:
+    if ( cert_file )
+        free(cert_file);
 
     return 0;
 }
@@ -294,7 +316,13 @@ int PE_writeCertificateToFile(PeAttributeCertificateTable* table,
         return s;
     }
 
-    fseek(src, offset, SEEK_SET);
+    s = fseek(src, offset, SEEK_SET);
+    if ( s != 0)
+    {
+        s = errno;
+        goto clean;
+    }
+
     while ( n == BLOCKSIZE_SMALL )
     {
         read_size = BLOCKSIZE_SMALL;
@@ -307,9 +335,11 @@ int PE_writeCertificateToFile(PeAttributeCertificateTable* table,
         offset += n;
     }
 
-    fclose(dest);
+clean:
+    if ( dest )
+        fclose(dest);
 
-    return 0;
+    return s;
 }
 
 /**

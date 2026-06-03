@@ -148,7 +148,7 @@ void PE_printImageDosHeader(PEImageDosHeader* idh, size_t start_file_offset)
     printf(" - oem_id%s: %u\n", fillOffset(PEImageDosHeaderOffsets.oem_id, 0, start_file_offset), idh->oem_id);
     printf(" - oem_info%s: %u\n", fillOffset(PEImageDosHeaderOffsets.oem_info, 0, start_file_offset), idh->oem_info);
 //	printf(" - reserved2: %04x|%04x|%04x|%04x%04x|%04x|%04x|%04x%04x|%04x\n", idh->reserved2[0], idh->reserved2[1], idh->reserved2[2], idh->reserved2[3], idh->reserved2[4], idh->reserved2[5], idh->reserved2[6], idh->reserved2[7], idh->reserved2[8], idh->reserved2[9]);
-    printf(" - e_lfanew%s: 0x%x (%u)\n", fillOffset(PEImageDosHeaderOffsets.e_lfanew, 0, start_file_offset), idh->e_lfanew, idh->e_lfanew);
+    printf(" - e_lfanew%s: 0x%x\n", fillOffset(PEImageDosHeaderOffsets.e_lfanew, 0, start_file_offset), idh->e_lfanew);
     printf("\n");
 }
 
