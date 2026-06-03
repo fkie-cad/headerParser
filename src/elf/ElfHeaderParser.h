@@ -717,6 +717,7 @@ int Elf_readSectionByNameType(
 {
     int s;
     Elf64SectionHeader sht_entry;
+    memset(&sht_entry, 0, sizeof(sht_entry));
 
     s = Elf_getSectionTableEntryByNameType(
             sec_name, sec_type,

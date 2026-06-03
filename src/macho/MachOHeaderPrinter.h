@@ -22,7 +22,7 @@
 static void MachO_printFileHeader(const MachHeader64* h, uint8_t bitness, uint8_t endian, size_t start_file_offset);
 //char* getMachO_CPUTypeName(uint32_t type);
 static void MachO_getCPUSubTypeName(uint32_t type, uint32_t sub_type, char* buffer, size_t buffer_cb);
-static char* MachO_getFileTypeName(uint32_t type);
+static const char* MachO_getFileTypeName(uint32_t type);
 static void MachO_printLoadCommand(LoadCommand* c, size_t offset);
 //void printMachO_FileHeaderFlag(const MachHeader64* h, uint32_t expected, const char* label);
 static void MachO_printSegmentCommand(const SegmentCommand64* c, size_t offset, uint8_t bitness);
@@ -100,15 +100,15 @@ void MachO_printFileHeader(const MachHeader64* h, uint8_t bitness, uint8_t endia
 //      case CPU_ARCH_ABI64: return "64-bit architectures (when running a 64-bit ABI";
 //      case CPU_ARCH_ABI32: return "64-bit architectures (when running a 32-bit ABI";
         case CPU_TYPE_ANY:  "Unknown";
-        case CPU_TYPE_MC680X0:  "m68k compatible CPUs";
-        case CPU_TYPE_I386:  "i386 and later compatible CPUs";
-        case CPU_TYPE_X86_64:  "x86_64 (AMD64) compatible CPUs";
-        case CPU_TYPE_ARM:  "32-bit ARM compatible CPU";
-        case CPU_TYPE_MC88000:  "m88k compatible CPUs";
-        case CPU_TYPE_ARM64:  "64-bit ARM compatible CPUs";
-        case CPU_TYPE_ARM64_32:  "64-bit ARM compatible CPUs (running in 32-bit mode?)";
-        case CPU_TYPE_POWERPC:  "PowerPC compatible CPUs";
-        case CPU_TYPE_POWERPC64:  "PowerPC64 compatible CPUs";
+        case CPU_TYPE_MC680X0: return "m68k compatible CPUs";
+        case CPU_TYPE_I386: return "i386 and later compatible CPUs";
+        case CPU_TYPE_X86_64: return "x86_64 (AMD64) compatible CPUs";
+        case CPU_TYPE_ARM: return "32-bit ARM compatible CPU";
+        case CPU_TYPE_MC88000: return "m88k compatible CPUs";
+        case CPU_TYPE_ARM64: return "64-bit ARM compatible CPUs";
+        case CPU_TYPE_ARM64_32: return "64-bit ARM compatible CPUs (running in 32-bit mode?)";
+        case CPU_TYPE_POWERPC: return "PowerPC compatible CPUs";
+        case CPU_TYPE_POWERPC64: return "PowerPC64 compatible CPUs";
         else return "None";
 }*/
 
@@ -256,21 +256,21 @@ void MachO_getCPUSubTypeName(uint32_t type, uint32_t sub_type, char* buffer, siz
         strcpy(buffer, "None");
 }
 
-char* MachO_getFileTypeName(uint32_t type)
+const char* MachO_getFileTypeName(uint32_t type)
 {
     switch ( type )
     {
-        case MH_OBJECT: "relocatable object file";
-        case MH_EXECUTE: "demand paged executable file";
-        case MH_FVMLIB: "fixed VM shared library file";
-        case MH_CORE: "core file";
-        case MH_PRELOAD: "preloaded executable file";
-        case MH_DYLIB: "dynamically bound shared library";
-        case MH_DYLINKER: "dynamic link editor";
-        case MH_BUNDLE: "dynamically bound bundle file";
-        case MH_DYLIB_STUB: "shared library stub for static";
-        case MH_DSYM: "companion file with only debug";
-        case MH_KEXT_BUNDLE: "x86_64 kexts";
+        case MH_OBJECT: return "relocatable object file";
+        case MH_EXECUTE: return "demand paged executable file";
+        case MH_FVMLIB: return "fixed VM shared library file";
+        case MH_CORE: return "core file";
+        case MH_PRELOAD: return "preloaded executable file";
+        case MH_DYLIB: return "dynamically bound shared library";
+        case MH_DYLINKER: return "dynamic link editor";
+        case MH_BUNDLE: return "dynamically bound bundle file";
+        case MH_DYLIB_STUB: return "shared library stub for static";
+        case MH_DSYM: return "companion file with only debug";
+        case MH_KEXT_BUNDLE: return "x86_64 kexts";
         default: return "None";
     }
 }
