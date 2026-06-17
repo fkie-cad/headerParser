@@ -255,10 +255,11 @@ void getBaseNameC(const char* file_path, char* file_name, size_t* file_name_ln)
     {
         *file_name_ln = 0;
         file_name[0] = 0;
+        return;
     }
     fn = file_path_ln - offset;
     memcpy(file_name, &file_path[offset], fn);
-    file_name[*file_name_ln-1] = 0;
+    file_name[fn] = 0;
 
     *file_name_ln = fn;
 }

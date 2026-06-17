@@ -288,7 +288,7 @@ GOTO :ParseParams
     echo /rtl Statically include runtime libs. May be needed if a "VCRUNTIMExxx.dll not found Error" occurs on the target system.
     echo /pdb Include pdb symbols into release build. Default in debug mode. 
     echo /bt Custom path to Microsoft Visual Studio BuildTools.
-    echo /pts Platformtoolset. Defaults to "v142".
+    echo /pts Platformtoolset. Defaults to "v145".
     echo /xi No icon for the exe.
     echo.
     echo /v more verbose output

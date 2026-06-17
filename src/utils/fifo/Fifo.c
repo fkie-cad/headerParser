@@ -31,7 +31,7 @@ bool Fifo_clear(PFifo fifo)
         free(tmp);
     }
     
-    memset(fifo, 0, sizeof(fifo));
+    memset(fifo, 0, sizeof(*fifo));
 
     return true;
 }

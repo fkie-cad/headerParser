@@ -609,18 +609,20 @@ uint8_t ZIP_checkNeedles(ZipFileRecord* r,
         else
             name = (char*)(&block_s[0]);
 
-//		debug_info(" - - name: ");
-//		for ( i = 0; i < r->frFileNameLength; i++ )
-//		{
-//			debug_info("%c", ptr[ZipRecoredOffsets.frFileName+i]);
-//		}
-//		debug_info("\n");
+//      debug_info(" - - name: ");
+//      for ( i = 0; i < r->frFileNameLength; i++ )
+//      {
+//          debug_info("%c", ptr[ZipRecoredOffsets.frFileName+i]);
+//      }
+//      debug_info("\n");
 
+        // needeles[0|1]
         if ( record_count < 2 )
         {
-            if ( !ZIP_checkNameOfRecord(name, r->fileNameLength, needles[record_count]) )
+            if ( ZIP_checkNameOfRecord(name, r->fileNameLength, needles[record_count]) )
                 found_needles[record_count]++;
         }
+        // needeles[2,3]
         else
         {
             if ( ZIP_nameHasFileType(name, r->fileNameLength, needles[2]) )
