@@ -85,7 +85,7 @@ function buildTarget() {
     fi
     dp=$((dp & ~$DP_FLAG_ERROR))
 
-    local flags="-Wl,-z,relro,-z,now -D_FILE_OFFSET_BITS=64 -Wall -pedantic -Wextra -Werror=return-type -Werror=overflow -Werror=format"
+    local flags="-Wl,-z,relro,-z,now -D_FILE_OFFSET_BITS=64 -Wall -pedantic -Wextra -Werror=return-type -Werror=overflow -Werror=format -fvisibility=hidden"
     if (( ${build_mode} == $MODE_DEBUG )); then
         flags="${flags} -ggdb -O0"
     else
