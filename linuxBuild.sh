@@ -89,7 +89,7 @@ function buildTarget() {
     if (( ${build_mode} == $MODE_DEBUG )); then
         flags="${flags} -ggdb -O0"
     else
-        flags="${flags} -Ofast"
+        flags="${flags} -Ofast -Wl,--gc-sections -ffunction-sections -fdata-sections"
     fi
 
     if (( $((build_flags & $BUILD_FLAG_STATIC)) == $BUILD_FLAG_STATIC )); then
@@ -111,6 +111,11 @@ function buildTarget() {
     local app_src="src/headerParser.c src/pe/PEHeader.c src/pe/PEHeaderOffsets.c"
     local sh_src="src/headerParserLib.c src/pe/PEHeader.c src/pe/PEHeaderOffsets.c"
     
+    if [[ $verbose == 1 ]]; 
+    then
+        flags="--verbose $flags"
+    fi
+
     case $target in
         $((BUILD_TARGET_APP)))
             gcc $flags $dpf $epf -o $dir/$bin_name $app_src
