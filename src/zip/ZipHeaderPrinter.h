@@ -116,7 +116,7 @@ void ZIP_printFileEntry(const ZipFileRecord* fr,
 //	}
 
 
-    if ( fr->fileNameLength >= 0 && fr->fileNameLength < BLOCKSIZE_SMALL )
+    if ( fr->fileNameLength > 0 && fr->fileNameLength < BLOCKSIZE_SMALL )
     {
         if ( !checkFileSpace(offset, 0, offsets->fileName + fr->fileNameLength, file_size) )
             goto skip_name;

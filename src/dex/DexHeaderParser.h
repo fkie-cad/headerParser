@@ -96,7 +96,7 @@ void parseDexHeader(PHeaderData hd, PGlobalParams gp, PDexParams dexp)
     if ( dexp->info_level & INFO_LEVEL_DEX_FILE_H )
         DEX_printFileHeader(&file_header, hd->endian, gp->file.start_offset);
     
-    if ( file_header.string_ids_size > ((size_t)-1)/8 )
+    if ( file_header.string_ids_size > ((uint32_t)-1)/sizeof(char*) )
     {
         header_error("ERROR: string_ids_size too big!\n");
         return;
