@@ -35,12 +35,19 @@
 // _o_ offset
 #define GetIntXValueAtOffset(_t_, _p_, _o_) (*((_t_*) &((uint8_t*)_p_)[_o_]))
 
-#define AlignUpBy(_addr_, _align_) ( ((size_t)(_addr_) + (_align_) - 1) & ~((_align_) - 1) )
+// #define AlignUpBy(_addr_, _align_) ( ((size_t)(_addr_) + (_align_) - 1) & ~((_align_) - 1) )
 
 #define memzro(_t_, _s_) memset(_t_, 0, _s_)
 
 #ifndef ALIGN_UP_BY
 #define ALIGN_UP_BY(__value__, __align__) ( ((size_t)(__value__) + (__align__) - 1) & ~((__align__) - 1) )
+#endif
+
+#ifndef min
+#define min(_a_, _b_) (( (_a_) < (_b_) ) ? (_a_) : (_b_) )
+#endif
+#ifndef max
+#define max(_a_, _b_) (( (_a_) > (_b_) ) ? (_a_) : (_b_) )
 #endif
 
 
@@ -82,11 +89,11 @@ typedef struct GlobalParams
     // dynamic
 	struct data {
         uint8_t block_sub[BLOCKSIZE_SMALL];
-        uint8_t block_main[BLOCKSIZE_LARGE];
         //uint8_t* block_main;
-        //uint8_t* block_main_size;
+        size_t block_main_size;
+        uint8_t block_main[BLOCKSIZE_LARGE];
         //uint8_t* block_sub;
-        //uint8_t* block_sub_size;
+        size_t block_sub_size;
     } data;
 
     HPFile file;

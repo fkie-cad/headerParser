@@ -134,6 +134,9 @@ main(int argc, char** argv)
         goto exit;
     }
 
+    gp.data.block_main_size = BLOCKSIZE_LARGE;
+    gp.data.block_sub_size = BLOCKSIZE_SMALL;
+
     sanitizeArgs(&gp);
 
     debug_info("file_name: %s\n", file_name);

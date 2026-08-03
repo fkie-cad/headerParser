@@ -311,7 +311,7 @@ int parseUint64(const char* arg, uint64_t* value)
 #endif
     err_no = errno;
 
-    if ( endptr == arg )
+    if ( endptr == arg || *endptr != '\0' )
     {
         fprintf(stderr, "Error: %s could not be converted to a number: Not a number!\n", arg);
         return 3;

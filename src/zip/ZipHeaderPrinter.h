@@ -8,28 +8,28 @@
 #include "ZipHeader.h"
 
 static void ZIP_printFileEntry(const ZipFileRecord* fr,
-                               const uint8_t* ptr,
                                uint32_t idx,
                                size_t offset,
                                size_t dd_offset,
                                size_t file_size,
                                FILE* fp,
-                               uint8_t* block_s);
+                               uint8_t* buffer,
+                               size_t buffer_cb);
 
 static void ZIP_printDirEntry(const ZipDirEntry* r,
-                              const uint8_t* ptr,
                               uint32_t idx,
                               size_t offset,
                               size_t file_size,
                               FILE* fp,
-                              uint8_t* block_s);
+                              uint8_t* buffer,
+                              size_t buffer_cb);
 
 static void ZIP_printEndLocator(const ZipEndLocator* r,
-                                const uint8_t* ptr,
                                 size_t offset,
                                 size_t file_size,
                                 FILE* fp,
-                                uint8_t* block_s);
+                                uint8_t* buffer,
+                                size_t buffer_cb);
 
 static const char* ZIP_getCompressionString(uint16_t type);
 
@@ -47,39 +47,73 @@ static const char* ZIP_getCompressionString(uint16_t type);
  * @param file_name const char*
  * @return uint8_t 0: failed, 1: nothing happend (enough space), 2: data.block_sub filled.
  */
-size_t readStandardBlockIfLargeBlockIsExceeded(
-    size_t file_offset,
-    size_t struct_offset,
-    size_t el_size,
-    uint8_t* block_s,
+size_t readNewIfBlockIsExceeded(
+    size_t fo,
+    size_t offset,
+    size_t size,
+    uint8_t* buffer,
+    size_t buffer_cb,
     FILE* fp
 )
 {
+    FEnter();
+    DPrint("offset: 0x%zx\n", offset);
+    DPrint("size: 0x%zx\n", size);
+    DPrint("buffer: %p\n", buffer);
+    DPrint("buffer_cb: 0x%zx\n", buffer_cb);
+
     size_t r_size = 0;
-    if ( file_offset + struct_offset + el_size > BLOCKSIZE_LARGE )
+    if ( offset + size > buffer_cb )
     {
-        r_size = readFile(fp, file_offset + struct_offset, el_size, block_s);
+        DPrint("reading new into buffer\n");
+        r_size = readFile(fp, fo+offset, size, buffer);
         if ( r_size == 0 )
-            return (size_t)-1; // 0
+        {
+            FLeave();
+            return (size_t)-1;
+        }
+
+        FLeave();
         return r_size;
     }
+    FLeave();
     return 0;
 }
 
+//
+// Print `size` bytes starting at absolute file offset `fo`, reading in
+// buffer_cb-sized chunks so arbitrarily large fields work.
+//
+static void ZIP_printBytesChunked(size_t fo, size_t size, uint8_t* buffer, size_t buffer_cb, FILE* fp, char* format)
+{
+    size_t remaining = size;
+    while ( remaining > 0 )
+    {
+        size_t chunk = min(remaining, buffer_cb);
+        size_t r = readFile(fp, fo, chunk, buffer);
+        if ( r == 0 )
+            break;
+
+        for ( size_t i = 0; i < r; i++ )
+            printf(format, buffer[i]);
+
+        fo += r;
+        remaining -= r;
+    }
+}
 
 void ZIP_printFileEntry(const ZipFileRecord* fr,
-                        const uint8_t* ptr,
                         uint32_t idx,
                         size_t offset,
                         size_t dd_offset,
                         size_t file_size,
                         FILE* fp,
-                        uint8_t* block_s)
+                        uint8_t* buffer,
+                        size_t buffer_cb)
 {
-    size_t i;
+    FEnter();
+
     const Zip_File_Recored_Offsets *offsets = &ZipFileRecoredOffsets;
-    size_t r_size;
-    char* name = NULL;
 
     printf("Zip File Entry %u:\n", idx);
     printf(" - signature%s: %02x|%02x|%02x|%02x\n", fillOffset(offsets->signature, offset, 0), fr->signature[0], fr->signature[1], fr->signature[2], fr->signature[3]);
@@ -107,43 +141,38 @@ void ZIP_printFileEntry(const ZipFileRecord* fr,
     printf(" - compression%s: %s (%u)\n", fillOffset(offsets->compression, offset, 0), ZIP_getCompressionString(fr->compression), fr->compression);
     printf(" - compressedSize%s: 0x%x (%u)\n", fillOffset(offsets->compressedSize, offset, 0), fr->compressedSize, fr->compressedSize);
     printf(" - uncompressedSize%s: 0x%x (%u)\n", fillOffset(offsets->uncompressedSize, offset, 0), fr->uncompressedSize, fr->uncompressedSize);
-    printf(" - fileNameLength%s: %u\n", fillOffset(offsets->fileNameLength, offset, 0), fr->fileNameLength);
-    printf(" - extraFieldLength%s: %u\n", fillOffset(offsets->extraFieldLength, offset, 0), fr->extraFieldLength);
-    printf(" - name%s: ", fillOffset(offsets->fileName, offset, 0));
-//	for ( i = 0; i < r->fileNameLength; i++ )
-//	{
-//		printf("%c", ptr[ZipRecoredOffsets.fileName+i]);
-//	}
-
-
-    if ( fr->fileNameLength > 0 && fr->fileNameLength < BLOCKSIZE_SMALL )
+    printf(" - fileNameLength%s: 0x%x (%u)\n", fillOffset(offsets->fileNameLength, offset, 0), fr->fileNameLength, fr->fileNameLength);
+    printf(" - extraFieldLength%s: 0x%x (%u)\n", fillOffset(offsets->extraFieldLength, offset, 0), fr->extraFieldLength, fr->extraFieldLength);
+    if ( fr->fileNameLength != 0 )
     {
         if ( !checkFileSpace(offset, 0, offsets->fileName + fr->fileNameLength, file_size) )
-            goto skip_name;
-
-        r_size = readStandardBlockIfLargeBlockIsExceeded(offset, offsets->fileName, fr->fileNameLength, block_s, fp);
-        if ( r_size == (size_t)-1 )
-            goto skip_name;
-        else if ( r_size == 0 )
-            name = (char*)ptr + offsets->fileName;
-        else
-            name = (char*)(&block_s[0]);
-
-        for ( i = 0; i < fr->fileNameLength; i++ )
-        {
-            printf("%c", name[i]);
-        }
+            return;
+        
+        printf(" - fileName%s: ", fillOffset(offsets->fileName, offset, 0));
+        ZIP_printBytesChunked(offset + offsets->fileName, fr->fileNameLength, buffer, buffer_cb, fp, "%c");
+        printf("\n");
     }
-    printf("\n");
-skip_name:
+    if ( fr->extraFieldLength != 0 )
+    {
+        size_t ef_offset = offsets->fileName + fr->fileNameLength;
+        if ( !checkFileSpace(offset, 0, ef_offset + fr->extraFieldLength, file_size) )
+            return;
+        
+        printf(" - extraField%s: ", fillOffset(ef_offset, offset, 0));
+        ZIP_printBytesChunked(offset + ef_offset, fr->extraFieldLength, buffer, buffer_cb, fp, "%02x ");
+        printf("\n");
+    }
     if ( hasFlag16(fr->flags, ZipFlagTypes.FLAG_DescriptorUsedMask) )
     {
         printf(" - dataDescr:\n");
+        printf("    offset: 0x%zx\n", dd_offset);
         printf("   - signature%s: %02x|%02x|%02x|%02x\n", fillOffset(ZipDataDescriptionOffsets.signature, dd_offset, 0), fr->dataDescr.ddSignature[0], fr->dataDescr.ddSignature[1], fr->dataDescr.ddSignature[2], fr->dataDescr.ddSignature[3]);
         printf("   - crc%s: 0x%x (%u)\n", fillOffset(ZipDataDescriptionOffsets.crc, dd_offset, 0), fr->dataDescr.ddCRC, fr->dataDescr.ddCRC);
         printf("   - compressedSize%s: 0x%x (%u)\n", fillOffset(ZipDataDescriptionOffsets.compressedSize, dd_offset, 0), fr->dataDescr.ddCompressedSize, fr->dataDescr.ddCompressedSize);
         printf("   - uncompressedSize%s: 0x%x (%u)\n", fillOffset(ZipDataDescriptionOffsets.uncompressedSize, dd_offset, 0), fr->dataDescr.ddUncompressedSize, fr->dataDescr.ddUncompressedSize);
     }
+
+    FLeave();
 }
 
 const char* ZIP_getCompressionString(const uint16_t type)
@@ -165,20 +194,15 @@ const char* ZIP_getCompressionString(const uint16_t type)
 }
 
 void ZIP_printDirEntry(const ZipDirEntry* r,
-                       const uint8_t* ptr,
                        uint32_t idx,
                        size_t offset,
                        size_t file_size,
                        FILE* fp,
-                       uint8_t* block_s)
+                       uint8_t* buffer,
+                       size_t buffer_cb)
 {
-    size_t i;
     const Zip_Dir_Entry_Offsets *offsets = &ZipDirEntryOffsets;
     uint8_t size_of_entry = MIN_SIZE_OF_ZIP_DIR_ENTRY;
-    size_t r_size;
-    char* name = NULL;
-    char* comment = NULL;
-    size_t comment_offset;
 
     printf("Zip Directory Entry %u:\n", idx);
     printf(" - signature%s: %02x|%02x|%02x|%02x\n", fillOffset(offsets->signature, offset, 0), r->signature[0], r->signature[1], r->signature[2], r->signature[3]);
@@ -204,74 +228,61 @@ void ZIP_printDirEntry(const ZipDirEntry* r,
     printFlag16(r->flags, ZipFlagTypes.FLAG_ReservedPKWARE2, "ReservedPKWARE2");
     printFlag16(r->flags, ZipFlagTypes.FLAG_ReservedPKWARE3, "ReservedPKWARE3");
     printf("\n");
-    printf(" - compression%s: %u\n", fillOffset(offsets->compression, offset, 0), r->compression);
+    printf(" - compression%s: %s (%u)\n", fillOffset(offsets->compression, offset, 0), ZIP_getCompressionString(r->compression), r->compression);
     printf(" - fileTime%s: %u\n", fillOffset(offsets->fileTime, offset, 0), r->fileTime);
     printf(" - fileDate%s: %u\n", fillOffset(offsets->fileDate, offset, 0), r->fileDate);
     printf(" - crc%s: %u\n", fillOffset(offsets->crc, offset, 0), r->crc);
-    printf(" - compressedSize%s: %u\n", fillOffset(offsets->compressedSize, offset, 0), r->compressedSize);
-    printf(" - uncompressedSize%s: %u\n", fillOffset(offsets->uncompressedSize, offset, 0), r->uncompressedSize);
-    printf(" - fileNameLength%s: %u\n", fillOffset(offsets->fileNameLength, offset, 0), r->fileNameLength);
-    printf(" - extraFieldLength%s: %u\n", fillOffset(offsets->extraFieldLength, offset, 0), r->extraFieldLength);
-    printf(" - fileCommentLength%s: %u\n", fillOffset(offsets->fileCommentLength, offset, 0), r->fileCommentLength);
-    printf(" - diskNumberStart%s: %u\n", fillOffset(offsets->diskNumberStart, offset, 0), r->diskNumberStart);
-    printf(" - internalAttributes%s: %u\n", fillOffset(offsets->internalAttributes, offset, 0), r->internalAttributes);
-    printf(" - externalAttributes%s: %u\n", fillOffset(offsets->externalAttributes, offset, 0), r->externalAttributes);
-    printf(" - headerOffset%s: %u\n", fillOffset(offsets->headerOffset, offset, 0), r->headerOffset);
-    printf(" - fileName%s: ", fillOffset(offsets->fileName, offset, 0));
-    if ( r->fileNameLength != 0 && r->fileNameLength < BLOCKSIZE_SMALL )
+    printf(" - compressedSize%s: 0x%x (%u)\n", fillOffset(offsets->compressedSize, offset, 0), r->compressedSize, r->compressedSize);
+    printf(" - uncompressedSize%s: 0x%x (%u)\n", fillOffset(offsets->uncompressedSize, offset, 0), r->uncompressedSize, r->uncompressedSize);
+    printf(" - fileNameLength%s: 0x%x (%u)\n", fillOffset(offsets->fileNameLength, offset, 0), r->fileNameLength, r->fileNameLength);
+    printf(" - extraFieldLength%s: 0x%x (%u)\n", fillOffset(offsets->extraFieldLength, offset, 0), r->extraFieldLength, r->extraFieldLength);
+    printf(" - fileCommentLength%s: 0x%x (%u)\n", fillOffset(offsets->fileCommentLength, offset, 0), r->fileCommentLength, r->fileCommentLength);
+    printf(" - diskNumberStart%s: 0x%x (%u)\n", fillOffset(offsets->diskNumberStart, offset, 0), r->diskNumberStart, r->diskNumberStart);
+    printf(" - internalAttributes%s: 0x%x (%u)\n", fillOffset(offsets->internalAttributes, offset, 0), r->internalAttributes, r->internalAttributes);
+    printf(" - externalAttributes%s: 0x%x (%u)\n", fillOffset(offsets->externalAttributes, offset, 0), r->externalAttributes, r->externalAttributes);
+    printf(" - headerOffset%s: 0x%x (%u)\n", fillOffset(offsets->headerOffset, offset, 0), r->headerOffset, r->headerOffset);
+    if ( r->fileNameLength != 0 )
     {
         if ( !checkFileSpace(offset, 0, size_of_entry + r->fileNameLength, file_size) )
             return;
-        r_size = readStandardBlockIfLargeBlockIsExceeded(offset, offsets->fileName, r->fileNameLength, block_s, fp);
-        if ( r_size == (size_t)-1 )
-            return;
-        else if ( r_size == 0 )
-            name = (char*)ptr + offsets->fileName;
-        else
-            name = (char*)(&block_s[0]);
-
-        for ( i = 0; i < r->fileNameLength; i++ )
-        {
-            printf("%c", name[i]);
-        }
+        
+        printf(" - fileName%s: ", fillOffset(offsets->fileName, offset, 0));
+        ZIP_printBytesChunked(offset + offsets->fileName, r->fileNameLength, buffer, buffer_cb, fp, "%c");
+        printf("\n");
     }
-    printf("\n");
-    printf(" - fileComment%s: ", fillOffset(offsets->fileComment, offset, 0));
-    if ( r->fileCommentLength != 0 && r->fileCommentLength < BLOCKSIZE_SMALL )
+    if ( r->extraFieldLength != 0 )
     {
-        comment_offset = offsets->fileComment + r->fileNameLength;
-
+        size_t ef_offset = offsets->fileName + r->fileNameLength;
+        if ( !checkFileSpace(offset, 0, ef_offset + r->extraFieldLength, file_size) )
+            return;
+        
+        printf(" - extraField%s: ", fillOffset(ef_offset, offset, 0));
+        ZIP_printBytesChunked(offset + ef_offset, r->extraFieldLength, buffer, buffer_cb, fp, "%02x ");
+        printf("\n");
+    }
+    if ( r->fileCommentLength != 0 )
+    {
+        size_t comment_offset = offsets->fileName + r->fileNameLength + r->extraFieldLength;
         if ( !checkFileSpace(offset, 0, comment_offset + r->fileCommentLength, file_size) )
             return;
 
-        r_size = readStandardBlockIfLargeBlockIsExceeded(offset, comment_offset, r->fileCommentLength, block_s, fp);
-        if ( r_size == (size_t)-1 )
-            return;
-        else if ( r_size == 0 ) // old large block
-            comment = (char*)ptr + comment_offset;
-        else // new small block
-            comment = (char*)(&block_s[0]);
-
-        for ( i = 0; i < r->fileCommentLength; i++ )
-        {
-            printf("%c", comment[i]);
-        }
+        printf(" - comment%s: ", fillOffset(comment_offset, offset, 0));
+        ZIP_printBytesChunked(offset + comment_offset, r->fileCommentLength, buffer, buffer_cb, fp, "%c");
+        printf("\n");
     }
-    printf("\n");
+
+    return;
 }
 
 void ZIP_printEndLocator(const ZipEndLocator* r,
-                         const uint8_t* ptr,
                          size_t offset,
                          size_t file_size,
                          FILE* fp,
-                         uint8_t* block_s)
+                         uint8_t* buffer,
+                         size_t buffer_cb)
 {
-    size_t i;
     const Zip_End_Locator_Offsets *offsets = &ZipEndLocatorOffsets;
     uint8_t size_of_entry = MIN_SIZE_OF_ZIP_END_LOCATOR;
-    size_t r_size;
-    char* comment = NULL;
 
     printf("Zip End Locator:\n");
     printf(" - signature%s: %02x|%02x|%02x|%02x\n", fillOffset(offsets->signature, offset, 0), r->signature[0], r->signature[1], r->signature[2], r->signature[3]);
@@ -282,26 +293,15 @@ void ZIP_printEndLocator(const ZipEndLocator* r,
     printf(" - directorySize%s: %u\n", fillOffset(offsets->directorySize, offset, 0), r->directorySize);
     printf(" - directoryOffset%s: %u\n", fillOffset(offsets->directoryOffset, offset, 0), r->directoryOffset);
     printf(" - commentLength%s: %u\n", fillOffset(offsets->commentLength, offset, 0), r->commentLength);
-    printf(" - comment%s: ", fillOffset(offsets->comment, offset, 0));
-    if ( r->commentLength != 0 && r->commentLength < BLOCKSIZE_SMALL )
+    if ( r->commentLength != 0 )
     {
         if ( !checkFileSpace(offset, 0, size_of_entry + r->commentLength, file_size) )
             return;
-
-        r_size = readStandardBlockIfLargeBlockIsExceeded(offset, offsets->comment, r->commentLength, block_s, fp);
-        if ( r_size == (size_t)-1 )
-            return;
-        else if ( r_size == 0 )
-            comment = (char*)ptr + offsets->comment;
-        else
-            comment = (char*)(&block_s[0]);
-
-        for ( i = 0; i < r->commentLength; i++ )
-        {
-            printf("%c", comment[i]);
-        }
+        
+        printf(" - comment%s: ", fillOffset(offsets->comment, offset, 0));
+        ZIP_printBytesChunked(offset + offsets->comment, r->commentLength, buffer, buffer_cb, fp, "%c");
+        printf("\n");
     }
-    printf("\n");
 }
 
 #endif

@@ -3,7 +3,7 @@
 
 #if defined(HP_EXPORTS)
     #if defined(_MSC_VER) 
-        #define HP_API __declspec(dllexport) // Microsoft  
+        #define HP_API __declspec(dllexport) // MSBUILD  
     #elif defined(__GNUC__) 
         #define HP_API __attribute__((visibility("default"))) // GCC 
     #endif

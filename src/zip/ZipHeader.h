@@ -1,10 +1,14 @@
 #ifndef HEADER_PARSER_ZIP_HEADER_H
 #define HEADER_PARSER_ZIP_HEADER_H
 
+#include <stdint.h>
+
 const unsigned char MAGIC_ZIP_DIR_ENTRY_BYTES[] = { 0x50, 0x4B, 0x01, 0x02 };
 const unsigned char MAGIC_ZIP_FILE_ENTRY_BYTES[] = { 0x50, 0x4B, 0x03, 0x04 };
 const unsigned char MAGIC_ZIP_END_LOCATOR_BYTES[] = { 0x50, 0x4B, 0x05, 0x06 };
 const unsigned char MAGIC_ZIP_DATA_DESCRIPTOR_BYTES[] = { 0x50, 0x4B, 0x07, 0x08 };
+const unsigned char MAGIC_ZIP_64_EOCD[] = { 0x50, 0x4B, 0x06, 0x06 };
+const unsigned char MAGIC_ZIP_64_EOCDL[] = { 0x50, 0x4B, 0x06, 0x07 };
 
 #define MAGIC_ZIP_BYTES_LN (4)
 
@@ -73,14 +77,14 @@ const Zip_Flag_Types ZipFlagTypes = {
 };
 
 typedef struct ZipDataDescription {
-    char ddSignature[4]; //0x08074b50
+    uint8_t ddSignature[4]; //0x08074b50
     uint32_t ddCRC;
     uint32_t ddCompressedSize;
     uint32_t ddUncompressedSize;
 } ZipDataDescription;
 
 typedef struct ZipFileRecored {
-    char signature[4];    //0x04034b50
+    uint8_t signature[4];    //0x04034b50
     ZipVersion version;
     uint16_t flags;
     uint16_t compression;
@@ -94,15 +98,15 @@ typedef struct ZipFileRecored {
     char* fileName;
     unsigned char* extraField;
     unsigned char* data;
-//	It is byte aligned and immediately follows the last byte of compressed data.
-//	Although not originally assigned a signature,
-//	the value 0x08074b50 has commonly been adopted as a signature value for the data descriptor record.
-//	Implementers SHOULD be aware that ZIP files MAY be encountered with or without this signature marking data descriptors
+//  It is byte aligned and immediately follows the last byte of compressed data.
+//  Although not originally assigned a signature,
+//  the value 0x08074b50 has commonly been adopted as a signature value for the data descriptor record.
+//  Implementers SHOULD be aware that ZIP files MAY be encountered with or without this signature marking data descriptors
     ZipDataDescription dataDescr;
 } ZipFileRecord;
 
 typedef struct ZipDirEntry{
-    char signature[4];
+    uint8_t signature[4];
     ZipVersion versionMadeBy;
     ZipVersion versionToExtract;
     uint16_t flags;
@@ -125,7 +129,7 @@ typedef struct ZipDirEntry{
 } ZipDirEntry;
 
 typedef struct ZipEndLocator{
-    char signature[4];    //0x06054b50
+    uint8_t signature[4];    //0x06054b50
     uint16_t diskNumber;
     uint16_t startDiskNumber;
     uint16_t entriesOnDisk;
@@ -135,5 +139,26 @@ typedef struct ZipEndLocator{
     uint16_t commentLength;
     char* comment;
 } ZipEndLocator;
+
+// ZIP64 End of Central Directory Record (ZIP64 EOCD)
+struct Zip64_EOCD {
+    uint8_t signature[4];          // 0x06064b50
+    uint64_t size_of_record;    // size of remaining record (typically 44)
+    uint16_t version_made_by;
+    uint16_t version_needed_to_extract;
+    uint32_t disk_number;       // disk where this EOCD record starts
+    uint32_t disk_with_cd;      // disk number with the start of the central directory
+    uint64_t cd_size;          // size of the central directory in bytes
+    uint64_t cd_offset;        // offset of start of central directory, relative to start of file
+};
+
+// ZIP64 End of Central Directory Locator (optional, but usually present)
+struct Zip64_EOCDL {
+    uint32_t signature;         // 0x07064b50
+    uint32_t disk_number_with_cd;
+    uint64_t eocd64_offset;     // absolute offset of the ZIP64 EOCD record
+    uint32_t total_disks;       // number of disks in archive (a count field)
+};
+
 
 #endif

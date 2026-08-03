@@ -32,6 +32,39 @@ uint8_t isMemZero(void* mem, size_t n);
 
 char offset_buffer[256];
 
+
+// #if defined(_LINUX) || defined(__APPLE__)
+// size_t getFullPathName(const char* src, size_t max, char* full_path, char** base_name)
+// {
+//     FEnter();
+//     int errsv = 0;
+//    
+//     DPrint("  src: %s\n", src);
+//  
+//     char* fp = realpath_noent(src, full_path);
+//     errsv = errno;
+//     DPrint("  errno: 0x%x\n", errsv);
+//     DPrint("  full_path: %s\n", full_path);
+//     if ( fp == NULL || errsv != 0 )
+//     {
+//         printf("[e] realpath_noent failed! (0x%x)\n", errno);
+//         return 0;
+//     }
+//     size_t n = strlen(full_path);
+//     DPrint("  n: 0x%zx\n", n);
+//     if ( base_name != NULL )
+//     {
+//         *base_name = basename(full_path);
+//         if ( !base_name )
+//             return 0;
+//         DPrint("  base_name: %s\n", *base_name);
+//     }
+//
+//     FLeave();
+//     return n;
+// }
+// #endif
+
 /**
  * Expand the file path:
  *
@@ -40,7 +73,7 @@ char offset_buffer[256];
  */
 int expandFilePath(const char* src, char* dest)
 {
-    const char* env_home;
+    // const char* env_home;
 
     if ( !src || src[0] == 0 )
         return -1;

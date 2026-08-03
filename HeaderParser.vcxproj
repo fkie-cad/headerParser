@@ -93,6 +93,7 @@
       <!--<PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>-->
       <!--<LanguageStandard>c99</LanguageStandard>-->
       <AdditionalOptions>/GS %(AdditionalOptions)</AdditionalOptions>
+      <GuardCF>true</GuardCF>
     </ClCompile>
     <ResourceCompile>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);</AdditionalIncludeDirectories>
