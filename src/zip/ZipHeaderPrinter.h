@@ -165,7 +165,7 @@ void ZIP_printFileEntry(const ZipFileRecord* fr,
     if ( hasFlag16(fr->flags, ZipFlagTypes.FLAG_DescriptorUsedMask) )
     {
         printf(" - dataDescr:\n");
-        printf("    offset: 0x%zx\n", dd_offset);
+        DPrint("    offset: 0x%zx\n", dd_offset);
         printf("   - signature%s: %02x|%02x|%02x|%02x\n", fillOffset(ZipDataDescriptionOffsets.signature, dd_offset, 0), fr->dataDescr.ddSignature[0], fr->dataDescr.ddSignature[1], fr->dataDescr.ddSignature[2], fr->dataDescr.ddSignature[3]);
         printf("   - crc%s: 0x%x (%u)\n", fillOffset(ZipDataDescriptionOffsets.crc, dd_offset, 0), fr->dataDescr.ddCRC, fr->dataDescr.ddCRC);
         printf("   - compressedSize%s: 0x%x (%u)\n", fillOffset(ZipDataDescriptionOffsets.compressedSize, dd_offset, 0), fr->dataDescr.ddCompressedSize, fr->dataDescr.ddCompressedSize);

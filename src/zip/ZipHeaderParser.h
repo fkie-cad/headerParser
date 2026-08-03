@@ -45,7 +45,6 @@ static uint8_t ZIP_nameStartsWith(const char* name, uint16_t frFileNameLength, c
 static uint8_t ZIP_checkNeedlesDe(ZipDirEntry* de,
                                 size_t offset,
                                 uint16_t* found_needles,
-                                uint32_t record_count,
                                 size_t abs_file_offset,
                                 size_t file_size,
                                 FILE* fp,
@@ -143,7 +142,6 @@ void parseZip(PHeaderData hd, PGlobalParams gp)
             &de, 
             cd_off, 
             found_needles, 
-            i, 
             gp->file.abs_offset, 
             gp->file.size, 
             gp->file.handle, 
@@ -534,7 +532,11 @@ uint8_t ZIP_checkNameOfRecord(const char* name,
                               const char* expected)
 {
     uint16_t i;
-    if ( !name )
+
+    if ( !name || !expected )
+        return 0;
+
+    if ( frFileNameLength != strlen(expected) )
         return 0;
 
     for ( i = 0; i < frFileNameLength; i++ )
@@ -601,7 +603,6 @@ uint8_t ZIP_nameStartsWith(const char* name,
 uint8_t ZIP_checkNeedlesDe(ZipDirEntry* de,
                          size_t offset,
                          uint16_t* found_needles,
-                         uint32_t record_count,
                          size_t abs_file_offset,
                          size_t file_size,
                          FILE* fp,
@@ -636,42 +637,35 @@ uint8_t ZIP_checkNeedlesDe(ZipDirEntry* de,
         return 0;
     name = (char*)buffer;
 
-    // needles[0|1]
-    // full-name match (prefix-based, head is enough)
-    if ( record_count < 2 )
+    // prefix / full-name checks — operate on the head, must run BEFORE the tail read
+    if ( ZIP_checkNameOfRecord(name, de->fileNameLength, needles[0]) ) // "META-INF/"
+        found_needles[0]++;
+    if ( ZIP_checkNameOfRecord(name, de->fileNameLength, needles[1]) ) // "META-INF/MANIFEST.MF"
+        found_needles[1]++;
+    if ( ZIP_nameStartsWith(name, de->fileNameLength, needles[3]) ) // "word"  (docx)
+        found_needles[3]++;
+    if ( ZIP_checkNameOfRecord(name, de->fileNameLength, needles[4]) ) // "AndroidManifest.xml" (apk)
+        found_needles[4]++;
+
+    // ends-with check — needs the tail for names longer than the buffer.
+    // (clobbers `buffer`, so it comes last, after all head-based checks.)
+    uint8_t is_class = 0;
+    if ( de->fileNameLength <= head_ln )
     {
-        if ( ZIP_checkNameOfRecord(name, de->fileNameLength, needles[record_count]) )
-            found_needles[record_count]++;
+        is_class = ZIP_nameHasFileType(name, de->fileNameLength, needles[2]);   // ".class"
     }
-    // needles[2,3]
     else
     {
-        // starting pattern — head is enough
-        if ( ZIP_nameStartsWith(name, de->fileNameLength, needles[3]) )
-            found_needles[3]++;
-
-        // ending pattern — needs the tail of the name
-        if ( de->fileNameLength <= head_ln )
+        size_t tail_ln = buffer_cb;
+        size_t tail_fo = name_fo + de->fileNameLength - tail_ln;
+        r_size = readFile(fp, tail_fo, tail_ln, buffer);
+        if ( r_size == tail_ln )
         {
-            if ( ZIP_nameHasFileType(name, de->fileNameLength, needles[2]) )
-                found_needles[2]++;
-        }
-        else
-        {
-            // name longer than the buffer: read the last chunk holding the suffix.
-            // this clobbers buffer, 
-            // so it must come AFTER the starts-with check.
-            size_t tail_ln = buffer_cb;
-            size_t tail_fo = name_fo + de->fileNameLength - tail_ln;
-
-            r_size = readFile(fp, tail_fo, tail_ln, buffer);
-            if ( r_size == tail_ln )
-            {
-                if ( ZIP_nameHasFileType((char*)buffer, (uint16_t)tail_ln, needles[2]) )
-                    found_needles[2]++;
-            }
+            is_class = ZIP_nameHasFileType((char*)buffer, (uint16_t)tail_ln, needles[2]);
         }
     }
+    if ( is_class )
+        found_needles[2]++;
 
     return 1;
 }
